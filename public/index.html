@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fleetzy">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Weekly car rentals for individual drivers and corporate fleet solutions in Houston, Texas. Rideshare-approved vehicles, flexible terms, 24-hour approval.">
+    
+    <title>Fleetzy - Weekly Car Rentals | Individual & Corporate Fleet Solutions Houston</title>
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="/icons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120x120.png">
+    
+    <!-- Apple Splash Screens -->
+    <link rel="apple-touch-startup-image" href="/splash/iphone5_splash.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="/splash/iphone6_splash.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="/splash/iphoneplus_splash.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="/splash/iphonex_splash.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="/splash/iphonexr_splash.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="/splash/iphonexsmax_splash.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="/splash/ipad_splash.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="/splash/ipadpro1_splash.png" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="/splash/ipadpro2_splash.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)">
+    
+    <!-- Social Media Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://getfleetzy.netlify.app">
+    <meta property="og:title" content="Fleetzy - Weekly Car Rentals for Gig Drivers">
+    <meta property="og:description" content="Reliable weekly car rentals starting at $400/week. Fast approval, quality vehicles, flexible payments.">
+    <meta property="og:image" content="https://getfleetzy.netlify.app/social/og_image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://getfleetzy.netlify.app">
+    <meta name="twitter:title" content="Fleetzy - Weekly Car Rentals">
+    <meta name="twitter:description" content="Reliable weekly car rentals for gig economy drivers">
+    <meta name="twitter:image" content="https://getfleetzy.netlify.app/social/twitter_large.png">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'fleetzy-green': '#059669',
+                        'fleetzy-blue': '#475569',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- PWA Helper Script -->
+    <script src="/pwa-helper.js" defer></script>
+    
+    <style>
+        /* Custom Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <a href="index.html">
+                            <img src="fleetzy-logo.png" alt="Fleetzy" class="h-10 w-auto">
+                        </a>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#how-it-works" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium transition">How It Works</a>
+                        <a href="#pricing" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium transition">Pricing</a>
+                        <a href="#vehicles" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium transition">Vehicles</a>
+                        <a href="#faq" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium transition">FAQ</a>
+                    </div>
+                </div>
+                <div>
+                    <a href="application.html" class="bg-fleetzy-green text-white px-6 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">
+                        Apply Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-24 pb-16 px-4 bg-gradient-to-br from-fleetzy-green to-emerald-600 text-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="fade-in-up">
+                    <h2 class="text-5xl font-bold mb-6 leading-tight">
+                        Fleet Solutions for<br/>
+                        <span class="text-emerald-200">Drivers & Businesses.</span>
+                    </h2>
+                    <p class="text-xl mb-8 text-emerald-50">
+                        Weekly car rentals for rideshare drivers and corporate fleet solutions in Houston, Texas. Get approved in 24 hours.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="application.html" class="bg-white text-fleetzy-green px-8 py-4 rounded-lg font-bold text-lg hover:bg-emerald-50 transition text-center">
+                            Start Your Application
+                        </a>
+                        <a href="#how-it-works" class="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-fleetzy-green transition text-center">
+                            Learn More
+                        </a>
+                    </div>
+                    <div class="mt-8 flex items-center gap-6 text-sm flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-200" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Individual & Fleet Rentals</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-200" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Same-Day Approval</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-200" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Flexible Terms</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+                        <div class="space-y-4">
+                            <div class="bg-white rounded-lg p-6 shadow-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-600 font-semibold">Weekly Rate</span>
+                                    <span class="text-3xl font-bold text-fleetzy-green">$400</span>
+                                </div>
+                                <p class="text-sm text-gray-500">All-inclusive pricing</p>
+                            </div>
+                            <div class="bg-white rounded-lg p-6 shadow-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-gray-600 font-semibold">Security Deposit</span>
+                                    <span class="text-3xl font-bold text-fleetzy-blue">$500</span>
+                                </div>
+                                <p class="text-sm text-gray-500">Refundable at end of rental</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div>
+                    <div class="text-4xl font-bold text-fleetzy-green mb-2">4</div>
+                    <div class="text-gray-600">Vehicles Available</div>
+                </div>
+                <div>
+                    <div class="text-4xl font-bold text-fleetzy-green mb-2">24hrs</div>
+                    <div class="text-gray-600">Approval Time</div>
+                </div>
+                <div>
+                    <div class="text-4xl font-bold text-fleetzy-green mb-2">100%</div>
+                    <div class="text-gray-600">Rideshare Approved</div>
+                </div>
+                <div>
+                    <div class="text-4xl font-bold text-fleetzy-green mb-2">$400</div>
+                    <div class="text-gray-600">Weekly Rate</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-20 px-4 bg-gray-50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-bold text-gray-900 mb-4">How Fleetzy Works</h3>
+                <p class="text-xl text-gray-600">Individual drivers and corporate fleets - approved in 3 simple steps</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-12">
+                <!-- Step 1 -->
+                <div class="text-center">
+                    <div class="bg-fleetzy-green text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                        1
+                    </div>
+                    <h4 class="text-2xl font-bold mb-4">Apply Online</h4>
+                    <p class="text-gray-600 mb-4">Quick 5-minute application for individual drivers or complete our corporate fleet inquiry for businesses.</p>
+                    <ul class="text-left text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Individual or corporate applications</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Takes only 5 minutes</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Mobile-friendly platform</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center">
+                    <div class="bg-fleetzy-green text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                        2
+                    </div>
+                    <h4 class="text-2xl font-bold mb-4">Get Approved</h4>
+                    <p class="text-gray-600 mb-4">We review your application and background check within 24 hours.</p>
+                    <ul class="text-left text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Fast approval process</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Background check included</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Email & SMS updates</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center">
+                    <div class="bg-fleetzy-green text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
+                        3
+                    </div>
+                    <h4 class="text-2xl font-bold mb-4">Start Driving</h4>
+                    <p class="text-gray-600 mb-4">Pick up your vehicle, pay your deposit, and start earning immediately.</p>
+                    <ul class="text-left text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Same-day vehicle pickup</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Clean, rideshare-ready cars</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Weekly payment schedule</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <a href="application.html" class="inline-block bg-fleetzy-green text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-emerald-700 transition">
+                    Start Your Application Now →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 px-4 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-bold text-gray-900 mb-4">Flexible Pricing Options</h3>
+                <p class="text-xl text-gray-600">Competitive rates for individual drivers and volume discounts for businesses</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- Individual Driver -->
+                <div class="bg-gray-50 rounded-2xl p-8 border-2 border-gray-200">
+                    <h4 class="text-2xl font-bold mb-4 text-gray-900">Individual Driver</h4>
+                    <div class="mb-6">
+                        <span class="text-5xl font-bold text-fleetzy-green">$400</span>
+                        <span class="text-gray-600">/week</span>
+                    </div>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>All vehicles rideshare-approved</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>$500 refundable security deposit</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Multiple payment methods accepted</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-fleetzy-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>24/7 roadside assistance included</span>
+                        </li>
+                    </ul>
+                    <a href="application.html" class="block text-center bg-fleetzy-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition">
+                        Apply Now
+                    </a>
+                </div>
+
+                <!-- Company/Corporate Fleet -->
+                <div class="bg-fleetzy-green rounded-2xl p-8 text-white relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-yellow-400 text-fleetzy-green px-4 py-1 text-sm font-bold">
+                        BUSINESS PREFERRED
+                    </div>
+                    <h4 class="text-2xl font-bold mb-4">Corporate Fleet Solutions</h4>
+                    <div class="mb-6">
+                        <span class="text-5xl font-bold">$350-375</span>
+                        <span class="text-emerald-100">/week per vehicle</span>
+                    </div>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-emerald-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Volume discount pricing</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-emerald-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Ideal for rideshare companies & delivery services</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-emerald-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Streamlined HR onboarding process</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-6 h-6 text-emerald-200 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Dedicated account management</span>
+                        </li>
+                    </ul>
+                    <a href="application.html" class="block text-center bg-white text-fleetzy-green px-6 py-3 rounded-lg font-semibold hover:bg-emerald-50 transition">
+                        Get Fleet Pricing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="py-20 px-4 bg-gray-50">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-bold text-gray-900 mb-4">Why Choose Fleetzy?</h3>
+                <p class="text-xl text-gray-600">Trusted by drivers and businesses across Houston</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3">Industry-Ready Fleet</h4>
+                    <p class="text-gray-600">All vehicles pre-approved for rideshare platforms and delivery services. Ready for commercial use immediately.</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3">Fast Approval</h4>
+                    <p class="text-gray-600">Get approved in 24 hours or less. No lengthy paperwork or complicated processes.</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3">Flexible Payments</h4>
+                    <p class="text-gray-600">Pay weekly with Zelle, CashApp, Venmo, PayPal, or card. Whatever works for you.</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3">Maintenance Included</h4>
+                    <p class="text-gray-600">We handle all maintenance and repairs. You just drive and earn.</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3">24/7 Support</h4>
+                    <p class="text-gray-600">Roadside assistance and support whenever you need it. We've got your back.</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                    <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
+                        <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3">Flexible Qualification</h4>
+                    <p class="text-gray-600">Streamlined approval process for individuals and businesses. We focus on reliability, not just credit scores.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 px-4 bg-white">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h3>
+                <p class="text-xl text-gray-600">Everything you need to know about renting with Fleetzy</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="border-b border-gray-200 pb-6">
+                    <h4 class="text-lg font-bold mb-2 text-gray-900">How long does the approval process take?</h4>
+                    <p class="text-gray-600">Most applications are approved within 24 hours. We run a quick background check and verify your documents. Once approved, you can pick up your vehicle the same day.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-6">
+                    <h4 class="text-lg font-bold mb-2 text-gray-900">What do I need to apply?</h4>
+                    <p class="text-gray-600">You'll need a valid driver's license, proof of income (bank statements or rideshare earnings), and a selfie for identity verification. The entire application takes about 5 minutes.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-6">
+                    <h4 class="text-lg font-bold mb-2 text-gray-900">When do I pay my weekly rental fee?</h4>
+                    <p class="text-gray-600">Weekly payments are due every 7 days from your pickup date. We'll send you automated reminders 2 days before payment is due. You can pay via Zelle, CashApp, Venmo, PayPal, or card.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-6">
+                    <h4 class="text-lg font-bold mb-2 text-gray-900">Is the $500 deposit refundable?</h4>
+                    <p class="text-gray-600">Yes! The $500 security deposit is fully refundable at the end of your rental, provided there's no damage to the vehicle and all payments are up to date.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-6">
+                    <h4 class="text-lg font-bold mb-2 text-gray-900">Are your vehicles approved for Uber and Lyft?</h4>
+                    <p class="text-gray-600">Absolutely! All Fleetzy vehicles meet the requirements for Uber, Lyft, and DoorDash in Houston. You can start driving immediately after pickup.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-6">
+                    <h4 class="text-lg font-bold mb-2 text-gray-900">What happens if the car breaks down?</h4>
+                    <p class="text-gray-600">We provide 24/7 roadside assistance. If there's a mechanical issue, we'll either repair it quickly or swap you into another vehicle at no additional cost.</p>
+                </div>
+
+                <div class="pb-6">
+                    <h4 class="text-lg font-bold mb-2 text-gray-900">Can I rent for less than a week?</h4>
+                    <p class="text-gray-600">Our minimum rental period is 2 weeks, but you can continue renting week-to-week after that for as long as you need.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 px-4 bg-gradient-to-br from-fleetzy-green to-emerald-600 text-white">
+        <div class="max-w-4xl mx-auto text-center">
+            <h3 class="text-4xl font-bold mb-6">Ready to Get Started?</h3>
+            <p class="text-xl mb-8 text-emerald-50">Join Houston's trusted fleet partner. Individual drivers and corporate fleets approved in 24 hours.</p>
+            <a href="application.html" class="inline-block bg-white text-fleetzy-green px-12 py-4 rounded-lg font-bold text-xl hover:bg-emerald-50 transition">
+                Apply Today - It's Free!
+            </a>
+            <p class="mt-4 text-sm text-emerald-100">Takes only 5 minutes • Fast approval • Flexible terms</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-fleetzy-blue text-white py-12 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h5 class="text-xl font-bold mb-4">Fleetzy</h5>
+                    <p class="text-gray-300 text-sm">Weekly car rentals for individual drivers and corporate fleet solutions in Houston, Texas.</p>
+                </div>
+                <div>
+                    <h6 class="font-bold mb-4">Quick Links</h6>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#how-it-works" class="text-gray-300 hover:text-white transition">How It Works</a></li>
+                        <li><a href="#pricing" class="text-gray-300 hover:text-white transition">Pricing</a></li>
+                        <li><a href="#faq" class="text-gray-300 hover:text-white transition">FAQ</a></li>
+                        <li><a href="application.html" class="text-gray-300 hover:text-white transition">Apply Now</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h6 class="font-bold mb-4">Contact</h6>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>Houston, Texas</li>
+                        <li>Phone: (281) 271-3900</li>
+                        <li>Email: hello@getfleetzy.com</li>
+                    </ul>
+                </div>
+                <div>
+                    <h6 class="font-bold mb-4">Hours</h6>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>Monday - Friday: 9am - 7pm</li>
+                        <li>Saturday: 10am - 5pm</li>
+                        <li>Sunday: Closed</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-600 pt-8 text-center text-sm text-gray-300">
+                <p>&copy; 2025 Fleetzy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- PWA Install Button -->
+    <button 
+        id="pwa-install-button" 
+        class="hidden fixed bottom-4 right-4 bg-fleetzy-green text-white px-6 py-3 rounded-full shadow-lg hover:bg-emerald-700 transition-all z-50 flex items-center space-x-2"
+        style="display: none;"
+    >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        <span class="font-semibold">Install App</span>
+    </button>
+
+    <!-- Offline Indicator -->
+    <div id="offline-indicator" class="fixed top-0 left-0 right-0 bg-yellow-500 text-white text-center py-2 px-4 hidden z-50" style="display: none;">
+        <p class="text-sm">You're offline. Some features may be limited.</p>
+    </div>
+
+    <script>
+    // Detect online/offline status
+    window.addEventListener('online', () => {
+        document.getElementById('offline-indicator').style.display = 'none';
+    });
+
+    window.addEventListener('offline', () => {
+        document.getElementById('offline-indicator').style.display = 'block';
+    });
+
+    // Check initial status
+    if (!navigator.onLine) {
+        document.getElementById('offline-indicator').style.display = 'block';
+    }
+    </script>
+
+</body>
+</html>

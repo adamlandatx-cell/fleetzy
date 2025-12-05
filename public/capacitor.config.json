@@ -1,0 +1,49 @@
+{
+  "appId": "com.fleetzy.app",
+  "appName": "Fleetzy",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://getfleetzy.netlify.app",
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#059669",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#FFFFFF"
+    },
+    "Camera": {
+      "permissions": ["camera", "photos"]
+    },
+    "Geolocation": {
+      "permissions": ["location"]
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#059669"
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#059669"
+    }
+  },
+  "cordova": {},
+  "ios": {
+    "contentInset": "automatic",
+    "scheme": "fleetzy"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true,
+    "backgroundColor": "#FFFFFF"
+  }
+}

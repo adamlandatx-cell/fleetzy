@@ -1,0 +1,28 @@
+# Secrets
+.env
+.env.*
+*.key
+*secret*
+*password*
+*credential*
+
+# OS Files
+.DS_Store
+Thumbs.db
+._*
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Dependencies
+node_modules/
+
+# Customer data
+uploads/
+customer-data/
+payment-screenshots/

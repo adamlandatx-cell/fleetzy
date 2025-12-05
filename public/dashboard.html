@@ -1,0 +1,246 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="en">\
+<head>\
+    <meta charset="UTF-8">\
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">\
+    <title>My Dashboard - Fleetzy</title>\
+    \
+    <meta name="theme-color" content="#059669">\
+    <meta name="apple-mobile-web-app-capable" content="yes">\
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\
+    <link rel="manifest" href="/manifest.json">\
+    \
+    <script src="https://cdn.tailwindcss.com"></script>\
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">\
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\
+\
+    <script>\
+        tailwind.config = \{\
+            theme: \{ extend: \{ colors: \{ 'fleetzy-green': '#059669', 'fleetzy-blue': '#475569' \} \} \}\
+        \}\
+    </script>\
+    <style>\
+        /* Pull-to-refresh animation */\
+        @keyframes pullDown \{ from \{ transform: translateY(-20px); opacity: 0; \} to \{ transform: translateY(0); opacity: 1; \} \}\
+        .animate-pull \{ animation: pullDown 0.4s ease-out; \}\
+        .vehicle-card \{ background: linear-gradient(135deg, #059669 0%, #047857 100%); \}\
+    </style>\
+</head>\
+<body class="bg-gray-50 text-gray-900 pb-20">\
+\
+    <header class="bg-white shadow-sm sticky top-0 z-50">\
+        <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between">\
+            <img src="fleetzy-logo.png" alt="Fleetzy" class="h-8">\
+            <button onclick="handleLogout()" class="text-gray-500 hover:text-red-600">\
+                <i class="fas fa-sign-out-alt text-lg"></i>\
+            </button>\
+        </div>\
+    </header>\
+\
+    <div id="loading" class="fixed inset-0 bg-white z-40 flex flex-col items-center justify-center">\
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-fleetzy-green mb-4"></div>\
+        <p class="text-gray-500">Loading your dashboard...</p>\
+    </div>\
+\
+    <main class="max-w-md mx-auto px-4 pt-6 space-y-6 animate-pull" id="main-content" style="display: none;">\
+        \
+        <div>\
+            <h1 class="text-2xl font-bold text-gray-900">Hello, <span id="user-name">Driver</span>! \uc0\u55357 \u56395 </h1>\
+            <p class="text-gray-500 text-sm">Here is your fleet status.</p>\
+        </div>\
+\
+        <div class="vehicle-card rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">\
+            <div class="absolute top-0 right-0 p-4 opacity-20">\
+                <i class="fas fa-car text-6xl"></i>\
+            </div>\
+            \
+            <div class="relative z-10">\
+                <div class="flex items-center justify-between mb-4">\
+                    <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">Active Rental</span>\
+                    <span class="text-emerald-100 text-sm" id="rental-id">#---</span>\
+                </div>\
+                \
+                <h2 class="text-3xl font-bold mb-1" id="vehicle-name">Loading...</h2>\
+                <p class="text-emerald-100 font-mono mb-6" id="vehicle-plate">---</p>\
+                \
+                <div class="flex justify-between items-end">\
+                    <div>\
+                        <p class="text-xs text-emerald-200 uppercase">Next Payment</p>\
+                        <p class="text-xl font-bold" id="next-due">---</p>\
+                    </div>\
+                    <a href="payment.html" class="bg-white text-fleetzy-green px-5 py-2 rounded-lg font-bold shadow-md hover:bg-emerald-50 transition flex items-center">\
+                        Pay Now <i class="fas fa-arrow-right ml-2 text-xs"></i>\
+                    </a>\
+                </div>\
+            </div>\
+        </div>\
+\
+        <div class="grid grid-cols-2 gap-4">\
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">\
+                <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2">\
+                    <i class="fas fa-calendar-check"></i>\
+                </div>\
+                <p class="text-xs text-gray-500">Days Rented</p>\
+                <p class="text-lg font-bold" id="days-rented">0</p>\
+            </div>\
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">\
+                <div class="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-2">\
+                    <i class="fas fa-tachometer-alt"></i>\
+                </div>\
+                <p class="text-xs text-gray-500">Mileage Limit</p>\
+                <p class="text-lg font-bold">Unlimited</p>\
+            </div>\
+        </div>\
+\
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">\
+            <div class="p-4 border-b border-gray-100">\
+                <h3 class="font-bold text-gray-900">Quick Actions</h3>\
+            </div>\
+            <div class="divide-y divide-gray-100">\
+                <a href="#" onclick="reportIssue()" class="flex items-center justify-between p-4 hover:bg-gray-50 transition">\
+                    <div class="flex items-center gap-3">\
+                        <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center">\
+                            <i class="fas fa-wrench"></i>\
+                        </div>\
+                        <span class="font-medium text-gray-700">Request Maintenance</span>\
+                    </div>\
+                    <i class="fas fa-chevron-right text-gray-300"></i>\
+                </a>\
+                <a href="#" onclick="alert('Documents feature coming soon!')" class="flex items-center justify-between p-4 hover:bg-gray-50 transition">\
+                    <div class="flex items-center gap-3">\
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">\
+                            <i class="fas fa-file-alt"></i>\
+                        </div>\
+                        <span class="font-medium text-gray-700">My Documents</span>\
+                    </div>\
+                    <i class="fas fa-chevron-right text-gray-300"></i>\
+                </a>\
+                <a href="https://getfleetzy.netlify.app/mechanic-portal.html" class="flex items-center justify-between p-4 hover:bg-gray-50 transition">\
+                    <div class="flex items-center gap-3">\
+                        <div class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">\
+                            <i class="fas fa-map-marker-alt"></i>\
+                        </div>\
+                        <span class="font-medium text-gray-700">Find Mechanic</span>\
+                    </div>\
+                    <i class="fas fa-chevron-right text-gray-300"></i>\
+                </a>\
+            </div>\
+        </div>\
+\
+        <div class="text-center py-4">\
+            <a href="tel:2819085583" class="text-sm text-gray-500 hover:text-fleetzy-green">\
+                <i class="fas fa-phone-alt mr-1"></i> Need help? Call Support\
+            </a>\
+        </div>\
+\
+    </main>\
+\
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 pb-safe-area">\
+        <div class="max-w-md mx-auto flex justify-around py-3">\
+            <a href="#" class="flex flex-col items-center text-fleetzy-green">\
+                <i class="fas fa-home text-xl mb-1"></i>\
+                <span class="text-[10px] font-medium">Home</span>\
+            </a>\
+            <a href="payment.html" class="flex flex-col items-center text-gray-400 hover:text-fleetzy-green">\
+                <i class="fas fa-credit-card text-xl mb-1"></i>\
+                <span class="text-[10px] font-medium">Pay</span>\
+            </a>\
+            <a href="#" onclick="handleLogout()" class="flex flex-col items-center text-gray-400 hover:text-fleetzy-green">\
+                <i class="fas fa-user text-xl mb-1"></i>\
+                <span class="text-[10px] font-medium">Profile</span>\
+            </a>\
+        </div>\
+    </nav>\
+\
+    <script>\
+        // --- CONFIG ---\
+        const supabaseUrl = 'https://xmixxqtcgaydasejshwn.supabase.co';\
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';\
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);\
+\
+        // --- LOGIC ---\
+        async function init() \{\
+            // 1. Check if user is logged in (Simulated for PWA demo if no auth cookie)\
+            // In production, this would check supabase.auth.getSession()\
+            \
+            // For now, let's try to find a customer by phone (stored in localStorage from login)\
+            const phone = localStorage.getItem('fleetzy_phone');\
+            \
+            if (!phone) \{\
+                // If no phone stored, redirect to login\
+                // window.location.href = 'login.html'; \
+                // (Commented out so you can view the UI immediately for testing)\
+            \}\
+\
+            // 2. Fetch Rental Data (Mocking fetch for the specific user logic)\
+            // Real query: supabase.from('rentals').select('*, vehicles(*)').eq('customer_id', user.id).single()\
+            \
+            // We will try to pull the most recent active rental to display\
+            const \{ data: rental \} = await supabase\
+                .from('rentals')\
+                .select('*, vehicles(*), customers(first_name)')\
+                .eq('rental_status', 'Active')\
+                .order('created_at', \{ ascending: false \})\
+                .limit(1)\
+                .single();\
+\
+            updateUI(rental);\
+        \}\
+\
+        function updateUI(rental) \{\
+            const loading = document.getElementById('loading');\
+            const main = document.getElementById('main-content');\
+\
+            if (rental) \{\
+                // Populate Data\
+                document.getElementById('user-name').innerText = rental.customers?.first_name || 'Driver';\
+                document.getElementById('vehicle-name').innerText = `$\{rental.vehicles.year\} $\{rental.vehicles.make\} $\{rental.vehicles.model\}`;\
+                document.getElementById('vehicle-plate').innerText = rental.vehicles.license_plate;\
+                document.getElementById('rental-id').innerText = '#' + rental.rental_id;\
+                \
+                // Dates\
+                const due = new Date(rental.next_payment_due);\
+                document.getElementById('next-due').innerText = due.toLocaleDateString('en-US', \{ month: 'short', day: 'numeric' \});\
+                \
+                // Days Rented\
+                const start = new Date(rental.start_date);\
+                const now = new Date();\
+                const diffTime = Math.abs(now - start);\
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); \
+                document.getElementById('days-rented').innerText = diffDays;\
+\
+            \} else \{\
+                // No active rental state\
+                document.getElementById('vehicle-name').innerText = 'No Active Rental';\
+                document.getElementById('vehicle-plate').innerText = 'Apply for a car today!';\
+                document.getElementById('next-due').innerText = '--';\
+            \}\
+\
+            // Show Content\
+            loading.style.display = 'none';\
+            main.style.display = 'block';\
+        \}\
+\
+        async function handleLogout() \{\
+            await supabase.auth.signOut();\
+            localStorage.removeItem('fleetzy_phone');\
+            window.location.href = 'login.html';\
+        \}\
+\
+        function reportIssue() \{\
+            // Simple SMS link for maintenance\
+            window.location.href = "sms:+12819085583?body=Hi Fleetzy, I need to report a maintenance issue with my vehicle.";\
+        \}\
+\
+        // Start\
+        init();\
+    </script>\
+</body>\
+</html>}
