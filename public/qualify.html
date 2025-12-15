@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="See if you qualify for Fleetzy weekly car rental in Houston, Texas. Fast 60-second check.">
+    <meta name="theme-color" content="#059669">
+    <title>See If You Qualify - Fleetzy</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="fleetzy-icon.png">
+    <link rel="apple-touch-icon" href="fleetzy-icon.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'fleetzy': {
+                            'green': '#059669',
+                            'dark': '#047857',
+                            'light': '#d1fae5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Hide all steps except active */
+        .step { display: none; }
+        .step.active { display: block; animation: slideIn 0.3s ease-out; }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        /* Option cards */
+        .option-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid #e5e7eb;
+        }
+        .option-card:hover {
+            border-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+        }
+        .option-card.selected {
+            border-color: #059669;
+            background: #d1fae5;
+        }
+        .option-card.selected .option-check {
+            opacity: 1;
+        }
+        .option-check {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        /* Progress bar */
+        .progress-fill {
+            transition: width 0.3s ease;
+        }
+        
+        /* Phone input formatting */
+        .phone-input::placeholder {
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="index.html">
+                <img src="fleetzy-logo.png" alt="Fleetzy" class="h-8">
+            </a>
+            <a href="tel:+12812713900" class="flex items-center gap-2 text-sm text-gray-600 hover:text-fleetzy-green">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+                <span>(281) 271-3900</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-2xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            
+            <!-- Progress Bar -->
+            <div class="bg-gray-100 px-6 py-4">
+                <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                    <span id="progressText">Step 1 of 5</span>
+                    <span id="progressPercent">20%</span>
+                </div>
+                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="progress-fill h-full bg-fleetzy-green rounded-full" id="progressBar" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-8">
+
+                <!-- ================================================ -->
+                <!-- STEP 1: PATH SELECTION (ENTRY POINT) -->
+                <!-- ================================================ -->
+                <div class="step active" id="step-entry">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">What brings you to Fleetzy?</h1>
+                    <p class="text-gray-600 mb-6">We'll customize your experience based on your needs.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4 flex items-center gap-4" onclick="selectPath('gig')">
+                            <div class="text-3xl">🚗</div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">I drive for rideshare/delivery</div>
+                                <div class="text-sm text-gray-500">Uber, Lyft, DoorDash, etc.</div>
+                            </div>
+                            <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4 flex items-center gap-4" onclick="selectPath('corporate')">
+                            <div class="text-3xl">🏢</div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">My company needs vehicles</div>
+                                <div class="text-sm text-gray-500">Fleet rentals for employees</div>
+                            </div>
+                            <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4 flex items-center gap-4" onclick="selectPath('temporary')">
+                            <div class="text-3xl">⏱️</div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">I need temporary transportation</div>
+                                <div class="text-sm text-gray-500">Car in shop, between vehicles, etc.</div>
+                            </div>
+                            <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4 flex items-center gap-4" onclick="selectPath('fresh')">
+                            <div class="text-3xl">🌱</div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">I'm starting fresh</div>
+                                <div class="text-sm text-gray-500">New to gig work, need a vehicle to start</div>
+                            </div>
+                            <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================================================ -->
+                <!-- GIG DRIVER PATH -->
+                <!-- ================================================ -->
+                
+                <!-- GIG Step 2: Experience -->
+                <div class="step" id="step-gig-experience">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">How long have you been driving?</h1>
+                    <p class="text-gray-600 mb-6">Your experience helps us find the right vehicle for you.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigExperience', '2+ years')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">2+ years</div>
+                                    <div class="text-sm text-gray-500">Experienced driver</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigExperience', '1-2 years')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">1-2 years</div>
+                                    <div class="text-sm text-gray-500">Solid experience</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigExperience', '6-12 months')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">6-12 months</div>
+                                    <div class="text-sm text-gray-500">Getting established</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigExperience', 'less than 6 months')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Less than 6 months</div>
+                                    <div class="text-sm text-gray-500">Just getting started</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextGigStep('experience')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- GIG Step 3: Platforms -->
+                <div class="step" id="step-gig-platforms">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Which platforms do you drive for?</h1>
+                    <p class="text-gray-600 mb-6">Select all that apply.</p>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="option-card rounded-xl p-4 text-center" onclick="togglePlatform(this, 'Uber')">
+                            <div class="text-2xl mb-1">🚘</div>
+                            <div class="font-semibold">Uber</div>
+                        </div>
+                        <div class="option-card rounded-xl p-4 text-center" onclick="togglePlatform(this, 'Lyft')">
+                            <div class="text-2xl mb-1">🚗</div>
+                            <div class="font-semibold">Lyft</div>
+                        </div>
+                        <div class="option-card rounded-xl p-4 text-center" onclick="togglePlatform(this, 'DoorDash')">
+                            <div class="text-2xl mb-1">🍔</div>
+                            <div class="font-semibold">DoorDash</div>
+                        </div>
+                        <div class="option-card rounded-xl p-4 text-center" onclick="togglePlatform(this, 'UberEats')">
+                            <div class="text-2xl mb-1">🥡</div>
+                            <div class="font-semibold">Uber Eats</div>
+                        </div>
+                        <div class="option-card rounded-xl p-4 text-center" onclick="togglePlatform(this, 'Instacart')">
+                            <div class="text-2xl mb-1">🛒</div>
+                            <div class="font-semibold">Instacart</div>
+                        </div>
+                        <div class="option-card rounded-xl p-4 text-center" onclick="togglePlatform(this, 'Amazon Flex')">
+                            <div class="text-2xl mb-1">📦</div>
+                            <div class="font-semibold">Amazon Flex</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextGigStep('platforms')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- GIG Step 4: Earnings -->
+                <div class="step" id="step-gig-earnings">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">What are your weekly earnings?</h1>
+                    <p class="text-gray-600 mb-6">This helps us ensure the rental fits your budget.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigEarnings', '$1500+')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">$1,500+ per week</div>
+                                    <div class="text-sm text-gray-500">Full-time driver</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigEarnings', '$1000-1500')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">$1,000 - $1,500 per week</div>
+                                    <div class="text-sm text-gray-500">Consistent earner</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigEarnings', '$500-1000')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">$500 - $1,000 per week</div>
+                                    <div class="text-sm text-gray-500">Part-time driver</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigEarnings', 'less than $500')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Less than $500 per week</div>
+                                    <div class="text-sm text-gray-500">Just starting or casual</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextGigStep('earnings')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- GIG Step 5: Eligibility -->
+                <div class="step" id="step-gig-eligibility">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Quick eligibility check</h1>
+                    <p class="text-gray-600 mb-6">Just a few quick questions to confirm your eligibility.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="gig-age" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I am 25 years or older</span>
+                            </label>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="gig-license" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I have a valid driver's license</span>
+                            </label>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="gig-background" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I can pass a background check</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="checkGigEligibility()" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Check Eligibility →</button>
+                    </div>
+                </div>
+
+                <!-- ================================================ -->
+                <!-- CORPORATE PATH -->
+                <!-- ================================================ -->
+                
+                <!-- Corporate Step 2: Company Info -->
+                <div class="step" id="step-corp-company">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Tell us about your company</h1>
+                    <p class="text-gray-600 mb-6">We'll customize a fleet solution for your business.</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                            <input type="text" id="corpCompanyName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent" placeholder="ABC Company LLC">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Role</label>
+                            <select id="corpRole" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
+                                <option value="">Select your role</option>
+                                <option value="HR Manager">HR Manager</option>
+                                <option value="Fleet Manager">Fleet Manager</option>
+                                <option value="Operations Manager">Operations Manager</option>
+                                <option value="Owner/CEO">Owner/CEO</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Industry</label>
+                            <select id="corpIndustry" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
+                                <option value="">Select industry</option>
+                                <option value="Logistics/Delivery">Logistics/Delivery</option>
+                                <option value="Sales/Field Service">Sales/Field Service</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Construction">Construction</option>
+                                <option value="Real Estate">Real Estate</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextCorpStep('company')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- Corporate Step 3: Fleet Size -->
+                <div class="step" id="step-corp-fleet">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">How many vehicles do you need?</h1>
+                    <p class="text-gray-600 mb-6">Select the fleet size that fits your needs.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpFleet', '1-2')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">1-2 vehicles</div>
+                                    <div class="text-sm text-gray-500">Small team</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpFleet', '3-5')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">3-5 vehicles</div>
+                                    <div class="text-sm text-gray-500">Growing team</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpFleet', '5+')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">5+ vehicles</div>
+                                    <div class="text-sm text-gray-500">Full fleet - custom pricing</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextCorpStep('fleet')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- Corporate Step 4: Duration -->
+                <div class="step" id="step-corp-duration">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">How long do you need the vehicles?</h1>
+                    <p class="text-gray-600 mb-6">Longer terms get better rates.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpDuration', '1-3 months')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">1-3 months</div>
+                                    <div class="text-sm text-gray-500">Short-term project</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpDuration', '3-6 months')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">3-6 months</div>
+                                    <div class="text-sm text-gray-500">Extended project</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpDuration', '6+ months')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">6+ months</div>
+                                    <div class="text-sm text-gray-500">Long-term - best rates!</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpDuration', 'ongoing')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Ongoing / Indefinite</div>
+                                    <div class="text-sm text-gray-500">Permanent fleet solution</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextCorpStep('duration')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+
+                <!-- ================================================ -->
+                <!-- TEMPORARY PATH -->
+                <!-- ================================================ -->
+                
+                <!-- Temp Step 2: Reason -->
+                <div class="step" id="step-temp-reason">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Why do you need temporary transportation?</h1>
+                    <p class="text-gray-600 mb-6">This helps us understand your situation.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempReason', 'car in shop')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">My car is in the shop</div>
+                                    <div class="text-sm text-gray-500">Need wheels while it's being fixed</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempReason', 'between vehicles')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Between vehicles</div>
+                                    <div class="text-sm text-gray-500">Sold my car, waiting on new one</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempReason', 'visiting')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Visiting Houston</div>
+                                    <div class="text-sm text-gray-500">Extended stay, need reliable transport</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempReason', 'other')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Other reason</div>
+                                    <div class="text-sm text-gray-500">Something else entirely</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextTempStep('reason')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- Temp Step 3: Duration -->
+                <div class="step" id="step-temp-duration">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">How long do you need the vehicle?</h1>
+                    <p class="text-gray-600 mb-6">Minimum rental is 2 weeks.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempDuration', '2-4 weeks')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">2-4 weeks</div>
+                                    <div class="text-sm text-gray-500">Quick fix</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempDuration', '1-2 months')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">1-2 months</div>
+                                    <div class="text-sm text-gray-500">Extended period</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempDuration', 'not sure')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Not sure yet</div>
+                                    <div class="text-sm text-gray-500">Flexible week-to-week</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextTempStep('duration')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- Temp Step 4: Employment -->
+                <div class="step" id="step-temp-employment">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">What's your employment status?</h1>
+                    <p class="text-gray-600 mb-6">This helps us verify you can afford the rental.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempEmployment', 'employed')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Employed (W-2)</div>
+                                    <div class="text-sm text-gray-500">Regular paycheck</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempEmployment', 'self-employed')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Self-employed</div>
+                                    <div class="text-sm text-gray-500">Business owner or contractor</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempEmployment', 'gig')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Gig worker</div>
+                                    <div class="text-sm text-gray-500">Uber, DoorDash, etc.</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempEmployment', 'unemployed')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Currently unemployed</div>
+                                    <div class="text-sm text-gray-500">Between jobs</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextTempStep('employment')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- Temp Step 5: Eligibility -->
+                <div class="step" id="step-temp-eligibility">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Quick eligibility check</h1>
+                    <p class="text-gray-600 mb-6">Just a few quick questions to confirm.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="temp-age" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I am 25 years or older</span>
+                            </label>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="temp-license" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I have a valid driver's license</span>
+                            </label>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="temp-background" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I can pass a background check</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="checkTempEligibility()" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Check Eligibility →</button>
+                    </div>
+                </div>
+
+                <!-- ================================================ -->
+                <!-- FRESH START PATH -->
+                <!-- ================================================ -->
+                
+                <!-- Fresh Step 2: Platform Status -->
+                <div class="step" id="step-fresh-platform">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Are you already approved on a gig platform?</h1>
+                    <p class="text-gray-600 mb-6">This helps us understand your situation.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshPlatform', 'approved')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Yes, I'm approved</div>
+                                    <div class="text-sm text-gray-500">Just need a vehicle to start driving</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshPlatform', 'pending')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Application pending</div>
+                                    <div class="text-sm text-gray-500">Waiting for approval</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshPlatform', 'not yet')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Not yet applied</div>
+                                    <div class="text-sm text-gray-500">Haven't started the process</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextFreshStep('platform')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- Fresh Step 3: Other Income -->
+                <div class="step" id="step-fresh-income">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Do you have other income while you get started?</h1>
+                    <p class="text-gray-600 mb-6">We want to make sure you can afford the weekly payments until you're earning.</p>
+                    
+                    <div class="space-y-3">
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshIncome', 'yes-job')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Yes, I have a job</div>
+                                    <div class="text-sm text-gray-500">Gig driving will be additional income</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshIncome', 'yes-savings')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">Yes, I have savings</div>
+                                    <div class="text-sm text-gray-500">Can cover a few weeks while I ramp up</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshIncome', 'no')">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-900">No other income</div>
+                                    <div class="text-sm text-gray-500">This will be my only income source</div>
+                                </div>
+                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="nextFreshStep('income')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                    </div>
+                </div>
+                
+                <!-- Fresh Step 4: Eligibility -->
+                <div class="step" id="step-fresh-eligibility">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Quick eligibility check</h1>
+                    <p class="text-gray-600 mb-6">Last step before we show you your options.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="fresh-age" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I am 25 years or older</span>
+                            </label>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="fresh-license" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I have a valid driver's license</span>
+                            </label>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="fresh-background" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
+                                <span class="text-gray-900">I can pass a background check</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
+                        <button onclick="checkFreshEligibility()" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Check Eligibility →</button>
+                    </div>
+                </div>
+
+                <!-- ================================================ -->
+                <!-- SUCCESS SCREENS -->
+                <!-- ================================================ -->
+                
+                <!-- Success: Gig/Temp/Fresh ($650) -->
+                <div class="step" id="step-success-standard">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-10 h-10 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Great news! You're pre-qualified! 🎉</h1>
+                        <p class="text-gray-600">Based on your answers, you're a great fit for Fleetzy.</p>
+                    </div>
+                    
+                    <!-- Pricing Card -->
+                    <div class="bg-gradient-to-br from-fleetzy-green to-emerald-700 rounded-2xl p-6 text-white mb-6">
+                        <div class="text-center mb-4">
+                            <div class="text-sm uppercase tracking-wide opacity-90">Your weekly rate</div>
+                            <div class="text-5xl font-bold">$400<span class="text-xl font-normal">/week</span></div>
+                        </div>
+                        
+                        <div class="border-t border-white/20 pt-4 space-y-2">
+                            <div class="flex justify-between">
+                                <span class="opacity-90">First week</span>
+                                <span class="font-semibold">$400</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-90">Refundable deposit</span>
+                                <span class="font-semibold">$250</span>
+                            </div>
+                            <div class="border-t border-white/20 pt-2 mt-2 flex justify-between text-lg">
+                                <span class="font-semibold">Due today</span>
+                                <span class="font-bold">$650</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- What's Included -->
+                    <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                        <h3 class="font-semibold text-gray-900 mb-3">What's included:</h3>
+                        <ul class="space-y-2 text-sm text-gray-700">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Rideshare & delivery approved vehicle
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Full insurance coverage
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                24/7 roadside assistance
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Flexible week-to-week terms
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Deposit returned when you're done
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Contact Form -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                            <input type="text" id="successName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent" placeholder="John Smith">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <input type="tel" id="successPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent phone-input" placeholder="(555) 123-4567">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
+                            <input type="email" id="successEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent" placeholder="john@email.com">
+                        </div>
+                    </div>
+                    
+                    <button onclick="proceedToApplication('standard')" class="w-full mt-6 px-8 py-4 bg-fleetzy-green text-white font-bold text-lg rounded-xl hover:bg-fleetzy-dark transition shadow-lg">
+                        Complete My Application →
+                    </button>
+                    
+                    <p class="text-center text-sm text-gray-500 mt-4">
+                        Takes about 5 minutes. We'll text you a link.
+                    </p>
+                </div>
+                
+                <!-- Success: Corporate ($600) -->
+                <div class="step" id="step-success-corporate">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Perfect for your business! 🏢</h1>
+                        <p class="text-gray-600">Corporate clients get special rates and dedicated support.</p>
+                    </div>
+                    
+                    <!-- Pricing Card -->
+                    <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white mb-6">
+                        <div class="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded">CORPORATE RATE</div>
+                        <div class="text-center mb-4">
+                            <div class="text-sm uppercase tracking-wide opacity-90">Per vehicle weekly rate</div>
+                            <div class="text-5xl font-bold">$350<span class="text-xl font-normal">/week</span></div>
+                            <div class="text-sm opacity-75 mt-1">$50/week savings vs standard</div>
+                        </div>
+                        
+                        <div class="border-t border-white/20 pt-4 space-y-2">
+                            <div class="flex justify-between">
+                                <span class="opacity-90">First week (per vehicle)</span>
+                                <span class="font-semibold">$350</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="opacity-90">Refundable deposit</span>
+                                <span class="font-semibold">$250</span>
+                            </div>
+                            <div class="border-t border-white/20 pt-2 mt-2 flex justify-between text-lg">
+                                <span class="font-semibold">Due per vehicle</span>
+                                <span class="font-bold">$600</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Corporate Benefits -->
+                    <div class="bg-blue-50 rounded-xl p-4 mb-6">
+                        <h3 class="font-semibold text-gray-900 mb-3">Corporate benefits:</h3>
+                        <ul class="space-y-2 text-sm text-gray-700">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Dedicated account manager
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Volume discounts for 5+ vehicles
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Consolidated billing
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                Priority vehicle replacement
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Contact Form -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Contact Name</label>
+                            <input type="text" id="corpContactName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="John Smith">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Work Email</label>
+                            <input type="email" id="corpContactEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="john@company.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <input type="tel" id="corpContactPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent phone-input" placeholder="(555) 123-4567">
+                        </div>
+                    </div>
+                    
+                    <button onclick="proceedToApplication('corporate')" class="w-full mt-6 px-8 py-4 bg-blue-600 text-white font-bold text-lg rounded-xl hover:bg-blue-700 transition shadow-lg">
+                        Get Started →
+                    </button>
+                    
+                    <p class="text-center text-sm text-gray-500 mt-4">
+                        We'll reach out within 24 hours to discuss your fleet needs.
+                    </p>
+                </div>
+
+                <!-- ================================================ -->
+                <!-- DISQUALIFICATION SCREENS -->
+                <!-- ================================================ -->
+                
+                <!-- DQ: Under 25 -->
+                <div class="step" id="step-dq-age">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl">🎂</span>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Almost there!</h1>
+                        <p class="text-gray-600">You need to be 25 or older to rent with Fleetzy. This is an insurance requirement.</p>
+                    </div>
+                    
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                        <p class="text-yellow-800 text-sm">
+                            <strong>Good news:</strong> Join our waitlist and we'll notify you when you're eligible!
+                        </p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                            <input type="text" id="dqAgeName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent" placeholder="John Smith">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <input type="tel" id="dqAgePhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent phone-input" placeholder="(555) 123-4567">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Your 25th Birthday</label>
+                            <input type="date" id="dqAgeBirthday" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <button onclick="submitWaitlist('age')" class="w-full mt-6 px-8 py-4 bg-yellow-500 text-white font-bold text-lg rounded-xl hover:bg-yellow-600 transition">
+                        🔔 Notify Me When I'm Eligible
+                    </button>
+                    
+                    <a href="index.html" class="block text-center text-gray-500 hover:text-gray-700 mt-4">← Back to Home</a>
+                </div>
+                
+                <!-- DQ: No License / Can't Pass Background -->
+                <div class="step" id="step-dq-license">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl">🚫</span>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">We can't help right now</h1>
+                        <p class="text-gray-600">A valid driver's license and clear background check are required to rent a vehicle.</p>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                        <p class="text-gray-700 text-sm">
+                            If your situation changes, we'd love to help you get on the road. Feel free to check back anytime.
+                        </p>
+                    </div>
+                    
+                    <a href="index.html" class="block w-full text-center px-8 py-4 bg-gray-200 text-gray-700 font-bold text-lg rounded-xl hover:bg-gray-300 transition">
+                        ← Back to Home
+                    </a>
+                </div>
+                
+                <!-- DQ: Low Earnings -->
+                <div class="step" id="step-dq-earnings">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl">💰</span>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Let's talk!</h1>
+                        <p class="text-gray-600">Your earnings are a bit low for our standard program, but we might have options.</p>
+                    </div>
+                    
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+                        <p class="text-orange-800 text-sm">
+                            <strong>Call us:</strong> We can discuss a higher deposit or other arrangements that might work for your situation.
+                        </p>
+                    </div>
+                    
+                    <a href="tel:+12812713900" class="block w-full text-center px-8 py-4 bg-orange-500 text-white font-bold text-lg rounded-xl hover:bg-orange-600 transition mb-4">
+                        📞 Call (281) 271-3900
+                    </a>
+                    
+                    <div class="text-center text-gray-500 text-sm">
+                        Or leave your info and we'll call you:
+                    </div>
+                    
+                    <div class="space-y-4 mt-4">
+                        <div>
+                            <input type="text" id="dqEarningsName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Your name">
+                        </div>
+                        <div>
+                            <input type="tel" id="dqEarningsPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent phone-input" placeholder="Your phone number">
+                        </div>
+                    </div>
+                    
+                    <button onclick="submitCallback('earnings')" class="w-full mt-4 px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition">
+                        Request a Callback
+                    </button>
+                </div>
+                
+                <!-- DQ: Unemployed -->
+                <div class="step" id="step-dq-unemployed">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl">💼</span>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Let's explore options</h1>
+                        <p class="text-gray-600">Without current income, our standard program might not be the best fit—but let's talk.</p>
+                    </div>
+                    
+                    <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
+                        <p class="text-purple-800 text-sm">
+                            <strong>Option:</strong> If you have savings or a co-signer, we might be able to work something out.
+                        </p>
+                    </div>
+                    
+                    <a href="tel:+12812713900" class="block w-full text-center px-8 py-4 bg-purple-600 text-white font-bold text-lg rounded-xl hover:bg-purple-700 transition mb-4">
+                        📞 Call (281) 271-3900
+                    </a>
+                    
+                    <a href="index.html" class="block text-center text-gray-500 hover:text-gray-700">← Back to Home</a>
+                </div>
+                
+                <!-- DQ: No Other Income (Fresh Start) -->
+                <div class="step" id="step-dq-no-income">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl">🌱</span>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Starting fresh is tough</h1>
+                        <p class="text-gray-600">Without income or savings, it's risky for both of us. But there might be options.</p>
+                    </div>
+                    
+                    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6">
+                        <p class="text-indigo-800 text-sm">
+                            <strong>Ideas:</strong> If you can get a co-signer, put down a larger deposit, or start part-time while you have another job, we can probably make it work.
+                        </p>
+                    </div>
+                    
+                    <a href="tel:+12812713900" class="block w-full text-center px-8 py-4 bg-indigo-600 text-white font-bold text-lg rounded-xl hover:bg-indigo-700 transition mb-4">
+                        📞 Let's Talk Options
+                    </a>
+                    
+                    <div class="space-y-4 mt-6">
+                        <div class="text-center text-gray-500 text-sm">Or join the waitlist for when you're ready:</div>
+                        <div>
+                            <input type="text" id="dqNoIncomeName" class="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="Your name">
+                        </div>
+                        <div>
+                            <input type="tel" id="dqNoIncomePhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl phone-input" placeholder="Your phone">
+                        </div>
+                    </div>
+                    
+                    <button onclick="submitWaitlist('no-income')" class="w-full mt-4 px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition">
+                        Join Waitlist
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 text-sm text-gray-500">
+        <p>© 2025 Fleetzy. Houston, TX | (281) 271-3900</p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+
+        // ============================================
+        // STATE
+        // ============================================
+        let currentPath = null;
+        let stepHistory = ['step-entry'];
+        let formData = {
+            path: null,
+            // Gig
+            gigExperience: null,
+            gigPlatforms: [],
+            gigEarnings: null,
+            // Corporate
+            corpCompanyName: null,
+            corpRole: null,
+            corpIndustry: null,
+            corpFleet: null,
+            corpDuration: null,
+            // Temporary
+            tempReason: null,
+            tempDuration: null,
+            tempEmployment: null,
+            // Fresh
+            freshPlatform: null,
+            freshIncome: null,
+            // Contact
+            name: null,
+            phone: null,
+            email: null
+        };
+
+        // ============================================
+        // NAVIGATION
+        // ============================================
+        function showStep(stepId) {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            const step = document.getElementById(stepId);
+            if (step) {
+                step.classList.add('active');
+                updateProgress();
+            }
+        }
+
+        function goBack() {
+            if (stepHistory.length > 1) {
+                stepHistory.pop();
+                showStep(stepHistory[stepHistory.length - 1]);
+            }
+        }
+
+        function navigateTo(stepId) {
+            stepHistory.push(stepId);
+            showStep(stepId);
+        }
+
+        function updateProgress() {
+            const totalSteps = 5;
+            let currentStep = stepHistory.length;
+            if (currentStep > totalSteps) currentStep = totalSteps;
+            
+            const percent = Math.round((currentStep / totalSteps) * 100);
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').textContent = `Step ${currentStep} of ${totalSteps}`;
+            document.getElementById('progressPercent').textContent = percent + '%';
+        }
+
+        // ============================================
+        // PATH SELECTION
+        // ============================================
+        function selectPath(path) {
+            currentPath = path;
+            formData.path = path;
+            
+            // Visual feedback
+            document.querySelectorAll('#step-entry .option-card').forEach(c => c.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            // Navigate after brief delay
+            setTimeout(() => {
+                switch(path) {
+                    case 'gig':
+                        navigateTo('step-gig-experience');
+                        break;
+                    case 'corporate':
+                        navigateTo('step-corp-company');
+                        break;
+                    case 'temporary':
+                        navigateTo('step-temp-reason');
+                        break;
+                    case 'fresh':
+                        navigateTo('step-fresh-platform');
+                        break;
+                }
+            }, 200);
+        }
+
+        // ============================================
+        // OPTION SELECTION
+        // ============================================
+        function selectOption(element, field, value) {
+            // Clear other selections in parent
+            element.parentElement.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+            formData[field] = value;
+        }
+
+        function togglePlatform(element, platform) {
+            element.classList.toggle('selected');
+            
+            if (element.classList.contains('selected')) {
+                if (!formData.gigPlatforms.includes(platform)) {
+                    formData.gigPlatforms.push(platform);
+                }
+            } else {
+                formData.gigPlatforms = formData.gigPlatforms.filter(p => p !== platform);
+            }
+        }
+
+        // ============================================
+        // GIG PATH LOGIC
+        // ============================================
+        function nextGigStep(from) {
+            switch(from) {
+                case 'experience':
+                    if (!formData.gigExperience) {
+                        alert('Please select your experience level');
+                        return;
+                    }
+                    // If less than 6 months, redirect to Fresh path
+                    if (formData.gigExperience === 'less than 6 months') {
+                        currentPath = 'fresh';
+                        formData.path = 'fresh';
+                        navigateTo('step-fresh-platform');
+                    } else {
+                        navigateTo('step-gig-platforms');
+                    }
+                    break;
+                case 'platforms':
+                    if (formData.gigPlatforms.length === 0) {
+                        alert('Please select at least one platform');
+                        return;
+                    }
+                    navigateTo('step-gig-earnings');
+                    break;
+                case 'earnings':
+                    if (!formData.gigEarnings) {
+                        alert('Please select your earnings range');
+                        return;
+                    }
+                    // Check earnings - if too low, DQ
+                    if (formData.gigEarnings === 'less than $500') {
+                        navigateTo('step-dq-earnings');
+                    } else {
+                        navigateTo('step-gig-eligibility');
+                    }
+                    break;
+            }
+        }
+
+        function checkGigEligibility() {
+            const age = document.getElementById('gig-age').checked;
+            const license = document.getElementById('gig-license').checked;
+            const background = document.getElementById('gig-background').checked;
+            
+            if (!age) {
+                navigateTo('step-dq-age');
+            } else if (!license || !background) {
+                navigateTo('step-dq-license');
+            } else {
+                navigateTo('step-success-standard');
+            }
+        }
+
+        // ============================================
+        // CORPORATE PATH LOGIC
+        // ============================================
+        function nextCorpStep(from) {
+            switch(from) {
+                case 'company':
+                    formData.corpCompanyName = document.getElementById('corpCompanyName').value;
+                    formData.corpRole = document.getElementById('corpRole').value;
+                    formData.corpIndustry = document.getElementById('corpIndustry').value;
+                    
+                    if (!formData.corpCompanyName || !formData.corpRole) {
+                        alert('Please fill in company name and your role');
+                        return;
+                    }
+                    navigateTo('step-corp-fleet');
+                    break;
+                case 'fleet':
+                    if (!formData.corpFleet) {
+                        alert('Please select fleet size');
+                        return;
+                    }
+                    navigateTo('step-corp-duration');
+                    break;
+                case 'duration':
+                    if (!formData.corpDuration) {
+                        alert('Please select rental duration');
+                        return;
+                    }
+                    navigateTo('step-success-corporate');
+                    break;
+            }
+        }
+
+        // ============================================
+        // TEMPORARY PATH LOGIC
+        // ============================================
+        function nextTempStep(from) {
+            switch(from) {
+                case 'reason':
+                    if (!formData.tempReason) {
+                        alert('Please select a reason');
+                        return;
+                    }
+                    navigateTo('step-temp-duration');
+                    break;
+                case 'duration':
+                    if (!formData.tempDuration) {
+                        alert('Please select duration');
+                        return;
+                    }
+                    navigateTo('step-temp-employment');
+                    break;
+                case 'employment':
+                    if (!formData.tempEmployment) {
+                        alert('Please select employment status');
+                        return;
+                    }
+                    if (formData.tempEmployment === 'unemployed') {
+                        navigateTo('step-dq-unemployed');
+                    } else {
+                        navigateTo('step-temp-eligibility');
+                    }
+                    break;
+            }
+        }
+
+        function checkTempEligibility() {
+            const age = document.getElementById('temp-age').checked;
+            const license = document.getElementById('temp-license').checked;
+            const background = document.getElementById('temp-background').checked;
+            
+            if (!age) {
+                navigateTo('step-dq-age');
+            } else if (!license || !background) {
+                navigateTo('step-dq-license');
+            } else {
+                navigateTo('step-success-standard');
+            }
+        }
+
+        // ============================================
+        // FRESH START PATH LOGIC
+        // ============================================
+        function nextFreshStep(from) {
+            switch(from) {
+                case 'platform':
+                    if (!formData.freshPlatform) {
+                        alert('Please select your platform status');
+                        return;
+                    }
+                    // If already approved, redirect to gig path
+                    if (formData.freshPlatform === 'approved') {
+                        currentPath = 'gig';
+                        formData.path = 'gig';
+                        formData.gigExperience = 'less than 6 months';
+                        navigateTo('step-gig-platforms');
+                    } else {
+                        navigateTo('step-fresh-income');
+                    }
+                    break;
+                case 'income':
+                    if (!formData.freshIncome) {
+                        alert('Please select your income situation');
+                        return;
+                    }
+                    if (formData.freshIncome === 'no') {
+                        navigateTo('step-dq-no-income');
+                    } else {
+                        navigateTo('step-fresh-eligibility');
+                    }
+                    break;
+            }
+        }
+
+        function checkFreshEligibility() {
+            const age = document.getElementById('fresh-age').checked;
+            const license = document.getElementById('fresh-license').checked;
+            const background = document.getElementById('fresh-background').checked;
+            
+            if (!age) {
+                navigateTo('step-dq-age');
+            } else if (!license || !background) {
+                navigateTo('step-dq-license');
+            } else {
+                navigateTo('step-success-standard');
+            }
+        }
+
+        // ============================================
+        // LEAD CAPTURE & SUBMISSION
+        // ============================================
+        async function saveLead(leadData) {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(leadData)
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to save lead:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error saving lead:', error);
+            }
+        }
+
+        function proceedToApplication(type) {
+            let name, phone, email;
+            
+            if (type === 'corporate') {
+                name = document.getElementById('corpContactName').value;
+                email = document.getElementById('corpContactEmail').value;
+                phone = document.getElementById('corpContactPhone').value;
+            } else {
+                name = document.getElementById('successName').value;
+                phone = document.getElementById('successPhone').value;
+                email = document.getElementById('successEmail').value || '';
+            }
+            
+            if (!name || !phone) {
+                alert('Please enter your name and phone number');
+                return;
+            }
+            
+            // Save to localStorage for application pre-fill
+            const qualifierData = {
+                ...formData,
+                name: name,
+                phone: formatPhone(phone),
+                email: email,
+                type: type,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('fleetzy_qualifier', JSON.stringify(qualifierData));
+            
+            // Save lead to Supabase
+            saveLead({
+                name: name,
+                phone: formatPhone(phone),
+                email: email || null,
+                source: 'qualifier',
+                path: formData.path,
+                type: type,
+                status: 'qualified',
+                data: qualifierData
+            });
+            
+            // Redirect to application
+            const params = new URLSearchParams({
+                name: name,
+                phone: formatPhone(phone),
+                email: email,
+                type: type,
+                qualified: 'true'
+            });
+            window.location.href = `application.html?${params.toString()}`;
+        }
+
+        async function submitWaitlist(reason) {
+            let name, phone, birthday;
+            
+            if (reason === 'age') {
+                name = document.getElementById('dqAgeName').value;
+                phone = document.getElementById('dqAgePhone').value;
+                birthday = document.getElementById('dqAgeBirthday').value;
+            } else if (reason === 'no-income') {
+                name = document.getElementById('dqNoIncomeName').value;
+                phone = document.getElementById('dqNoIncomePhone').value;
+            }
+            
+            if (!name || !phone) {
+                alert('Please enter your name and phone number');
+                return;
+            }
+            
+            await saveLead({
+                name: name,
+                phone: formatPhone(phone),
+                source: 'qualifier',
+                path: formData.path,
+                type: 'waitlist',
+                status: 'waitlist',
+                dq_reason: reason,
+                birthday: birthday || null,
+                data: formData
+            });
+            
+            alert('Thanks! We\'ll reach out when you\'re eligible. 🎉');
+            window.location.href = 'index.html';
+        }
+
+        async function submitCallback(reason) {
+            const name = document.getElementById('dqEarningsName').value;
+            const phone = document.getElementById('dqEarningsPhone').value;
+            
+            if (!name || !phone) {
+                alert('Please enter your name and phone number');
+                return;
+            }
+            
+            await saveLead({
+                name: name,
+                phone: formatPhone(phone),
+                source: 'qualifier',
+                path: formData.path,
+                type: 'callback',
+                status: 'callback_requested',
+                dq_reason: reason,
+                data: formData
+            });
+            
+            alert('Got it! We\'ll call you soon. 📞');
+            window.location.href = 'index.html';
+        }
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+        function formatPhone(phone) {
+            const digits = phone.replace(/\D/g, '');
+            if (digits.length === 10) {
+                return '+1' + digits;
+            } else if (digits.length === 11 && digits.startsWith('1')) {
+                return '+' + digits;
+            }
+            return phone;
+        }
+
+        // Phone number formatting on input
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.phone-input').forEach(input => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 10) value = value.slice(0, 10);
+                    
+                    if (value.length >= 6) {
+                        e.target.value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6)}`;
+                    } else if (value.length >= 3) {
+                        e.target.value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+                    } else {
+                        e.target.value = value;
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

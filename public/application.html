@@ -315,6 +315,30 @@
         </div>
     </div>
 
+    <!-- Trust Badges & Social Proof -->
+    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 py-3">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-sm">
+                <div class="flex items-center gap-2 text-gray-700">
+                    <i class="fas fa-shield-alt text-fleetzy-green"></i>
+                    <span>100% Insured</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-700">
+                    <i class="fas fa-star text-yellow-500"></i>
+                    <span>4.9/5 Rating</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-700">
+                    <i class="fas fa-users text-fleetzy-green"></i>
+                    <span>200+ Active Drivers</span>
+                </div>
+                <div class="flex items-center gap-2 text-gray-700">
+                    <i class="fas fa-clock text-fleetzy-green"></i>
+                    <span>24hr Approval</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Form Container -->
     <div class="max-w-5xl mx-auto px-4 py-8">
         <form id="applicationForm">
@@ -719,7 +743,7 @@
                         <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" id="termsAccepted" required class="mt-1 w-5 h-5 text-fleetzy-green border-gray-300 rounded focus:ring-fleetzy-green">
                             <span class="text-sm text-gray-700">
-                                I agree to the rental terms and conditions. I understand that a $500 security deposit is required and will be refunded at the end of the rental period (minus any damages). Weekly payments of $400 are due every 7 days. I authorize Fleetzy to run a background check.
+                                I agree to the rental terms and conditions. I understand that a $250 refundable security deposit is required and will be returned at the end of the rental period (minus any damages). Weekly payments of $400 are due every 7 days. I authorize Fleetzy to run a background check.
                             </span>
                         </label>
                     </div>
@@ -736,12 +760,12 @@
                                 <span class="font-semibold ml-2" id="summaryRate">$400/week</span>
                             </div>
                             <div>
-                                <span class="text-gray-600">Security Deposit:</span>
-                                <span class="font-semibold ml-2">$500</span>
+                                <span class="text-gray-600">Refundable Deposit:</span>
+                                <span class="font-semibold ml-2">$250</span>
                             </div>
                             <div>
-                                <span class="text-gray-600">Minimum Term:</span>
-                                <span class="font-semibold ml-2">2 weeks</span>
+                                <span class="text-gray-600">Due Today:</span>
+                                <span class="font-semibold ml-2 text-fleetzy-green" id="summaryTotal">$650</span>
                             </div>
                             <div>
                                 <span class="text-gray-600">Approval Time:</span>
@@ -785,13 +809,16 @@
             const companySection = document.getElementById('companySection');
             const companyRadio = document.getElementById('rentalTypeCompany');
             const summaryRate = document.getElementById('summaryRate');
+            const summaryTotal = document.getElementById('summaryTotal');
             
             if (companyRadio.checked) {
                 companySection.style.display = 'block';
-                summaryRate.textContent = '$350-375/week';
+                summaryRate.textContent = '$350/week';
+                if (summaryTotal) summaryTotal.textContent = '$600';
             } else {
                 companySection.style.display = 'none';
                 summaryRate.textContent = '$400/week';
+                if (summaryTotal) summaryTotal.textContent = '$650';
             }
         }
 

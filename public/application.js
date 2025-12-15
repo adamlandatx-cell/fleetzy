@@ -21,6 +21,9 @@ let selfieStream = null;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Fleetzy Application Form Loaded');
     
+    // Pre-fill from qualifier (localStorage or URL params)
+    prefillFromQualifier();
+    
     // Load vehicles immediately
     loadVehicles();
     
@@ -30,6 +33,145 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', handleSubmit);
     }
 });
+
+// ============================================
+// PRE-FILL FROM QUALIFIER
+// ============================================
+
+function prefillFromQualifier() {
+    // Try localStorage first
+    let qualifierData = null;
+    try {
+        const stored = localStorage.getItem('fleetzy_qualifier');
+        if (stored) {
+            qualifierData = JSON.parse(stored);
+            console.log('Loaded qualifier data from localStorage:', qualifierData);
+        }
+    } catch (e) {
+        console.log('No qualifier data in localStorage');
+    }
+    
+    // Also check URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlName = urlParams.get('name');
+    const urlPhone = urlParams.get('phone');
+    const urlEmail = urlParams.get('email');
+    const urlType = urlParams.get('type');
+    const urlQualified = urlParams.get('qualified');
+    
+    // Merge URL params (they take priority)
+    if (urlName || urlPhone || urlEmail) {
+        qualifierData = qualifierData || {};
+        if (urlName) qualifierData.name = urlName;
+        if (urlPhone) qualifierData.phone = urlPhone;
+        if (urlEmail) qualifierData.email = urlEmail;
+        if (urlType) qualifierData.type = urlType;
+        if (urlQualified) qualifierData.qualified = urlQualified === 'true';
+    }
+    
+    if (!qualifierData) {
+        console.log('No pre-fill data available');
+        return;
+    }
+    
+    // Pre-fill name (split if full name)
+    if (qualifierData.name) {
+        const nameParts = qualifierData.name.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
+        
+        if (firstNameInput && firstName) firstNameInput.value = firstName;
+        if (lastNameInput && lastName) lastNameInput.value = lastName;
+    }
+    
+    // Pre-fill phone
+    if (qualifierData.phone) {
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            // Format phone nicely
+            let phone = qualifierData.phone.replace(/\D/g, '');
+            if (phone.startsWith('1') && phone.length === 11) {
+                phone = phone.slice(1);
+            }
+            if (phone.length === 10) {
+                phoneInput.value = `(${phone.slice(0,3)}) ${phone.slice(3,6)}-${phone.slice(6)}`;
+            } else {
+                phoneInput.value = qualifierData.phone;
+            }
+        }
+    }
+    
+    // Pre-fill email
+    if (qualifierData.email) {
+        const emailInput = document.getElementById('email');
+        if (emailInput) emailInput.value = qualifierData.email;
+    }
+    
+    // Pre-fill rental type (corporate vs personal)
+    if (qualifierData.type === 'corporate' || qualifierData.path === 'corporate') {
+        const companyRadio = document.getElementById('rentalTypeCompany');
+        if (companyRadio) {
+            companyRadio.checked = true;
+            toggleCompanySection();
+        }
+        
+        // Pre-fill company info if available
+        if (qualifierData.corpCompanyName) {
+            const companyNameInput = document.getElementById('companyName');
+            if (companyNameInput) companyNameInput.value = qualifierData.corpCompanyName;
+        }
+    }
+    
+    // Pre-fill income source based on gig platforms
+    if (qualifierData.gigPlatforms && qualifierData.gigPlatforms.length > 0) {
+        const incomeSource = document.getElementById('incomeSource');
+        if (incomeSource) {
+            const platform = qualifierData.gigPlatforms[0].toLowerCase();
+            if (platform.includes('uber')) {
+                incomeSource.value = 'uber';
+            } else if (platform.includes('lyft')) {
+                incomeSource.value = 'lyft';
+            } else if (platform.includes('doordash')) {
+                incomeSource.value = 'doordash';
+            }
+        }
+    }
+    
+    // Show welcome message if qualified
+    if (qualifierData.qualified) {
+        showQualifiedBanner();
+    }
+    
+    console.log('Pre-fill complete');
+}
+
+function showQualifiedBanner() {
+    // Create and inject a banner at the top of the form
+    const banner = document.createElement('div');
+    banner.className = 'bg-green-50 border border-green-200 rounded-xl p-4 mb-6';
+    banner.innerHTML = `
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <div>
+                <div class="font-semibold text-green-800">You're pre-qualified! 🎉</div>
+                <div class="text-sm text-green-700">Just complete your application below to get started.</div>
+            </div>
+        </div>
+    `;
+    
+    // Insert at top of first form section
+    const firstSection = document.querySelector('.form-section.active .bg-white');
+    if (firstSection) {
+        firstSection.insertBefore(banner, firstSection.firstChild.nextSibling);
+    }
+}
 
 // ============================================
 // VEHICLE LOADING & SELECTION
@@ -729,8 +871,8 @@ async function createRentalApplication(customerId, formData) {
         rental_status: 'pending_approval',
         weekly_rate: weeklyRate,
         initial_payment: 0, // Will be set when first payment is made
-        deposit_included: 500, // Standard deposit
-        deposit_amount: 500,
+        deposit_included: 250, // Standard deposit
+        deposit_amount: 250,
         deposit_status: 'pending',
         payment_method: 'pending', // Will be set when payment method chosen
         start_mileage: 0 // Will be set at vehicle pickup
