@@ -69,10 +69,15 @@ function prefillFromQualifier() {
         if (urlQualified) qualifierData.qualified = urlQualified === 'true';
     }
     
-    if (!qualifierData) {
-        console.log('No pre-fill data available');
+    // If no qualifier data, redirect to qualifier
+    if (!qualifierData || !qualifierData.qualified) {
+        console.log('No qualifier data - redirecting to qualifier');
+        window.location.href = 'qualify.html';
         return;
     }
+    
+    // Hide rental type selector since they already chose in qualifier
+    hideRentalTypeSelector(qualifierData.type);
     
     // Pre-fill name (split if full name)
     if (qualifierData.name) {
@@ -170,6 +175,60 @@ function showQualifiedBanner() {
     const firstSection = document.querySelector('.form-section.active .bg-white');
     if (firstSection) {
         firstSection.insertBefore(banner, firstSection.firstChild.nextSibling);
+    }
+}
+
+function hideRentalTypeSelector(type) {
+    // Find the rental type selection container
+    const rentalTypeContainer = document.querySelector('.grid.grid-cols-2.gap-4');
+    
+    if (rentalTypeContainer && rentalTypeContainer.querySelector('#rentalTypePersonal')) {
+        // Get the parent container that includes the "Rental Type" label
+        const rentalTypeSection = rentalTypeContainer.closest('.mb-6') || rentalTypeContainer.parentElement;
+        
+        // Create a locked display showing their choice
+        const lockedDisplay = document.createElement('div');
+        lockedDisplay.className = 'mb-6';
+        
+        const isCorporate = type === 'corporate';
+        const rate = isCorporate ? '$350-375/week' : '$400/week';
+        const label = isCorporate ? 'Company Rental' : 'Personal Rental';
+        const bgColor = isCorporate ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200';
+        const textColor = isCorporate ? 'text-blue-800' : 'text-green-800';
+        
+        lockedDisplay.innerHTML = `
+            <label class="block text-sm font-medium text-gray-700 mb-2">Rental Type</label>
+            <div class="${bgColor} border rounded-xl p-4 flex items-center gap-3">
+                <svg class="w-5 h-5 ${textColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <div>
+                    <div class="font-semibold ${textColor}">${label}</div>
+                    <div class="text-sm ${textColor} opacity-75">${rate}</div>
+                </div>
+            </div>
+        `;
+        
+        // Replace the selector with the locked display
+        if (rentalTypeSection) {
+            rentalTypeSection.replaceWith(lockedDisplay);
+        }
+        
+        // Set the hidden radio button value for form submission
+        if (isCorporate) {
+            const companyRadio = document.getElementById('rentalTypeCompany');
+            if (companyRadio) companyRadio.checked = true;
+            toggleCompanySection();
+        } else {
+            const personalRadio = document.getElementById('rentalTypePersonal');
+            if (personalRadio) personalRadio.checked = true;
+        }
+        
+        // Update summary
+        const summaryRate = document.getElementById('summaryRate');
+        const summaryTotal = document.getElementById('summaryTotal');
+        if (summaryRate) summaryRate.textContent = isCorporate ? '$350/week' : '$400/week';
+        if (summaryTotal) summaryTotal.textContent = isCorporate ? '$600' : '$650';
     }
 }
 
