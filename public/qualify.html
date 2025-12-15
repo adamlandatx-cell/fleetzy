@@ -1652,6 +1652,7 @@
                 phone: formatPhone(phone),
                 email: email,
                 type: type,
+                qualified: true,
                 timestamp: new Date().toISOString()
             };
             localStorage.setItem('fleetzy_qualifier', JSON.stringify(qualifierData));
@@ -1703,9 +1704,11 @@
                 path: formData.path,
                 type: 'waitlist',
                 status: 'waitlist',
-                dq_reason: reason,
-                birthday: birthday || null,
-                data: formData
+                data: {
+                    ...formData,
+                    dq_reason: reason,
+                    birthday: birthday || null
+                }
             });
             
             alert('Thanks! We\'ll reach out when you\'re eligible. 🎉');
@@ -1728,8 +1731,10 @@
                 path: formData.path,
                 type: 'callback',
                 status: 'callback_requested',
-                dq_reason: reason,
-                data: formData
+                data: {
+                    ...formData,
+                    dq_reason: reason
+                }
             });
             
             alert('Got it! We\'ll call you soon. 📞');

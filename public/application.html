@@ -845,4 +845,13 @@
             }
         };
 
-        const originalPreviousStep
+        const originalPreviousStep = window.previousStep;
+        window.previousStep = function() {
+            if (originalPreviousStep) {
+                originalPreviousStep();
+                updateMobileProgress();
+            }
+        };
+    </script>
+</body>
+</html>
