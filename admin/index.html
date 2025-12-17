@@ -621,7 +621,8 @@
         // IMPORTANT: Using SERVICE ROLE key for admin dashboard (bypasses RLS)
         const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Mjc4MTk1NCwiZXhwIjoyMDc4MzU3OTU0fQ.U8675PHnaX0csmw-Pe6y5HVGBoOmHNcQRsQUJUpXtDw';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+        // Create Supabase client (named 'db' to avoid conflict with CDN's global 'supabase' object)
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
         // ===========================
         // DARK MODE
@@ -771,11 +772,11 @@
         async function loadDashboardData() {
             try {
                 // Load all data
-                const { data: vehicles } = await supabase.from('vehicles').select('*');
-                const { data: customers } = await supabase.from('customers').select('*');
-                const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)');
-                const { data: payments } = await supabase.from('payments').select('*, customers(*)');
-                const { data: applications } = await supabase.from('applications').select('*');
+                const { data: vehicles } = await db.from('vehicles').select('*');
+                const { data: customers } = await db.from('customers').select('*');
+                const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)');
+                const { data: payments } = await db.from('payments').select('*, customers(*)');
+                const { data: applications } = await db.from('applications').select('*');
                 
                 // Update metrics
                 updateMetrics(vehicles || [], customers || [], rentals || [], payments || []);
@@ -2579,7 +2580,7 @@ async function validateVIN(input) {
     
     // Check if VIN already exists in database
     if (vin.length === 17) {
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('vehicles')
             .select('vin')
             .eq('vin', vin)
@@ -2596,7 +2597,7 @@ async function validateVIN(input) {
 
 // Generate next vehicle ID (V-001, V-002, etc.)
 async function generateVehicleId() {
-    const { data, error } = await supabase
+    const { data, error } = await db
         .from('vehicles')
         .select('vehicle_id')
         .order('created_at', { ascending: false })
@@ -2628,7 +2629,7 @@ async function uploadVehiclePhoto(vehicleId) {
     const filePath = fileName;
     
     // Upload to Supabase Storage (vehicle-images bucket)
-    const { data, error } = await supabase.storage
+    const { data, error } = await db.storage
         .from('vehicle-images')
         .upload(filePath, vehiclePhotoFile, {
             cacheControl: '3600',
@@ -2640,7 +2641,7 @@ async function uploadVehiclePhoto(vehicleId) {
     }
     
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = db.storage
         .from('vehicle-images')
         .getPublicUrl(filePath);
     
@@ -2754,7 +2755,7 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
         
         // Insert into database
         showToast('Saving to database...', 'info');
-        const { data: insertedVehicle, error: insertError } = await supabase
+        const { data: insertedVehicle, error: insertError } = await db
             .from('vehicles')
             .insert([vehicleData])
             .select()
@@ -2912,7 +2913,7 @@ function removeImage(type) {
 
 // Generate customer ID
 async function generateCustomerId() {
-    const { data, error } = await supabase
+    const { data, error } = await db
         .from('customers')
         .select('customer_id')
         .order('created_at', { ascending: false })
@@ -2957,7 +2958,7 @@ async function uploadCustomerImage(customerId, file, type) {
     const fileExt = file.name.split('.').pop();
     const fileName = `${fileNameMap[type]}.${fileExt}`;
     
-    const { data, error } = await supabase.storage
+    const { data, error } = await db.storage
         .from(bucket)
         .upload(fileName, file, {
             cacheControl: '3600',
@@ -2968,7 +2969,7 @@ async function uploadCustomerImage(customerId, file, type) {
         throw error;
     }
     
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = db.storage
         .from(bucket)
         .getPublicUrl(fileName);
     
@@ -3113,7 +3114,7 @@ document.getElementById('form-add-customer').addEventListener('submit', async (e
         };
         
         // Insert into database
-        const { data: insertedCustomer, error: insertError } = await supabase
+        const { data: insertedCustomer, error: insertError } = await db
             .from('customers')
             .insert([customerData])
             .select()
@@ -3217,14 +3218,14 @@ function closeModal(modalName) {
 async function loadStartRentalData() {
     try {
         // Load approved customers
-        const { data: customers } = await supabase.from('customers').select('*').or('application_status.eq.approved,status.eq.approved');
+        const { data: customers } = await db.from('customers').select('*').or('application_status.eq.approved,status.eq.approved');
         const customerSelect = document.querySelector('#form-start-rental select[name="customer_id"]');
         customerSelect.innerHTML = '<option value="">Select a customer...</option>' +
             (customers || []).map(c => `<option value="${c.id}">${c.full_name || c.first_name + ' ' + (c.last_name || '')} - ${c.phone || ''}</option>`).join('');
         
         // Load available vehicles
-        const { data: vehicles } = await supabase.from('vehicles').select('*').or('vehicle_status.eq.available,vehicle_status.eq.Active');
-        const { data: activeRentals } = await supabase.from('rentals').select('vehicle_id').eq('rental_status', 'active');
+        const { data: vehicles } = await db.from('vehicles').select('*').or('vehicle_status.eq.available,vehicle_status.eq.Active');
+        const { data: activeRentals } = await db.from('rentals').select('vehicle_id').eq('rental_status', 'active');
         const rentedVehicleIds = (activeRentals || []).map(r => r.vehicle_id);
         const availableVehicles = (vehicles || []).filter(v => !rentedVehicleIds.includes(v.id));
         
@@ -3300,10 +3301,10 @@ async function uploadToStorage(bucket, file, folder = '') {
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const path = folder ? `${folder}/${timestamp}_${safeName}` : `${timestamp}_${safeName}`;
     
-    const { data, error } = await supabase.storage.from(bucket).upload(path, file);
+    const { data, error } = await db.storage.from(bucket).upload(path, file);
     if (error) throw error;
     
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+    const { data: urlData } = db.storage.from(bucket).getPublicUrl(path);
     return urlData.publicUrl;
 }
 
@@ -3324,7 +3325,7 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
         const data = Object.fromEntries(formData);
         
         // Generate rental ID
-        const { count } = await supabase.from('rentals').select('*', { count: 'exact', head: true });
+        const { count } = await db.from('rentals').select('*', { count: 'exact', head: true });
         data.rental_id = `R-${String((count || 0) + 1).padStart(3, '0')}`;
         data.rental_status = 'active';
         
@@ -3351,11 +3352,11 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
         }
         
         // Insert rental
-        const { error: rentalError } = await supabase.from('rentals').insert([data]);
+        const { error: rentalError } = await db.from('rentals').insert([data]);
         if (rentalError) throw rentalError;
         
         // Update vehicle status
-        await supabase.from('vehicles').update({ vehicle_status: 'rented' }).eq('id', data.vehicle_id);
+        await db.from('vehicles').update({ vehicle_status: 'rented' }).eq('id', data.vehicle_id);
         
         showToast('Rental started successfully! 🚗', 'success');
         closeModal('start-rental');
@@ -3381,7 +3382,7 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
 // ===========================
 async function loadPaymentFormData() {
     try {
-        const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
+        const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
         allRentalsCache = rentals || [];
         
         const select = document.getElementById('payment-rental-select');
@@ -3452,7 +3453,7 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
         const data = Object.fromEntries(formData);
         
         // Generate payment ID
-        const { count } = await supabase.from('payments').select('*', { count: 'exact', head: true });
+        const { count } = await db.from('payments').select('*', { count: 'exact', head: true });
         data.payment_id = `P-${String((count || 0) + 1).padStart(3, '0')}`;
         data.payment_status = 'confirmed';
         data.paid_amount = parseFloat(data.paid_amount);
@@ -3470,13 +3471,13 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
             // Update rental next payment due
             const nextDue = new Date(rental.next_payment_due || new Date());
             nextDue.setDate(nextDue.getDate() + 7);
-            await supabase.from('rentals').update({ 
+            await db.from('rentals').update({ 
                 next_payment_due: nextDue.toISOString().split('T')[0],
                 last_payment_date: data.paid_date
             }).eq('id', data.rental_id);
         }
         
-        const { error } = await supabase.from('payments').insert([data]);
+        const { error } = await db.from('payments').insert([data]);
         if (error) throw error;
         
         showToast('Payment recorded successfully! 💰', 'success');
@@ -3502,7 +3503,7 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
 // ===========================
 async function loadEndRentalFormData() {
     try {
-        const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
+        const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
         allRentalsCache = rentals || [];
         
         const select = document.getElementById('end-rental-select');
@@ -3597,12 +3598,12 @@ document.getElementById('form-end-rental').addEventListener('submit', async (e) 
             return_notes: data.return_notes
         };
         
-        const { error } = await supabase.from('rentals').update(updateData).eq('id', data.rental_id);
+        const { error } = await db.from('rentals').update(updateData).eq('id', data.rental_id);
         if (error) throw error;
         
         // Update vehicle status back to available and update mileage
         if (rental) {
-            await supabase.from('vehicles').update({ 
+            await db.from('vehicles').update({ 
                 vehicle_status: 'available',
                 current_mileage: parseInt(data.end_mileage)
             }).eq('id', rental.vehicle_id);
@@ -3631,7 +3632,7 @@ document.getElementById('form-end-rental').addEventListener('submit', async (e) 
 // ===========================
 async function loadExpenseFormData() {
     try {
-        const { data: vehicles } = await supabase.from('vehicles').select('*');
+        const { data: vehicles } = await db.from('vehicles').select('*');
         allVehiclesCache = vehicles || [];
         
         const select = document.getElementById('expense-vehicle-select');
@@ -3690,7 +3691,7 @@ document.getElementById('form-log-expense').addEventListener('submit', async (e)
             data.receipt_url = await uploadToStorage('payment-screenshots', expenseReceiptFile, `expense_${data.expense_id}`);
         }
         
-        const { error } = await supabase.from('expenses').insert([data]);
+        const { error } = await db.from('expenses').insert([data]);
         if (error) throw error;
         
         showToast('Expense logged successfully! 📝', 'success');
@@ -3714,7 +3715,7 @@ async function approveCustomer(customerId) {
     if (!confirm('Approve this customer application?')) return;
     
     try {
-        const { error } = await supabase.from('customers').update({ 
+        const { error } = await db.from('customers').update({ 
             application_status: 'approved',
             status: 'approved',
             approved_at: new Date().toISOString()
@@ -3737,7 +3738,7 @@ async function rejectCustomer(customerId) {
     if (reason === null) return;
     
     try {
-        const { error } = await supabase.from('customers').update({ 
+        const { error } = await db.from('customers').update({ 
             application_status: 'rejected',
             status: 'rejected',
             rejection_reason: reason || null,
@@ -3781,4 +3782,4 @@ document.addEventListener('keydown', (e) => {
 </script>
 
 </body>
-</html>
+                        </html>
