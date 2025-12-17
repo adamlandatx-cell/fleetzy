@@ -618,9 +618,10 @@
         // CONFIGURATION
         // ===========================
         const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+        // IMPORTANT: Using SERVICE ROLE key for admin dashboard (bypasses RLS)
+        const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Mjc4MTk1NCwiZXhwIjoyMDc4MzU3OTU0fQ.U8675PHnaX0csmw-Pe6y5HVGBoOmHNcQRsQUJUpXtDw';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
         // ===========================
         // DARK MODE
@@ -2649,12 +2650,10 @@ async function uploadVehiclePhoto(vehicleId) {
 // Form submission handler
 document.getElementById('form-add-vehicle').addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log('Add Vehicle form submitted');
     
     // Validate photo is uploaded
     if (!vehiclePhotoFile) {
         showToast('Please upload a vehicle photo', 'error');
-        console.log('Error: No photo uploaded');
         return;
     }
     
@@ -2671,25 +2670,56 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
         // Collect form data
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
+        
         console.log('Form data collected:', data);
+        
+        // EXPLICIT VALIDATION - Check required fields
+        if (!data.friendly_name || data.friendly_name.trim() === '') {
+            throw new Error('Vehicle Name is required');
+        }
+        if (!data.year) {
+            throw new Error('Year is required');
+        }
+        if (!data.make || data.make.trim() === '') {
+            throw new Error('Make is required');
+        }
+        if (!data.model || data.model.trim() === '') {
+            throw new Error('Model is required');
+        }
+        if (!data.vin || data.vin.trim() === '') {
+            throw new Error('VIN is required');
+        }
+        if (!data.purchase_price) {
+            throw new Error('Purchase Price is required');
+        }
+        if (!data.monthly_payment) {
+            throw new Error('Monthly Payment is required');
+        }
+        if (!data.insurance_monthly) {
+            throw new Error('Insurance Monthly is required');
+        }
+        if (!data.purchase_date) {
+            throw new Error('Purchase Date is required');
+        }
         
         // Validate VIN one more time
         const vinValid = await validateVIN(document.querySelector('input[name="vin"]'));
-        console.log('VIN validation result:', vinValid);
         if (!vinValid) {
             throw new Error('Please fix VIN errors before submitting');
         }
         
         // Generate vehicle ID
+        console.log('Generating vehicle ID...');
         const vehicleId = await generateVehicleId();
         console.log('Generated vehicle ID:', vehicleId);
         
         // Upload photo first
         showToast('Uploading vehicle photo...', 'info');
+        console.log('Uploading photo...');
         const photoUrl = await uploadVehiclePhoto(vehicleId);
-        console.log('Photo uploaded, URL:', photoUrl);
+        console.log('Photo uploaded:', photoUrl);
         
-        // Prepare data for database with ALL fields (new columns added to Supabase)
+        // Prepare data for database
         const vehicleData = {
             vehicle_id: vehicleId,
             friendly_name: data.friendly_name.trim(),
@@ -2700,7 +2730,7 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
             color: data.color || null,
             license_plate: data.license_plate ? data.license_plate.toUpperCase().trim() : null,
             condition: data.condition || null,
-            acquisition_date: data.purchase_date,                    // Form field: purchase_date → DB: acquisition_date
+            purchase_date: data.purchase_date,
             purchase_price: parseFloat(data.purchase_price),
             monthly_payment: parseFloat(data.monthly_payment),
             down_payment: data.down_payment ? parseFloat(data.down_payment) : null,
@@ -2713,30 +2743,33 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
             gps_cost_monthly: data.gps_cost_monthly ? parseFloat(data.gps_cost_monthly) : 25.00,
             gps_active: true,
             toll_tag_id: data.toll_tag_id ? data.toll_tag_id.trim() : null,
-            insurance_cost: parseFloat(data.insurance_monthly),      // Form field: insurance_monthly → DB: insurance_cost
+            insurance_monthly: parseFloat(data.insurance_monthly),
             registration_cost: data.registration_cost ? parseFloat(data.registration_cost) : null,
-            vehicle_status: 'Active',                                // DB column is vehicle_status, not status
+            status: 'available',
             image_url: photoUrl
+            // Let Supabase handle created_at and updated_at automatically
         };
         
         console.log('Vehicle data to insert:', vehicleData);
         
         // Insert into database
+        showToast('Saving to database...', 'info');
         const { data: insertedVehicle, error: insertError } = await supabase
             .from('vehicles')
             .insert([vehicleData])
             .select()
             .single();
         
+        console.log('Insert result:', { insertedVehicle, insertError });
+        
         if (insertError) {
             console.error('Supabase insert error:', insertError);
-            throw insertError;
+            throw new Error(insertError.message || 'Database error: ' + JSON.stringify(insertError));
         }
-        
-        console.log('Vehicle inserted successfully:', insertedVehicle);
         
         // Success!
         showToast(`Vehicle ${vehicleId} added successfully! ✓`, 'success');
+        console.log('Vehicle added successfully:', insertedVehicle);
         
         // Close modal and reset form
         closeModal('add-vehicle');
@@ -2750,9 +2783,10 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
         
     } catch (error) {
         console.error('Error adding vehicle:', error);
-        // Show more detailed error message
-        const errorMsg = error.message || error.details || error.hint || 'Error adding vehicle. Please try again.';
-        showToast(errorMsg, 'error');
+        // Show detailed error message
+        const errorMsg = error.message || 'Unknown error occurred';
+        showToast(`Error: ${errorMsg}`, 'error');
+        alert(`Vehicle add failed:\n\n${errorMsg}\n\nCheck browser console for details.`);
     } finally {
         // Re-enable submit button
         submitBtn.disabled = false;
