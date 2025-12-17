@@ -3,10 +3,16 @@
 // ============================================
 // Handles 5-step application with visual vehicle selection
 // Integrates with Supabase for data storage
+// Version: 2.0 - December 2025 (Production Ready)
 
 // Supabase Configuration
 const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+
+// Business Contact Info (single source of truth)
+const FLEETZY_PHONE = '(281) 271-3900';
+const FLEETZY_PHONE_LINK = 'tel:+12812713900';
+const FLEETZY_EMAIL = 'info@getfleetzy.com';
 
 // Global Variables
 let currentStep = 1;
@@ -19,7 +25,7 @@ let selfieStream = null;
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Fleetzy Application Form Loaded');
+    console.log('Fleetzy Application Form Loaded - v2.0');
     
     // Pre-fill from qualifier (localStorage or URL params)
     prefillFromQualifier();
@@ -32,6 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form) {
         form.addEventListener('submit', handleSubmit);
     }
+    
+    // Setup phone number formatting
+    setupPhoneFormatting();
 });
 
 // ============================================
@@ -120,7 +129,9 @@ function prefillFromQualifier() {
         const companyRadio = document.getElementById('rentalTypeCompany');
         if (companyRadio) {
             companyRadio.checked = true;
-            toggleCompanySection();
+            if (typeof toggleCompanySection === 'function') {
+                toggleCompanySection();
+            }
         }
         
         // Pre-fill company info if available
@@ -218,7 +229,9 @@ function hideRentalTypeSelector(type) {
         if (isCorporate) {
             const companyRadio = document.getElementById('rentalTypeCompany');
             if (companyRadio) companyRadio.checked = true;
-            toggleCompanySection();
+            if (typeof toggleCompanySection === 'function') {
+                toggleCompanySection();
+            }
         } else {
             const personalRadio = document.getElementById('rentalTypePersonal');
             if (personalRadio) personalRadio.checked = true;
@@ -239,6 +252,19 @@ function hideRentalTypeSelector(type) {
 async function loadVehicles() {
     const gallery = document.getElementById('vehicleGallery');
     
+    if (!gallery) {
+        console.error('Vehicle gallery element not found');
+        return;
+    }
+    
+    // Show loading state
+    gallery.innerHTML = `
+        <div class="loading-vehicles col-span-full text-center py-12">
+            <div class="animate-spin w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p class="text-lg font-medium text-gray-600">Loading available vehicles...</p>
+        </div>
+    `;
+    
     try {
         // Fetch available vehicles from Supabase
         const response = await fetch(`${SUPABASE_URL}/rest/v1/vehicles?select=*&status=eq.Active&order=monthly_payment.asc`, {
@@ -250,17 +276,27 @@ async function loadVehicles() {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to load vehicles');
+            throw new Error(`Failed to load vehicles: ${response.status}`);
         }
         
         vehicles = await response.json();
+        console.log('Loaded vehicles:', vehicles.length);
         
         if (vehicles.length === 0) {
             gallery.innerHTML = `
-                <div class="loading-vehicles">
-                    <i class="fas fa-car-crash text-4xl text-slate-400 mb-3"></i>
-                    <p class="text-lg font-medium">No vehicles available</p>
-                    <p class="text-sm">Please check back soon or call us at (281) 908-5583</p>
+                <div class="col-span-full text-center py-12 bg-amber-50 rounded-xl border border-amber-200">
+                    <svg class="w-16 h-16 text-amber-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <p class="text-lg font-semibold text-amber-800 mb-2">All Vehicles Currently Rented</p>
+                    <p class="text-amber-700 mb-4">Great news - our fleet is in high demand!</p>
+                    <p class="text-sm text-amber-600">Complete your application now and we'll contact you as soon as a vehicle becomes available.</p>
+                    <a href="${FLEETZY_PHONE_LINK}" class="inline-flex items-center gap-2 mt-4 text-amber-700 hover:text-amber-900 font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                        Call us at ${FLEETZY_PHONE}
+                    </a>
                 </div>
             `;
             return;
@@ -272,10 +308,16 @@ async function loadVehicles() {
     } catch (error) {
         console.error('Error loading vehicles:', error);
         gallery.innerHTML = `
-            <div class="loading-vehicles">
-                <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-3"></i>
-                <p class="text-lg font-medium text-red-600">Error loading vehicles</p>
-                <p class="text-sm text-slate-600">Please refresh the page or call us at (281) 908-5583</p>
+            <div class="col-span-full text-center py-12 bg-red-50 rounded-xl border border-red-200">
+                <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-lg font-semibold text-red-800 mb-2">Unable to Load Vehicles</p>
+                <p class="text-red-700 mb-4">Please check your internet connection and try again.</p>
+                <button onclick="loadVehicles()" class="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+                    Try Again
+                </button>
+                <p class="text-sm text-red-600 mt-4">Or call us at ${FLEETZY_PHONE}</p>
             </div>
         `;
     }
@@ -293,24 +335,25 @@ function renderVehicles() {
         const weeklyRate = Math.round(monthlyRate * 12 / 52); // Convert monthly to weekly
         
         return `
-            <div class="vehicle-card bg-white rounded-xl overflow-hidden shadow-md ${!isAvailable ? 'unavailable' : ''}"
-                 onclick="${isAvailable ? `selectVehicle('${vehicle.id}')` : ''}">
+            <div class="vehicle-card bg-white rounded-xl overflow-hidden shadow-md ${!isAvailable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-lg'}"
+                 onclick="${isAvailable ? `selectVehicle('${vehicle.id}')` : ''}"
+                 data-vehicle-id="${vehicle.id}">
                 
                 <!-- Vehicle Image -->
                 <div class="relative">
                     <img src="${imageUrl}" 
-                         alt="${vehicle.year} ${vehicle.make} ${vehicle.model}"
-                         class="vehicle-image"
+                         alt="${displayName}"
+                         class="w-full h-48 object-cover"
                          onerror="this.src='https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80'">
-                    <span class="vehicle-badge ${statusBadge.class}">${statusBadge.text}</span>
+                    <span class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${statusBadge.class}">${statusBadge.text}</span>
                 </div>
                 
                 <!-- Vehicle Details -->
                 <div class="p-4">
-                    <h3 class="text-lg font-bold text-slate-900">
+                    <h3 class="text-lg font-bold text-gray-900">
                         ${displayName}
                     </h3>
-                    <p class="text-sm text-slate-600 mt-1">
+                    <p class="text-sm text-gray-600 mt-1">
                         ${vehicle.color || 'Silver'}
                     </p>
                     
@@ -320,22 +363,22 @@ function renderVehicles() {
                             <span class="text-2xl font-bold text-emerald-600">
                                 $${weeklyRate}
                             </span>
-                            <span class="text-sm text-slate-600">/week</span>
+                            <span class="text-sm text-gray-600">/week</span>
                         </div>
                         ${isAvailable ? `
                             <button type="button" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition">
                                 Select
                             </button>
                         ` : `
-                            <span class="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-medium">
+                            <span class="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg text-sm font-medium">
                                 Unavailable
                             </span>
                         `}
                     </div>
                     
                     <!-- Features -->
-                    <div class="mt-3 pt-3 border-t border-slate-200">
-                        <div class="flex items-center text-xs text-slate-600 space-x-3">
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <div class="flex items-center text-xs text-gray-600 space-x-3">
                             <span><i class="fas fa-tachometer-alt mr-1"></i> ${formatMileage(vehicle.current_mileage)}</span>
                             <span><i class="fas fa-shield-alt mr-1"></i> Insured</span>
                             <span><i class="fas fa-check-circle mr-1 text-emerald-600"></i> Rideshare Ready</span>
@@ -350,11 +393,13 @@ function renderVehicles() {
 function getStatusBadge(status) {
     switch(status) {
         case 'Active':
-            return { class: 'badge-available', text: '✓ Available' };
+            return { class: 'bg-green-100 text-green-800', text: '✓ Available' };
         case 'Maintenance':
-            return { class: 'badge-maintenance', text: 'In Maintenance' };
+            return { class: 'bg-yellow-100 text-yellow-800', text: 'In Maintenance' };
+        case 'Rented':
+            return { class: 'bg-blue-100 text-blue-800', text: 'Currently Rented' };
         default:
-            return { class: 'badge-reserved', text: 'Reserved' };
+            return { class: 'bg-gray-100 text-gray-800', text: 'Reserved' };
     }
 }
 
@@ -366,15 +411,21 @@ function formatMileage(mileage) {
 function selectVehicle(vehicleId) {
     // Remove previous selection
     document.querySelectorAll('.vehicle-card').forEach(card => {
-        card.classList.remove('selected');
+        card.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50');
     });
     
     // Add selection to clicked card
-    event.currentTarget.classList.add('selected');
+    const selectedCard = document.querySelector(`[data-vehicle-id="${vehicleId}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50');
+    }
     
     // Store selected vehicle
     selectedVehicle = vehicles.find(v => v.id === vehicleId);
-    document.getElementById('selectedVehicleId').value = vehicleId;
+    const hiddenInput = document.getElementById('selectedVehicleId');
+    if (hiddenInput) {
+        hiddenInput.value = vehicleId;
+    }
     
     // Hide error if shown
     const errorEl = document.getElementById('vehicleError');
@@ -383,6 +434,15 @@ function selectVehicle(vehicleId) {
     }
     
     console.log('Selected vehicle:', selectedVehicle);
+    
+    // Update summary with selected vehicle rate
+    if (selectedVehicle) {
+        const weeklyRate = Math.round((selectedVehicle.monthly_payment || 400) * 12 / 52);
+        const summaryRate = document.getElementById('summaryRate');
+        const summaryTotal = document.getElementById('summaryTotal');
+        if (summaryRate) summaryRate.textContent = `$${weeklyRate}/week`;
+        if (summaryTotal) summaryTotal.textContent = `$${weeklyRate + 250}`;
+    }
 }
 
 // ============================================
@@ -424,6 +484,9 @@ function nextStep() {
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Update mobile progress
+    updateMobileProgress();
 }
 
 function previousStep() {
@@ -456,6 +519,22 @@ function previousStep() {
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Update mobile progress
+    updateMobileProgress();
+}
+
+function updateMobileProgress() {
+    const stepNum = document.getElementById('mobileStepNum');
+    const progress = document.getElementById('mobileProgress');
+    const progressBar = document.getElementById('mobileProgressBar');
+    
+    if (stepNum && progress && progressBar) {
+        stepNum.textContent = currentStep;
+        const percentage = (currentStep / 5) * 100;
+        progress.textContent = percentage;
+        progressBar.style.width = percentage + '%';
+    }
 }
 
 // ============================================
@@ -482,18 +561,31 @@ function validateStep(step) {
 function validatePersonalInfo() {
     const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'address', 'city', 'state', 'zipCode'];
     let isValid = true;
+    let firstError = null;
     
     requiredFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (!field || !field.value.trim()) {
             isValid = false;
             if (field) {
-                field.classList.add('border-red-500');
+                field.classList.add('border-red-500', 'ring-red-200');
+                if (!firstError) firstError = field;
             }
         } else {
-            field.classList.remove('border-red-500');
+            field.classList.remove('border-red-500', 'ring-red-200');
         }
     });
+    
+    // Email validation
+    const emailField = document.getElementById('email');
+    if (emailField && emailField.value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailField.value)) {
+            emailField.classList.add('border-red-500', 'ring-red-200');
+            isValid = false;
+            if (!firstError) firstError = emailField;
+        }
+    }
     
     // If company rental, validate company fields
     const isCompanyRental = document.getElementById('rentalTypeCompany')?.checked;
@@ -504,70 +596,44 @@ function validatePersonalInfo() {
             if (!field || !field.value.trim()) {
                 isValid = false;
                 if (field) {
-                    field.classList.add('border-red-500');
+                    field.classList.add('border-red-500', 'ring-red-200');
+                    if (!firstError) firstError = field;
                 }
             } else {
-                field.classList.remove('border-red-500');
+                field.classList.remove('border-red-500', 'ring-red-200');
             }
         });
     }
     
-    // Email validation
-    const emailField = document.getElementById('email');
-    if (emailField && emailField.value) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(emailField.value)) {
-            emailField.classList.add('border-red-500');
-            isValid = false;
-        }
-    }
-    
-    // Phone validation (10 digits)
-    const phoneField = document.getElementById('phone');
-    if (phoneField && phoneField.value) {
-        const phoneDigits = phoneField.value.replace(/\D/g, '');
-        if (phoneDigits.length !== 10) {
-            phoneField.classList.add('border-red-500');
-            isValid = false;
-        }
-    }
-    
-    // Age validation (18+)
-    const dobField = document.getElementById('dateOfBirth');
-    if (dobField && dobField.value) {
-        const dob = new Date(dobField.value);
-        const today = new Date();
-        const age = Math.floor((today - dob) / (365.25 * 24 * 60 * 60 * 1000));
-        if (age < 18) {
-            dobField.classList.add('border-red-500');
-            isValid = false;
-            alert('You must be at least 18 years old to rent.');
-            return false;
-        }
-    }
-    
-    if (!isValid) {
-        alert('Please fill in all required fields correctly.');
+    if (!isValid && firstError) {
+        firstError.focus();
+        showValidationError('Please fill in all required fields');
     }
     
     return isValid;
 }
 
 function validateVehicleSelection() {
-    const vehicleId = document.getElementById('selectedVehicleId')?.value;
-    const errorEl = document.getElementById('vehicleError');
+    const selectedVehicleId = document.getElementById('selectedVehicleId')?.value;
     
-    if (!vehicleId) {
-        if (errorEl) {
-            errorEl.style.display = 'block';
+    if (!selectedVehicleId) {
+        // Show error message
+        let errorEl = document.getElementById('vehicleError');
+        if (!errorEl) {
+            errorEl = document.createElement('div');
+            errorEl.id = 'vehicleError';
+            errorEl.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4';
+            const gallery = document.getElementById('vehicleGallery');
+            if (gallery) {
+                gallery.parentNode.insertBefore(errorEl, gallery);
+            }
         }
-        alert('Please select a vehicle to continue.');
+        errorEl.innerHTML = '<strong>Please select a vehicle</strong> - Click on any available vehicle above to continue.';
+        errorEl.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return false;
     }
     
-    if (errorEl) {
-        errorEl.style.display = 'none';
-    }
     return true;
 }
 
@@ -575,7 +641,7 @@ function validateSelfie() {
     const selfieData = document.getElementById('selfieData')?.value;
     
     if (!selfieData) {
-        alert('Please capture your selfie to continue.');
+        showValidationError('Please take or upload a selfie photo');
         return false;
     }
     
@@ -583,13 +649,37 @@ function validateSelfie() {
 }
 
 function validateLicense() {
-    const licenseFront = document.getElementById('licenseFront')?.files?.[0];
-    const licenseBack = document.getElementById('licenseBack')?.files?.[0];
-    const licenseNumber = document.getElementById('licenseNumber')?.value;
+    const licenseFront = document.getElementById('licenseFront')?.files?.length;
+    const licenseBack = document.getElementById('licenseBack')?.files?.length;
+    const licenseNumber = document.getElementById('licenseNumber')?.value?.trim();
     const licenseExpiration = document.getElementById('licenseExpiration')?.value;
     
-    if (!licenseFront || !licenseBack || !licenseNumber || !licenseExpiration) {
-        alert('Please upload both sides of your license and provide license details.');
+    if (!licenseFront) {
+        showValidationError('Please upload the front of your driver\'s license');
+        return false;
+    }
+    
+    if (!licenseBack) {
+        showValidationError('Please upload the back of your driver\'s license');
+        return false;
+    }
+    
+    if (!licenseNumber) {
+        showValidationError('Please enter your driver\'s license number');
+        document.getElementById('licenseNumber')?.focus();
+        return false;
+    }
+    
+    if (!licenseExpiration) {
+        showValidationError('Please enter your license expiration date');
+        document.getElementById('licenseExpiration')?.focus();
+        return false;
+    }
+    
+    // Check if license is not expired
+    const expDate = new Date(licenseExpiration);
+    if (expDate < new Date()) {
+        showValidationError('Your driver\'s license appears to be expired. Please contact us if this is incorrect.');
         return false;
     }
     
@@ -598,14 +688,52 @@ function validateLicense() {
 
 function validateIncome() {
     const incomeSource = document.getElementById('incomeSource')?.value;
-    const incomeProof = document.getElementById('incomeProof')?.files?.[0];
+    const incomeProof = document.getElementById('incomeProof')?.files?.length;
+    const termsAccepted = document.getElementById('termsAccepted')?.checked;
     
-    if (!incomeSource || !incomeProof) {
-        alert('Please select your income source and upload proof of income.');
+    if (!incomeSource) {
+        showValidationError('Please select your income source');
+        return false;
+    }
+    
+    if (!incomeProof) {
+        showValidationError('Please upload proof of income (bank statement, pay stub, or earnings screenshot)');
+        return false;
+    }
+    
+    if (!termsAccepted) {
+        showValidationError('Please agree to the rental terms and conditions');
         return false;
     }
     
     return true;
+}
+
+function showValidationError(message) {
+    // Create or update error toast
+    let toast = document.getElementById('validationToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'validationToast';
+        toast.className = 'fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 transition-all transform';
+        document.body.appendChild(toast);
+    }
+    
+    toast.innerHTML = `
+        <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    toast.style.display = 'block';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 5000);
 }
 
 // ============================================
@@ -613,50 +741,68 @@ function validateIncome() {
 // ============================================
 
 async function startCamera() {
+    const cameraPreview = document.getElementById('cameraPreview');
+    const videoEl = document.getElementById('selfieVideo');
+    
+    if (!cameraPreview || !videoEl) {
+        console.error('Camera elements not found');
+        return;
+    }
+    
     try {
-        const cameraPreview = document.getElementById('cameraPreview');
-        const videoElement = document.getElementById('videoElement');
-        
-        // Show camera preview
-        cameraPreview.style.display = 'block';
-        
-        // Request camera access
         selfieStream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'user' },
-            audio: false
+            video: { 
+                facingMode: 'user',
+                width: { ideal: 640 },
+                height: { ideal: 480 }
+            } 
         });
         
-        videoElement.srcObject = selfieStream;
+        videoEl.srcObject = selfieStream;
+        cameraPreview.style.display = 'block';
+        
+        // Hide preview if showing
+        const previewContainer = document.getElementById('selfiePreviewContainer');
+        if (previewContainer) {
+            previewContainer.style.display = 'none';
+        }
         
     } catch (error) {
-        console.error('Camera error:', error);
-        alert('Unable to access camera. Please check permissions or use the file upload option.');
+        console.error('Camera access error:', error);
+        showValidationError('Unable to access camera. Please upload a photo instead.');
     }
 }
 
-function captureSelfie() {
-    const videoElement = document.getElementById('videoElement');
-    const canvas = document.createElement('canvas');
-    canvas.width = videoElement.videoWidth;
-    canvas.height = videoElement.videoHeight;
+function capturePhoto() {
+    const videoEl = document.getElementById('selfieVideo');
+    const canvas = document.getElementById('selfieCanvas');
     
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(videoElement, 0, 0);
+    if (!videoEl || !canvas) {
+        console.error('Video or canvas element not found');
+        return;
+    }
     
-    // Get image data
+    const context = canvas.getContext('2d');
+    canvas.width = videoEl.videoWidth || 640;
+    canvas.height = videoEl.videoHeight || 480;
+    
+    context.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+    
     const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    
-    // Store in hidden input
     document.getElementById('selfieData').value = imageData;
     
     // Show preview
-    document.getElementById('selfiePreview').src = imageData;
-    document.getElementById('selfiePreviewContainer').style.display = 'block';
+    const preview = document.getElementById('selfiePreview');
+    const previewContainer = document.getElementById('selfiePreviewContainer');
+    if (preview && previewContainer) {
+        preview.src = imageData;
+        previewContainer.style.display = 'block';
+    }
     
     // Hide camera
     stopCamera();
     
-    alert('Selfie captured successfully!');
+    showSuccessMessage('Selfie captured successfully!');
 }
 
 function stopCamera() {
@@ -673,17 +819,35 @@ function stopCamera() {
 
 function uploadSelfie() {
     const fileInput = document.getElementById('selfieFileInput');
+    if (!fileInput) {
+        console.error('Selfie file input not found');
+        return;
+    }
+    
     fileInput.click();
     
     fileInput.onchange = function(e) {
         const file = e.target.files[0];
         if (file) {
+            // Check file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                showValidationError('File is too large. Please choose an image under 10MB.');
+                return;
+            }
+            
             const reader = new FileReader();
             reader.onload = function(event) {
                 const imageData = event.target.result;
                 document.getElementById('selfieData').value = imageData;
-                document.getElementById('selfiePreview').src = imageData;
-                document.getElementById('selfiePreviewContainer').style.display = 'block';
+                
+                const preview = document.getElementById('selfiePreview');
+                const previewContainer = document.getElementById('selfiePreviewContainer');
+                if (preview && previewContainer) {
+                    preview.src = imageData;
+                    previewContainer.style.display = 'block';
+                }
+                
+                showSuccessMessage('Selfie uploaded successfully!');
             };
             reader.readAsDataURL(file);
         }
@@ -695,19 +859,57 @@ function uploadSelfie() {
 // ============================================
 
 function triggerFileUpload(inputId) {
-    document.getElementById(inputId).click();
+    const input = document.getElementById(inputId);
+    if (input) {
+        input.click();
+    }
 }
 
 function handleFileUpload(input, previewId) {
     const file = input.files[0];
     if (file) {
+        // Check file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            showValidationError('File is too large. Please choose an image under 10MB.');
+            input.value = '';
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById(previewId).src = e.target.result;
-            document.getElementById(previewId).style.display = 'block';
+            const preview = document.getElementById(previewId);
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
         };
         reader.readAsDataURL(file);
     }
+}
+
+function showSuccessMessage(message) {
+    let toast = document.getElementById('successToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'successToast';
+        toast.className = 'fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-emerald-600 text-white px-6 py-4 rounded-lg shadow-lg z-50';
+        document.body.appendChild(toast);
+    }
+    
+    toast.innerHTML = `
+        <div class="flex items-center gap-3">
+            <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    toast.style.display = 'block';
+    
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3000);
 }
 
 // ============================================
@@ -719,31 +921,71 @@ async function handleSubmit(e) {
     
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
+    
+    // Disable button and show loading state
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+    submitBtn.innerHTML = `
+        <div class="flex items-center justify-center gap-2">
+            <div class="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+            <span>Submitting Application...</span>
+        </div>
+    `;
     
     try {
         // 1. Collect form data
+        console.log('Step 1: Collecting form data...');
         const formData = collectFormData();
         
         // 2. Upload files to Supabase Storage
+        console.log('Step 2: Uploading files...');
+        submitBtn.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <div class="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                <span>Uploading Documents...</span>
+            </div>
+        `;
         const uploadedFiles = await uploadFiles(formData);
         
         // 3. Create customer record
+        console.log('Step 3: Creating customer record...');
+        submitBtn.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <div class="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                <span>Creating Account...</span>
+            </div>
+        `;
         const customerId = await createCustomer(formData, uploadedFiles);
         
         // 4. Create rental application
+        console.log('Step 4: Creating rental application...');
+        submitBtn.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <div class="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                <span>Finalizing Application...</span>
+            </div>
+        `;
         await createRentalApplication(customerId, formData);
         
-        // 5. Show success message
-        alert('Application submitted successfully! We will contact you within 24 hours.');
+        // 5. Store application data for success page
+        localStorage.setItem('fleetzy_application_submitted', JSON.stringify({
+            name: `${formData.firstName} ${formData.lastName}`,
+            phone: formData.phone,
+            email: formData.email,
+            isCompanyRental: formData.isCompanyRental,
+            submittedAt: new Date().toISOString()
+        }));
         
-        // 6. Redirect to thank you page or reset form
-        window.location.href = `/`; // Or wherever you want to redirect
+        // 6. Show success and redirect
+        console.log('Application submitted successfully!');
+        window.location.href = 'application-success.html';
         
     } catch (error) {
         console.error('Submission error:', error);
-        alert('Error submitting application. Please try again or call (281) 908-5583');
+        
+        // Show error message
+        showValidationError(`Error submitting application: ${error.message}. Please try again or call ${FLEETZY_PHONE}`);
+        
+        // Re-enable button
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
     }
@@ -752,6 +994,14 @@ async function handleSubmit(e) {
 function collectFormData() {
     const isCompanyRental = document.getElementById('rentalTypeCompany')?.checked || false;
     
+    // Combine address parts
+    const address = [
+        document.getElementById('address')?.value?.trim(),
+        document.getElementById('city')?.value?.trim(),
+        document.getElementById('state')?.value?.trim(),
+        document.getElementById('zipCode')?.value?.trim()
+    ].filter(Boolean).join(', ');
+    
     return {
         // Personal Info
         firstName: document.getElementById('firstName')?.value?.trim() || '',
@@ -759,7 +1009,7 @@ function collectFormData() {
         email: document.getElementById('email')?.value?.trim().toLowerCase() || '',
         phone: formatPhoneNumber(document.getElementById('phone')?.value || ''),
         dateOfBirth: document.getElementById('dateOfBirth')?.value || '',
-        address: document.getElementById('address')?.value?.trim() || '',
+        address: address,
         city: document.getElementById('city')?.value?.trim() || '',
         state: document.getElementById('state')?.value?.trim() || '',
         zipCode: document.getElementById('zipCode')?.value?.trim() || '',
@@ -782,6 +1032,7 @@ function collectFormData() {
         licenseBack: document.getElementById('licenseBack')?.files?.[0],
         licenseNumber: document.getElementById('licenseNumber')?.value?.trim() || '',
         licenseExpiration: document.getElementById('licenseExpiration')?.value || '',
+        licenseState: document.getElementById('licenseState')?.value || document.getElementById('state')?.value || '',
         
         // Income
         incomeSource: document.getElementById('incomeSource')?.value || '',
@@ -797,6 +1048,9 @@ function formatPhoneNumber(phone) {
     if (!digits.startsWith('1') && digits.length === 10) {
         return '+1' + digits;
     }
+    if (digits.length === 11 && digits.startsWith('1')) {
+        return '+' + digits;
+    }
     return '+' + digits;
 }
 
@@ -806,6 +1060,7 @@ async function uploadFiles(formData) {
     
     // Upload selfie to 'selfies' bucket
     if (formData.selfie) {
+        console.log('Uploading selfie...');
         const selfieBlob = dataURLtoBlob(formData.selfie);
         const filename = `selfie_${timestamp}.jpg`;
         uploads.selfie_url = await uploadToStorage(selfieBlob, 'selfies', filename);
@@ -813,40 +1068,52 @@ async function uploadFiles(formData) {
     
     // Upload license front to 'drivers-licenses' bucket
     if (formData.licenseFront) {
-        const filename = `front_${timestamp}.jpg`;
+        console.log('Uploading license front...');
+        const ext = formData.licenseFront.name.split('.').pop() || 'jpg';
+        const filename = `front_${timestamp}.${ext}`;
         uploads.license_front_url = await uploadToStorage(formData.licenseFront, 'drivers-licenses', filename);
     }
     
     // Upload license back to 'drivers-licenses' bucket
     if (formData.licenseBack) {
-        const filename = `back_${timestamp}.jpg`;
+        console.log('Uploading license back...');
+        const ext = formData.licenseBack.name.split('.').pop() || 'jpg';
+        const filename = `back_${timestamp}.${ext}`;
         uploads.license_back_url = await uploadToStorage(formData.licenseBack, 'drivers-licenses', filename);
     }
     
     // Upload income proof to 'income-proofs' bucket
     if (formData.incomeProof) {
-        const filename = `proof_${timestamp}.jpg`;
+        console.log('Uploading income proof...');
+        const ext = formData.incomeProof.name.split('.').pop() || 'jpg';
+        const filename = `proof_${timestamp}.${ext}`;
         uploads.income_proof_url = await uploadToStorage(formData.incomeProof, 'income-proofs', filename);
     }
     
+    console.log('All files uploaded:', uploads);
     return uploads;
 }
 
 function dataURLtoBlob(dataurl) {
-    const arr = dataurl.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while(n--){
-        u8arr[n] = bstr.charCodeAt(n);
+    try {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], {type:mime});
+    } catch (e) {
+        console.error('Error converting dataURL to blob:', e);
+        throw new Error('Failed to process selfie image');
     }
-    return new Blob([u8arr], {type:mime});
 }
 
 async function uploadToStorage(file, bucket, filename) {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('', file);
     
     const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${filename}`, {
         method: 'POST',
@@ -854,13 +1121,13 @@ async function uploadToStorage(file, bucket, filename) {
             'apikey': SUPABASE_ANON_KEY,
             'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
         },
-        body: formData
+        body: file
     });
     
     if (!response.ok) {
         const error = await response.text();
-        console.error('Upload error:', error);
-        throw new Error(`Upload failed: ${bucket}/${filename}`);
+        console.error(`Upload error for ${bucket}/${filename}:`, error);
+        throw new Error(`Failed to upload ${filename}. Please try again.`);
     }
     
     // Return public URL
@@ -879,7 +1146,7 @@ async function createCustomer(formData, uploads) {
         dl_photo_front_url: uploads.license_front_url || null,
         dl_photo_back_url: uploads.license_back_url || null,
         dl_number: formData.licenseNumber,
-        dl_state: formData.state || null,
+        dl_state: formData.licenseState || null,
         dl_expiry_date: formData.licenseExpiration,
         weekly_earnings_proof_url: uploads.income_proof_url || null,
         gig_platform: formData.incomeSource,
@@ -888,8 +1155,11 @@ async function createCustomer(formData, uploads) {
         company_contact_person: formData.companyContactName || null,
         company_email: formData.companyContactEmail || null,
         company_phone: formData.companyContactPhone || null,
-        status: 'pending_verification'
+        status: 'pending_verification',
+        application_type: formData.isCompanyRental ? 'corporate' : 'individual'
     };
+    
+    console.log('Creating customer with data:', { ...customerData, selfie_url: '[REDACTED]', dl_photo_front_url: '[REDACTED]', dl_photo_back_url: '[REDACTED]' });
     
     const response = await fetch(`${SUPABASE_URL}/rest/v1/customers`, {
         method: 'POST',
@@ -905,10 +1175,17 @@ async function createCustomer(formData, uploads) {
     if (!response.ok) {
         const error = await response.text();
         console.error('Customer creation error:', error);
-        throw new Error('Failed to create customer');
+        
+        // Check for duplicate phone
+        if (error.includes('duplicate') || error.includes('unique')) {
+            throw new Error('This phone number is already registered. Please login or use a different number.');
+        }
+        
+        throw new Error('Failed to create your account. Please try again.');
     }
     
     const customers = await response.json();
+    console.log('Customer created with ID:', customers[0].id);
     return customers[0].id;
 }
 
@@ -916,7 +1193,7 @@ async function createRentalApplication(customerId, formData) {
     const weeklyRate = selectedVehicle?.monthly_payment ? 
         Math.round(selectedVehicle.monthly_payment * 12 / 52) : 400;
     
-    // Generate rental ID (e.g., R-20251115-001)
+    // Generate rental ID (e.g., R-20251216-001)
     const today = new Date();
     const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
     const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
@@ -925,7 +1202,7 @@ async function createRentalApplication(customerId, formData) {
     const rentalData = {
         rental_id: rentalId,
         customer_id: customerId,
-        vehicle_id: formData.vehicleId,
+        vehicle_id: formData.vehicleId || null,
         start_date: new Date().toISOString().split('T')[0], // Today's date as YYYY-MM-DD
         rental_status: 'pending_approval',
         weekly_rate: weeklyRate,
@@ -936,6 +1213,8 @@ async function createRentalApplication(customerId, formData) {
         payment_method: 'pending', // Will be set when payment method chosen
         start_mileage: 0 // Will be set at vehicle pickup
     };
+    
+    console.log('Creating rental application:', rentalData);
     
     const response = await fetch(`${SUPABASE_URL}/rest/v1/rentals`, {
         method: 'POST',
@@ -951,19 +1230,21 @@ async function createRentalApplication(customerId, formData) {
     if (!response.ok) {
         const error = await response.text();
         console.error('Rental creation error:', error);
-        throw new Error('Failed to create rental application');
+        throw new Error('Failed to create rental application. Please try again.');
     }
+    
+    const rentals = await response.json();
+    console.log('Rental application created:', rentals[0].rental_id);
+    return rentals[0];
 }
 
 // ============================================
 // HELPER FUNCTIONS
 // ============================================
 
-// Format phone number as user types
-document.addEventListener('DOMContentLoaded', function() {
-    const phoneInput = document.getElementById('phone');
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function(e) {
+function setupPhoneFormatting() {
+    document.querySelectorAll('input[type="tel"], #phone, #companyContactPhone').forEach(input => {
+        input.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             if (value.length > 10) value = value.slice(0, 10);
             
@@ -975,5 +1256,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.target.value = value;
             }
         });
-    }
-});
+    });
+}
+
+// Initialize phone formatting on DOM ready
+document.addEventListener('DOMContentLoaded', setupPhoneFormatting);
