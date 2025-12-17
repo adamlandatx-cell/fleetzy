@@ -2686,13 +2686,19 @@ async function validateVIN(input) {
         return false;
     }
     
-    // Check if VIN already exists in database
+    // Check if VIN already exists in database (exclude current vehicle if editing)
     if (vin.length === 17) {
-        const { data, error } = await db
+        let query = db
             .from('vehicles')
-            .select('vin')
-            .eq('vin', vin)
-            .single();
+            .select('id, vin')
+            .eq('vin', vin);
+        
+        // If editing, exclude the current vehicle from the duplicate check
+        if (editingVehicleUUID) {
+            query = query.neq('id', editingVehicleUUID);
+        }
+        
+        const { data, error } = await query.maybeSingle();
         
         if (data) {
             duplicateError.classList.remove('hidden');
