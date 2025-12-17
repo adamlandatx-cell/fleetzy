@@ -2573,19 +2573,31 @@ async function editVehicle(vehicleUUID) {
         
         // Show existing photo if available
         if (vehicle.image_url) {
-            const preview = document.getElementById('vehicle-photo-preview');
-            const placeholder = document.getElementById('vehicle-photo-placeholder');
-            const removeBtn = document.getElementById('remove-vehicle-photo');
+            const previewContainer = document.getElementById('vehicle-photo-preview');
+            const uploadArea = document.getElementById('photo-upload-area');
             
-            if (preview) {
-                preview.src = vehicle.image_url;
-                preview.classList.remove('hidden');
+            if (previewContainer) {
+                // Set the image source on the img element inside the preview container
+                const previewImg = previewContainer.querySelector('img');
+                if (previewImg) {
+                    previewImg.src = vehicle.image_url;
+                }
+                previewContainer.classList.remove('hidden');
             }
-            if (placeholder) placeholder.classList.add('hidden');
-            if (removeBtn) removeBtn.classList.remove('hidden');
+            if (uploadArea) {
+                uploadArea.classList.add('hidden');
+            }
             
             // Mark that we have an existing photo (don't require re-upload)
             vehiclePhotoFile = 'existing';
+        } else {
+            // No existing photo - show upload area
+            const previewContainer = document.getElementById('vehicle-photo-preview');
+            const uploadArea = document.getElementById('photo-upload-area');
+            
+            if (previewContainer) previewContainer.classList.add('hidden');
+            if (uploadArea) uploadArea.classList.remove('hidden');
+            vehiclePhotoFile = null;
         }
         
         // Open the modal
@@ -2737,16 +2749,17 @@ async function uploadVehiclePhoto(vehicleId) {
         throw new Error('No photo file selected');
     }
     
-    // Create unique filename
+    // Create unique filename with timestamp to avoid cache issues
     const fileExt = vehiclePhotoFile.name.split('.').pop();
-    const fileName = `${vehicleId}.${fileExt}`;
+    const timestamp = Date.now();
+    const fileName = `${vehicleId}_${timestamp}.${fileExt}`;
     const filePath = fileName;
     
     // Upload to Supabase Storage (vehicle-images bucket)
     const { data, error } = await db.storage
         .from('vehicle-images')
         .upload(filePath, vehiclePhotoFile, {
-            cacheControl: '3600',
+            cacheControl: '0', // Don't cache
             upsert: true
         });
     
@@ -2754,12 +2767,13 @@ async function uploadVehiclePhoto(vehicleId) {
         throw error;
     }
     
-    // Get public URL
+    // Get public URL with cache-busting query param
     const { data: urlData } = db.storage
         .from('vehicle-images')
         .getPublicUrl(filePath);
     
-    return urlData.publicUrl;
+    // Add cache-busting timestamp to URL
+    return `${urlData.publicUrl}?t=${timestamp}`;
 }
 
 // Form submission handler
