@@ -353,7 +353,7 @@
                                 <i class="fas fa-car-side text-fleetzy-green text-2xl mr-3"></i>
                                 Fleet Overview
                             </h2>
-                            <button onclick="openModal('add-vehicle')" class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <button onclick="resetVehicleFormToAddMode(); openModal('add-vehicle')" class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                                 <i class="fas fa-plus mr-2"></i>Add Vehicle
                             </button>
                         </div>
@@ -551,7 +551,7 @@
                         <i class="fas fa-bolt text-fleetzy-green mr-2"></i>Quick Actions
                     </h3>
                     <div class="space-y-3">
-                        <button onclick="openModal('add-vehicle')" class="w-full bg-fleetzy-green text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors text-left">
+                        <button onclick="resetVehicleFormToAddMode(); openModal('add-vehicle')" class="w-full bg-fleetzy-green text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors text-left">
                             <i class="fas fa-plus mr-2"></i>Add New Vehicle
                         </button>
                         <button onclick="openModal('add-customer')" class="w-full bg-fleetzy-blue text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors text-left">
@@ -940,8 +940,8 @@
                 let actionButtons = '';
                 if (status === 'rented') {
                     actionButtons = `
-                        <button onclick="showToast('View Details coming soon!', 'info')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
-                            <i class="fas fa-info-circle mr-2"></i>View Details
+                        <button onclick="editVehicle('${vehicle.id}')" class="w-full bg-blue-600 dark:bg-blue-700 text-white px-3 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm">
+                            <i class="fas fa-edit mr-2"></i>Edit
                         </button>
                         <button onclick="openModal('log-expense')" class="w-full bg-orange-600 dark:bg-orange-700 text-white px-3 py-2 rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors text-sm">
                             <i class="fas fa-dollar-sign mr-2"></i>Log Expense
@@ -949,17 +949,20 @@
                     `;
                 } else if (status === 'available') {
                     actionButtons = `
-                        <button onclick="showToast('Assign Customer coming soon!', 'info')" class="w-full bg-fleetzy-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                            <i class="fas fa-user-plus mr-2"></i>Assign Customer
+                        <button onclick="editVehicle('${vehicle.id}')" class="w-full bg-blue-600 dark:bg-blue-700 text-white px-3 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm">
+                            <i class="fas fa-edit mr-2"></i>Edit
                         </button>
-                        <button onclick="showToast('Service History coming soon!', 'info')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
-                            <i class="fas fa-wrench mr-2"></i>Service History
+                        <button onclick="showToast('Assign Customer coming soon!', 'info')" class="w-full bg-fleetzy-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                            <i class="fas fa-user-plus mr-2"></i>Assign
                         </button>
                     `;
                 } else {
                     actionButtons = `
-                        <button onclick="showToast('Mark Complete coming soon!', 'info')" class="w-full bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm col-span-2">
-                            <i class="fas fa-check mr-2"></i>Mark Complete
+                        <button onclick="editVehicle('${vehicle.id}')" class="w-full bg-blue-600 dark:bg-blue-700 text-white px-3 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm">
+                            <i class="fas fa-edit mr-2"></i>Edit
+                        </button>
+                        <button onclick="showToast('Mark Complete coming soon!', 'info')" class="w-full bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm">
+                            <i class="fas fa-check mr-2"></i>Complete
                         </button>
                     `;
                 }
@@ -2505,6 +2508,113 @@
 <script>
 // Global variables for this form
 let vehiclePhotoFile = null;
+let editingVehicleId = null; // Track if we're editing an existing vehicle
+let editingVehicleUUID = null; // Store the UUID for updates
+
+// Edit Vehicle function - loads existing data into form
+async function editVehicle(vehicleUUID) {
+    try {
+        showToast('Loading vehicle data...', 'info');
+        
+        // Fetch vehicle data from database
+        const { data: vehicle, error } = await db
+            .from('vehicles')
+            .select('*')
+            .eq('id', vehicleUUID)
+            .single();
+        
+        if (error) throw error;
+        if (!vehicle) throw new Error('Vehicle not found');
+        
+        // Set edit mode
+        editingVehicleId = vehicle.vehicle_id;
+        editingVehicleUUID = vehicle.id;
+        
+        // Change modal title
+        const modalTitle = document.querySelector('#modal-add-vehicle h2');
+        if (modalTitle) modalTitle.textContent = '✏️ Edit Vehicle';
+        
+        // Change submit button text
+        const submitText = document.getElementById('submit-text');
+        if (submitText) submitText.textContent = 'Update Vehicle';
+        
+        // Populate form fields
+        const form = document.getElementById('form-add-vehicle');
+        
+        // Basic info
+        form.querySelector('[name="friendly_name"]').value = vehicle.friendly_name || '';
+        form.querySelector('[name="year"]').value = vehicle.year || '';
+        form.querySelector('[name="make"]').value = vehicle.make || '';
+        form.querySelector('[name="model"]').value = vehicle.model || '';
+        form.querySelector('[name="vin"]').value = vehicle.vin || '';
+        form.querySelector('[name="color"]').value = vehicle.color || '';
+        form.querySelector('[name="license_plate"]').value = vehicle.license_plate || '';
+        form.querySelector('[name="condition"]').value = vehicle.condition || '';
+        
+        // Mileage
+        form.querySelector('[name="current_mileage"]').value = vehicle.current_mileage || '';
+        form.querySelector('[name="last_service_mileage"]').value = vehicle.last_service_mileage || '';
+        form.querySelector('[name="last_service_date"]').value = vehicle.last_service_date || '';
+        
+        // GPS & Insurance
+        form.querySelector('[name="gps_device_id"]').value = vehicle.gps_device_id || '';
+        form.querySelector('[name="gps_cost_monthly"]').value = vehicle.gps_cost_monthly || '25';
+        form.querySelector('[name="insurance_monthly"]').value = vehicle.insurance_monthly || '';
+        form.querySelector('[name="registration_cost"]').value = vehicle.registration_cost || '';
+        form.querySelector('[name="toll_tag_id"]').value = vehicle.toll_tag_id || '';
+        
+        // Purchase details
+        form.querySelector('[name="purchase_price"]').value = vehicle.purchase_price || '';
+        form.querySelector('[name="purchase_date"]').value = vehicle.purchase_date || '';
+        form.querySelector('[name="monthly_payment"]').value = vehicle.monthly_payment || '';
+        form.querySelector('[name="down_payment"]').value = vehicle.down_payment || '';
+        form.querySelector('[name="loan_amount"]').value = vehicle.loan_amount || '';
+        form.querySelector('[name="initial_prep_cost"]').value = vehicle.initial_prep_cost || '';
+        
+        // Show existing photo if available
+        if (vehicle.image_url) {
+            const preview = document.getElementById('vehicle-photo-preview');
+            const placeholder = document.getElementById('vehicle-photo-placeholder');
+            const removeBtn = document.getElementById('remove-vehicle-photo');
+            
+            if (preview) {
+                preview.src = vehicle.image_url;
+                preview.classList.remove('hidden');
+            }
+            if (placeholder) placeholder.classList.add('hidden');
+            if (removeBtn) removeBtn.classList.remove('hidden');
+            
+            // Mark that we have an existing photo (don't require re-upload)
+            vehiclePhotoFile = 'existing';
+        }
+        
+        // Open the modal
+        openModal('add-vehicle');
+        showToast('Edit mode: Update vehicle details', 'success');
+        
+    } catch (error) {
+        console.error('Error loading vehicle:', error);
+        showToast('Error loading vehicle: ' + error.message, 'error');
+    }
+}
+
+// Reset form to add mode
+function resetVehicleFormToAddMode() {
+    editingVehicleId = null;
+    editingVehicleUUID = null;
+    
+    // Reset title
+    const modalTitle = document.querySelector('#modal-add-vehicle h2');
+    if (modalTitle) modalTitle.textContent = '🚗 Add New Vehicle';
+    
+    // Reset submit button
+    const submitText = document.getElementById('submit-text');
+    if (submitText) submitText.textContent = 'Add Vehicle';
+    
+    // Reset form
+    document.getElementById('form-add-vehicle').reset();
+    removeVehiclePhoto();
+}
 
 // Populate year dropdown (2015-2025)
 document.addEventListener('DOMContentLoaded', () => {
@@ -2650,8 +2760,10 @@ async function uploadVehiclePhoto(vehicleId) {
 document.getElementById('form-add-vehicle').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // Validate photo is uploaded
-    if (!vehiclePhotoFile) {
+    const isEditMode = editingVehicleUUID !== null;
+    
+    // Validate photo is uploaded (only required for new vehicles)
+    if (!vehiclePhotoFile && !isEditMode) {
         showToast('Please upload a vehicle photo', 'error');
         return;
     }
@@ -2662,7 +2774,7 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
     const submitSpinner = document.getElementById('submit-spinner');
     
     submitBtn.disabled = true;
-    submitText.textContent = 'Adding Vehicle...';
+    submitText.textContent = isEditMode ? 'Updating Vehicle...' : 'Adding Vehicle...';
     submitSpinner.classList.remove('hidden');
     
     try {
@@ -2707,20 +2819,28 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
             throw new Error('Please fix VIN errors before submitting');
         }
         
-        // Generate vehicle ID
-        console.log('Generating vehicle ID...');
-        const vehicleId = await generateVehicleId();
-        console.log('Generated vehicle ID:', vehicleId);
+        // Get or generate vehicle ID
+        let vehicleId;
+        if (isEditMode) {
+            vehicleId = editingVehicleId;
+            console.log('Edit mode - using existing vehicle ID:', vehicleId);
+        } else {
+            console.log('Generating vehicle ID...');
+            vehicleId = await generateVehicleId();
+            console.log('Generated vehicle ID:', vehicleId);
+        }
         
-        // Upload photo first
-        showToast('Uploading vehicle photo...', 'info');
-        console.log('Uploading photo...');
-        const photoUrl = await uploadVehiclePhoto(vehicleId);
-        console.log('Photo uploaded:', photoUrl);
+        // Upload photo if a new one was selected (not 'existing')
+        let photoUrl = null;
+        if (vehiclePhotoFile && vehiclePhotoFile !== 'existing') {
+            showToast('Uploading vehicle photo...', 'info');
+            console.log('Uploading photo...');
+            photoUrl = await uploadVehiclePhoto(vehicleId);
+            console.log('Photo uploaded:', photoUrl);
+        }
         
         // Prepare data for database
         const vehicleData = {
-            vehicle_id: vehicleId,
             friendly_name: data.friendly_name.trim(),
             year: parseInt(data.year),
             make: data.make.trim(),
@@ -2744,36 +2864,68 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
             toll_tag_id: data.toll_tag_id ? data.toll_tag_id.trim() : null,
             insurance_monthly: parseFloat(data.insurance_monthly),
             registration_cost: data.registration_cost ? parseFloat(data.registration_cost) : null,
-            status: 'available',
-            image_url: photoUrl
-            // Let Supabase handle created_at and updated_at automatically
+            updated_at: new Date().toISOString()
         };
         
-        console.log('Vehicle data to insert:', vehicleData);
+        // Only add image_url if we have a new photo
+        if (photoUrl) {
+            vehicleData.image_url = photoUrl;
+        }
         
-        // Insert into database
-        showToast('Saving to database...', 'info');
-        const { data: insertedVehicle, error: insertError } = await db
-            .from('vehicles')
-            .insert([vehicleData])
-            .select()
-            .single();
+        // For new vehicles, add vehicle_id and status
+        if (!isEditMode) {
+            vehicleData.vehicle_id = vehicleId;
+            vehicleData.status = 'available';
+        }
         
-        console.log('Insert result:', { insertedVehicle, insertError });
+        console.log('Vehicle data to save:', vehicleData);
         
-        if (insertError) {
-            console.error('Supabase insert error:', insertError);
-            throw new Error(insertError.message || 'Database error: ' + JSON.stringify(insertError));
+        let result, dbError;
+        
+        if (isEditMode) {
+            // UPDATE existing vehicle
+            showToast('Updating database...', 'info');
+            const { data: updatedVehicle, error: updateError } = await db
+                .from('vehicles')
+                .update(vehicleData)
+                .eq('id', editingVehicleUUID)
+                .select()
+                .single();
+            
+            result = updatedVehicle;
+            dbError = updateError;
+            console.log('Update result:', { result, dbError });
+        } else {
+            // INSERT new vehicle
+            showToast('Saving to database...', 'info');
+            const { data: insertedVehicle, error: insertError } = await db
+                .from('vehicles')
+                .insert([vehicleData])
+                .select()
+                .single();
+            
+            result = insertedVehicle;
+            dbError = insertError;
+            console.log('Insert result:', { result, dbError });
+        }
+        
+        if (dbError) {
+            console.error('Supabase error:', dbError);
+            throw new Error(dbError.message || 'Database error: ' + JSON.stringify(dbError));
         }
         
         // Success!
-        showToast(`Vehicle ${vehicleId} added successfully! ✓`, 'success');
-        console.log('Vehicle added successfully:', insertedVehicle);
+        const successMsg = isEditMode 
+            ? `Vehicle ${vehicleId} updated successfully! ✓` 
+            : `Vehicle ${vehicleId} added successfully! ✓`;
+        showToast(successMsg, 'success');
+        console.log('Vehicle saved successfully:', result);
         
         // Close modal and reset form
         closeModal('add-vehicle');
         e.target.reset();
         removeVehiclePhoto();
+        resetVehicleFormToAddMode();
         
         // Refresh dashboard data
         if (typeof loadDashboardData === 'function') {
@@ -2781,11 +2933,11 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
         }
         
     } catch (error) {
-        console.error('Error adding vehicle:', error);
+        console.error('Error saving vehicle:', error);
         // Show detailed error message
         const errorMsg = error.message || 'Unknown error occurred';
         showToast(`Error: ${errorMsg}`, 'error');
-        alert(`Vehicle add failed:\n\n${errorMsg}\n\nCheck browser console for details.`);
+        alert(`Vehicle save failed:\n\n${errorMsg}\n\nCheck browser console for details.`);
     } finally {
         // Re-enable submit button
         submitBtn.disabled = false;
