@@ -776,7 +776,8 @@
                 const { data: customers } = await db.from('customers').select('*');
                 const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)');
                 const { data: payments } = await db.from('payments').select('*, customers(*)');
-                const { data: applications } = await db.from('applications').select('*');
+                // Pending applications are customers with application_status = 'pending'
+                const applications = (customers || []).filter(c => c.application_status === 'pending' || c.application_status === 'Pending');
                 
                 // Update metrics
                 updateMetrics(vehicles || [], customers || [], rentals || [], payments || []);
@@ -816,7 +817,8 @@
         }
 
         function updatePendingApplications(applications) {
-            const pending = applications.filter(a => a.status === 'pending');
+            // Applications are already filtered to pending status from customers table
+            const pending = applications;
             document.getElementById('pending-apps-badge').textContent = `${pending.length} New`;
             
             const list = document.getElementById('pending-applications-list');
@@ -845,10 +847,10 @@
                             </div>
                         </div>
                         <div class="flex flex-col space-y-2">
-                            <button onclick="approveCustomer(app.id)" class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <button onclick="approveCustomer('${app.id}')" class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                                 <i class="fas fa-check mr-2"></i>Approve
                             </button>
-                            <button onclick="rejectCustomer(app.id)" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            <button onclick="reviewCustomer('${app.id}')" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                                 <i class="fas fa-eye mr-2"></i>Review
                             </button>
                         </div>
@@ -930,13 +932,9 @@
                 };
                 const badge = statusBadges[status];
                 
-                // Vehicle placeholder image (you can replace with actual vehicle images)
-                const imageUrl = `https://images.unsplash.com/photo-${
-                    vehicle.make === 'Toyota' ? '1621007947622' : 
-                    vehicle.make === 'Honda' ? '1621007947200' : 
-                    vehicle.make === 'Nissan' ? '1621007947300' : 
-                    '1621007947400'
-                }-${vehicle.model?.toLowerCase() || 'car'}?w=400&h=250&fit=crop`;
+                // Use actual image_url from database, fallback to placeholder if not set
+                const placeholderUrl = 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop';
+                const imageUrl = vehicle.image_url || placeholderUrl;
                 
                 // Action buttons based on status
                 let actionButtons = '';
@@ -3782,4 +3780,4 @@ document.addEventListener('keydown', (e) => {
 </script>
 
 </body>
-                        </html>
+</html>
