@@ -353,7 +353,7 @@
                                 <i class="fas fa-car-side text-fleetzy-green text-2xl mr-3"></i>
                                 Fleet Overview
                             </h2>
-                            <button onclick="resetVehicleFormToAddMode(); openModal('add-vehicle')" class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <button onclick="openModal('add-vehicle')" class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
                                 <i class="fas fa-plus mr-2"></i>Add Vehicle
                             </button>
                         </div>
@@ -551,7 +551,7 @@
                         <i class="fas fa-bolt text-fleetzy-green mr-2"></i>Quick Actions
                     </h3>
                     <div class="space-y-3">
-                        <button onclick="resetVehicleFormToAddMode(); openModal('add-vehicle')" class="w-full bg-fleetzy-green text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors text-left">
+                        <button onclick="openModal('add-vehicle')" class="w-full bg-fleetzy-green text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors text-left">
                             <i class="fas fa-plus mr-2"></i>Add New Vehicle
                         </button>
                         <button onclick="openModal('add-customer')" class="w-full bg-fleetzy-blue text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors text-left">
@@ -618,11 +618,9 @@
         // CONFIGURATION
         // ===========================
         const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
-        // IMPORTANT: Using SERVICE ROLE key for admin dashboard (bypasses RLS)
-        const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Mjc4MTk1NCwiZXhwIjoyMDc4MzU3OTU0fQ.U8675PHnaX0csmw-Pe6y5HVGBoOmHNcQRsQUJUpXtDw';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
         
-        // Create Supabase client (named 'db' to avoid conflict with CDN's global 'supabase' object)
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ===========================
         // DARK MODE
@@ -772,12 +770,11 @@
         async function loadDashboardData() {
             try {
                 // Load all data
-                const { data: vehicles } = await db.from('vehicles').select('*');
-                const { data: customers } = await db.from('customers').select('*');
-                const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)');
-                const { data: payments } = await db.from('payments').select('*, customers(*)');
-                // Pending applications are customers with application_status = 'pending'
-                const applications = (customers || []).filter(c => c.application_status === 'pending' || c.application_status === 'Pending');
+                const { data: vehicles } = await supabase.from('vehicles').select('*');
+                const { data: customers } = await supabase.from('customers').select('*');
+                const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)');
+                const { data: payments } = await supabase.from('payments').select('*, customers(*)');
+                const { data: applications } = await supabase.from('applications').select('*');
                 
                 // Update metrics
                 updateMetrics(vehicles || [], customers || [], rentals || [], payments || []);
@@ -817,8 +814,12 @@
         }
 
         function updatePendingApplications(applications) {
-            // Applications are already filtered to pending status from customers table
-            const pending = applications;
+            // Match all pending statuses (pending_verification from app, Pending from manual entry)
+            const pending = applications.filter(a => 
+                a.status === 'pending_verification' || 
+                a.status === 'pending' || 
+                a.status === 'Pending'
+            );
             document.getElementById('pending-apps-badge').textContent = `${pending.length} New`;
             
             const list = document.getElementById('pending-applications-list');
@@ -836,10 +837,10 @@
                 <div class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                     <div class="flex items-start justify-between">
                         <div class="flex items-start space-x-4">
-                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(app.first_name + ' ' + app.last_name)}&background=059669&color=fff" 
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(app.full_name || 'New Applicant')}&background=059669&color=fff" 
                                  class="w-16 h-16 rounded-full border-2 border-fleetzy-green">
                             <div>
-                                <h3 class="font-semibold text-lg">${app.first_name} ${app.last_name}</h3>
+                                <h3 class="font-semibold text-lg">${app.full_name || 'New Applicant'}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">${app.email || 'No email'} • ${app.phone || 'No phone'}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
                                     <i class="fas fa-clock mr-1"></i>Applied ${new Date(app.created_at).toLocaleDateString()}
@@ -932,16 +933,20 @@
                 };
                 const badge = statusBadges[status];
                 
-                // Use actual image_url from database, fallback to placeholder if not set
-                const placeholderUrl = 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop';
-                const imageUrl = vehicle.image_url || placeholderUrl;
+                // Vehicle placeholder image (you can replace with actual vehicle images)
+                const imageUrl = `https://images.unsplash.com/photo-${
+                    vehicle.make === 'Toyota' ? '1621007947622' : 
+                    vehicle.make === 'Honda' ? '1621007947200' : 
+                    vehicle.make === 'Nissan' ? '1621007947300' : 
+                    '1621007947400'
+                }-${vehicle.model?.toLowerCase() || 'car'}?w=400&h=250&fit=crop`;
                 
                 // Action buttons based on status
                 let actionButtons = '';
                 if (status === 'rented') {
                     actionButtons = `
-                        <button onclick="editVehicle('${vehicle.id}')" class="w-full bg-blue-600 dark:bg-blue-700 text-white px-3 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm">
-                            <i class="fas fa-edit mr-2"></i>Edit
+                        <button onclick="showToast('View Details coming soon!', 'info')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
+                            <i class="fas fa-info-circle mr-2"></i>View Details
                         </button>
                         <button onclick="openModal('log-expense')" class="w-full bg-orange-600 dark:bg-orange-700 text-white px-3 py-2 rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors text-sm">
                             <i class="fas fa-dollar-sign mr-2"></i>Log Expense
@@ -949,20 +954,17 @@
                     `;
                 } else if (status === 'available') {
                     actionButtons = `
-                        <button onclick="editVehicle('${vehicle.id}')" class="w-full bg-blue-600 dark:bg-blue-700 text-white px-3 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm">
-                            <i class="fas fa-edit mr-2"></i>Edit
-                        </button>
                         <button onclick="showToast('Assign Customer coming soon!', 'info')" class="w-full bg-fleetzy-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                            <i class="fas fa-user-plus mr-2"></i>Assign
+                            <i class="fas fa-user-plus mr-2"></i>Assign Customer
+                        </button>
+                        <button onclick="showToast('Service History coming soon!', 'info')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
+                            <i class="fas fa-wrench mr-2"></i>Service History
                         </button>
                     `;
                 } else {
                     actionButtons = `
-                        <button onclick="editVehicle('${vehicle.id}')" class="w-full bg-blue-600 dark:bg-blue-700 text-white px-3 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm">
-                            <i class="fas fa-edit mr-2"></i>Edit
-                        </button>
-                        <button onclick="showToast('Mark Complete coming soon!', 'info')" class="w-full bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm">
-                            <i class="fas fa-check mr-2"></i>Complete
+                        <button onclick="showToast('Mark Complete coming soon!', 'info')" class="w-full bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm col-span-2">
+                            <i class="fas fa-check mr-2"></i>Mark Complete
                         </button>
                     `;
                 }
@@ -2508,125 +2510,6 @@
 <script>
 // Global variables for this form
 let vehiclePhotoFile = null;
-let editingVehicleId = null; // Track if we're editing an existing vehicle
-let editingVehicleUUID = null; // Store the UUID for updates
-
-// Edit Vehicle function - loads existing data into form
-async function editVehicle(vehicleUUID) {
-    try {
-        showToast('Loading vehicle data...', 'info');
-        
-        // Fetch vehicle data from database
-        const { data: vehicle, error } = await db
-            .from('vehicles')
-            .select('*')
-            .eq('id', vehicleUUID)
-            .single();
-        
-        if (error) throw error;
-        if (!vehicle) throw new Error('Vehicle not found');
-        
-        // Set edit mode
-        editingVehicleId = vehicle.vehicle_id;
-        editingVehicleUUID = vehicle.id;
-        
-        // Change modal title
-        const modalTitle = document.querySelector('#modal-add-vehicle h2');
-        if (modalTitle) modalTitle.textContent = '✏️ Edit Vehicle';
-        
-        // Change submit button text
-        const submitText = document.getElementById('submit-text');
-        if (submitText) submitText.textContent = 'Update Vehicle';
-        
-        // Populate form fields
-        const form = document.getElementById('form-add-vehicle');
-        
-        // Basic info
-        form.querySelector('[name="friendly_name"]').value = vehicle.friendly_name || '';
-        form.querySelector('[name="year"]').value = vehicle.year || '';
-        form.querySelector('[name="make"]').value = vehicle.make || '';
-        form.querySelector('[name="model"]').value = vehicle.model || '';
-        form.querySelector('[name="vin"]').value = vehicle.vin || '';
-        form.querySelector('[name="color"]').value = vehicle.color || '';
-        form.querySelector('[name="license_plate"]').value = vehicle.license_plate || '';
-        form.querySelector('[name="condition"]').value = vehicle.condition || '';
-        
-        // Mileage
-        form.querySelector('[name="current_mileage"]').value = vehicle.current_mileage || '';
-        form.querySelector('[name="last_service_mileage"]').value = vehicle.last_service_mileage || '';
-        form.querySelector('[name="last_service_date"]').value = vehicle.last_service_date || '';
-        
-        // GPS & Insurance
-        form.querySelector('[name="gps_device_id"]').value = vehicle.gps_device_id || '';
-        form.querySelector('[name="gps_cost_monthly"]').value = vehicle.gps_cost_monthly || '25';
-        form.querySelector('[name="insurance_monthly"]').value = vehicle.insurance_monthly || '';
-        form.querySelector('[name="registration_cost"]').value = vehicle.registration_cost || '';
-        form.querySelector('[name="toll_tag_id"]').value = vehicle.toll_tag_id || '';
-        
-        // Purchase details
-        form.querySelector('[name="purchase_price"]').value = vehicle.purchase_price || '';
-        form.querySelector('[name="purchase_date"]').value = vehicle.purchase_date || '';
-        form.querySelector('[name="monthly_payment"]').value = vehicle.monthly_payment || '';
-        form.querySelector('[name="down_payment"]').value = vehicle.down_payment || '';
-        form.querySelector('[name="loan_amount"]').value = vehicle.loan_amount || '';
-        form.querySelector('[name="initial_prep_cost"]').value = vehicle.initial_prep_cost || '';
-        
-        // Show existing photo if available
-        if (vehicle.image_url) {
-            const previewContainer = document.getElementById('vehicle-photo-preview');
-            const uploadArea = document.getElementById('photo-upload-area');
-            
-            if (previewContainer) {
-                // Set the image source on the img element inside the preview container
-                const previewImg = previewContainer.querySelector('img');
-                if (previewImg) {
-                    previewImg.src = vehicle.image_url;
-                }
-                previewContainer.classList.remove('hidden');
-            }
-            if (uploadArea) {
-                uploadArea.classList.add('hidden');
-            }
-            
-            // Mark that we have an existing photo (don't require re-upload)
-            vehiclePhotoFile = 'existing';
-        } else {
-            // No existing photo - show upload area
-            const previewContainer = document.getElementById('vehicle-photo-preview');
-            const uploadArea = document.getElementById('photo-upload-area');
-            
-            if (previewContainer) previewContainer.classList.add('hidden');
-            if (uploadArea) uploadArea.classList.remove('hidden');
-            vehiclePhotoFile = null;
-        }
-        
-        // Open the modal
-        openModal('add-vehicle');
-        showToast('Edit mode: Update vehicle details', 'success');
-        
-    } catch (error) {
-        console.error('Error loading vehicle:', error);
-        showToast('Error loading vehicle: ' + error.message, 'error');
-    }
-}
-
-// Reset form to add mode
-function resetVehicleFormToAddMode() {
-    editingVehicleId = null;
-    editingVehicleUUID = null;
-    
-    // Reset title
-    const modalTitle = document.querySelector('#modal-add-vehicle h2');
-    if (modalTitle) modalTitle.textContent = '🚗 Add New Vehicle';
-    
-    // Reset submit button
-    const submitText = document.getElementById('submit-text');
-    if (submitText) submitText.textContent = 'Add Vehicle';
-    
-    // Reset form
-    document.getElementById('form-add-vehicle').reset();
-    removeVehiclePhoto();
-}
 
 // Populate year dropdown (2015-2025)
 document.addEventListener('DOMContentLoaded', () => {
@@ -2698,19 +2581,13 @@ async function validateVIN(input) {
         return false;
     }
     
-    // Check if VIN already exists in database (exclude current vehicle if editing)
+    // Check if VIN already exists in database
     if (vin.length === 17) {
-        let query = db
+        const { data, error } = await supabase
             .from('vehicles')
-            .select('id, vin')
-            .eq('vin', vin);
-        
-        // If editing, exclude the current vehicle from the duplicate check
-        if (editingVehicleUUID) {
-            query = query.neq('id', editingVehicleUUID);
-        }
-        
-        const { data, error } = await query.maybeSingle();
+            .select('vin')
+            .eq('vin', vin)
+            .single();
         
         if (data) {
             duplicateError.classList.remove('hidden');
@@ -2723,7 +2600,7 @@ async function validateVIN(input) {
 
 // Generate next vehicle ID (V-001, V-002, etc.)
 async function generateVehicleId() {
-    const { data, error } = await db
+    const { data, error } = await supabase
         .from('vehicles')
         .select('vehicle_id')
         .order('created_at', { ascending: false })
@@ -2749,17 +2626,16 @@ async function uploadVehiclePhoto(vehicleId) {
         throw new Error('No photo file selected');
     }
     
-    // Create unique filename with timestamp to avoid cache issues
+    // Create unique filename
     const fileExt = vehiclePhotoFile.name.split('.').pop();
-    const timestamp = Date.now();
-    const fileName = `${vehicleId}_${timestamp}.${fileExt}`;
+    const fileName = `${vehicleId}.${fileExt}`;
     const filePath = fileName;
     
     // Upload to Supabase Storage (vehicle-images bucket)
-    const { data, error } = await db.storage
+    const { data, error } = await supabase.storage
         .from('vehicle-images')
         .upload(filePath, vehiclePhotoFile, {
-            cacheControl: '0', // Don't cache
+            cacheControl: '3600',
             upsert: true
         });
     
@@ -2767,23 +2643,20 @@ async function uploadVehiclePhoto(vehicleId) {
         throw error;
     }
     
-    // Get public URL with cache-busting query param
-    const { data: urlData } = db.storage
+    // Get public URL
+    const { data: urlData } = supabase.storage
         .from('vehicle-images')
         .getPublicUrl(filePath);
     
-    // Add cache-busting timestamp to URL
-    return `${urlData.publicUrl}?t=${timestamp}`;
+    return urlData.publicUrl;
 }
 
 // Form submission handler
 document.getElementById('form-add-vehicle').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const isEditMode = editingVehicleUUID !== null;
-    
-    // Validate photo is uploaded (only required for new vehicles)
-    if (!vehiclePhotoFile && !isEditMode) {
+    // Validate photo is uploaded
+    if (!vehiclePhotoFile) {
         showToast('Please upload a vehicle photo', 'error');
         return;
     }
@@ -2794,7 +2667,7 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
     const submitSpinner = document.getElementById('submit-spinner');
     
     submitBtn.disabled = true;
-    submitText.textContent = isEditMode ? 'Updating Vehicle...' : 'Adding Vehicle...';
+    submitText.textContent = 'Adding Vehicle...';
     submitSpinner.classList.remove('hidden');
     
     try {
@@ -2802,65 +2675,22 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
         
-        console.log('Form data collected:', data);
-        
-        // EXPLICIT VALIDATION - Check required fields
-        if (!data.friendly_name || data.friendly_name.trim() === '') {
-            throw new Error('Vehicle Name is required');
-        }
-        if (!data.year) {
-            throw new Error('Year is required');
-        }
-        if (!data.make || data.make.trim() === '') {
-            throw new Error('Make is required');
-        }
-        if (!data.model || data.model.trim() === '') {
-            throw new Error('Model is required');
-        }
-        if (!data.vin || data.vin.trim() === '') {
-            throw new Error('VIN is required');
-        }
-        if (!data.purchase_price) {
-            throw new Error('Purchase Price is required');
-        }
-        if (!data.monthly_payment) {
-            throw new Error('Monthly Payment is required');
-        }
-        if (!data.insurance_monthly) {
-            throw new Error('Insurance Monthly is required');
-        }
-        if (!data.purchase_date) {
-            throw new Error('Purchase Date is required');
-        }
-        
         // Validate VIN one more time
         const vinValid = await validateVIN(document.querySelector('input[name="vin"]'));
         if (!vinValid) {
             throw new Error('Please fix VIN errors before submitting');
         }
         
-        // Get or generate vehicle ID
-        let vehicleId;
-        if (isEditMode) {
-            vehicleId = editingVehicleId;
-            console.log('Edit mode - using existing vehicle ID:', vehicleId);
-        } else {
-            console.log('Generating vehicle ID...');
-            vehicleId = await generateVehicleId();
-            console.log('Generated vehicle ID:', vehicleId);
-        }
+        // Generate vehicle ID
+        const vehicleId = await generateVehicleId();
         
-        // Upload photo if a new one was selected (not 'existing')
-        let photoUrl = null;
-        if (vehiclePhotoFile && vehiclePhotoFile !== 'existing') {
-            showToast('Uploading vehicle photo...', 'info');
-            console.log('Uploading photo...');
-            photoUrl = await uploadVehiclePhoto(vehicleId);
-            console.log('Photo uploaded:', photoUrl);
-        }
+        // Upload photo first
+        showToast('Uploading vehicle photo...', 'info');
+        const photoUrl = await uploadVehiclePhoto(vehicleId);
         
-        // Prepare data for database
+        // Prepare data for database with CORRECT column names
         const vehicleData = {
+            vehicle_id: vehicleId,
             friendly_name: data.friendly_name.trim(),
             year: parseInt(data.year),
             make: data.make.trim(),
@@ -2884,68 +2714,30 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
             toll_tag_id: data.toll_tag_id ? data.toll_tag_id.trim() : null,
             insurance_monthly: parseFloat(data.insurance_monthly),
             registration_cost: data.registration_cost ? parseFloat(data.registration_cost) : null,
+            status: 'available',
+            image_url: photoUrl,
+            created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
         
-        // Only add image_url if we have a new photo
-        if (photoUrl) {
-            vehicleData.image_url = photoUrl;
-        }
+        // Insert into database
+        const { data: insertedVehicle, error: insertError } = await supabase
+            .from('vehicles')
+            .insert([vehicleData])
+            .select()
+            .single();
         
-        // For new vehicles, add vehicle_id and status
-        if (!isEditMode) {
-            vehicleData.vehicle_id = vehicleId;
-            vehicleData.status = 'available';
-        }
-        
-        console.log('Vehicle data to save:', vehicleData);
-        
-        let result, dbError;
-        
-        if (isEditMode) {
-            // UPDATE existing vehicle
-            showToast('Updating database...', 'info');
-            const { data: updatedVehicle, error: updateError } = await db
-                .from('vehicles')
-                .update(vehicleData)
-                .eq('id', editingVehicleUUID)
-                .select()
-                .single();
-            
-            result = updatedVehicle;
-            dbError = updateError;
-            console.log('Update result:', { result, dbError });
-        } else {
-            // INSERT new vehicle
-            showToast('Saving to database...', 'info');
-            const { data: insertedVehicle, error: insertError } = await db
-                .from('vehicles')
-                .insert([vehicleData])
-                .select()
-                .single();
-            
-            result = insertedVehicle;
-            dbError = insertError;
-            console.log('Insert result:', { result, dbError });
-        }
-        
-        if (dbError) {
-            console.error('Supabase error:', dbError);
-            throw new Error(dbError.message || 'Database error: ' + JSON.stringify(dbError));
+        if (insertError) {
+            throw insertError;
         }
         
         // Success!
-        const successMsg = isEditMode 
-            ? `Vehicle ${vehicleId} updated successfully! ✓` 
-            : `Vehicle ${vehicleId} added successfully! ✓`;
-        showToast(successMsg, 'success');
-        console.log('Vehicle saved successfully:', result);
+        showToast(`Vehicle ${vehicleId} added successfully! ✓`, 'success');
         
         // Close modal and reset form
         closeModal('add-vehicle');
         e.target.reset();
         removeVehiclePhoto();
-        resetVehicleFormToAddMode();
         
         // Refresh dashboard data
         if (typeof loadDashboardData === 'function') {
@@ -2953,11 +2745,8 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
         }
         
     } catch (error) {
-        console.error('Error saving vehicle:', error);
-        // Show detailed error message
-        const errorMsg = error.message || 'Unknown error occurred';
-        showToast(`Error: ${errorMsg}`, 'error');
-        alert(`Vehicle save failed:\n\n${errorMsg}\n\nCheck browser console for details.`);
+        console.error('Error adding vehicle:', error);
+        showToast(error.message || 'Error adding vehicle. Please try again.', 'error');
     } finally {
         // Re-enable submit button
         submitBtn.disabled = false;
@@ -3083,7 +2872,7 @@ function removeImage(type) {
 
 // Generate customer ID
 async function generateCustomerId() {
-    const { data, error } = await db
+    const { data, error } = await supabase
         .from('customers')
         .select('customer_id')
         .order('created_at', { ascending: false })
@@ -3128,7 +2917,7 @@ async function uploadCustomerImage(customerId, file, type) {
     const fileExt = file.name.split('.').pop();
     const fileName = `${fileNameMap[type]}.${fileExt}`;
     
-    const { data, error } = await db.storage
+    const { data, error } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, {
             cacheControl: '3600',
@@ -3139,7 +2928,7 @@ async function uploadCustomerImage(customerId, file, type) {
         throw error;
     }
     
-    const { data: urlData } = db.storage
+    const { data: urlData } = supabase.storage
         .from(bucket)
         .getPublicUrl(fileName);
     
@@ -3284,7 +3073,7 @@ document.getElementById('form-add-customer').addEventListener('submit', async (e
         };
         
         // Insert into database
-        const { data: insertedCustomer, error: insertError } = await db
+        const { data: insertedCustomer, error: insertError } = await supabase
             .from('customers')
             .insert([customerData])
             .select()
@@ -3388,14 +3177,14 @@ function closeModal(modalName) {
 async function loadStartRentalData() {
     try {
         // Load approved customers
-        const { data: customers } = await db.from('customers').select('*').or('application_status.eq.approved,status.eq.approved');
+        const { data: customers } = await supabase.from('customers').select('*').or('application_status.eq.approved,status.eq.approved');
         const customerSelect = document.querySelector('#form-start-rental select[name="customer_id"]');
         customerSelect.innerHTML = '<option value="">Select a customer...</option>' +
             (customers || []).map(c => `<option value="${c.id}">${c.full_name || c.first_name + ' ' + (c.last_name || '')} - ${c.phone || ''}</option>`).join('');
         
         // Load available vehicles
-        const { data: vehicles } = await db.from('vehicles').select('*').or('vehicle_status.eq.available,vehicle_status.eq.Active');
-        const { data: activeRentals } = await db.from('rentals').select('vehicle_id').eq('rental_status', 'active');
+        const { data: vehicles } = await supabase.from('vehicles').select('*').or('vehicle_status.eq.available,vehicle_status.eq.Active');
+        const { data: activeRentals } = await supabase.from('rentals').select('vehicle_id').eq('rental_status', 'active');
         const rentedVehicleIds = (activeRentals || []).map(r => r.vehicle_id);
         const availableVehicles = (vehicles || []).filter(v => !rentedVehicleIds.includes(v.id));
         
@@ -3471,10 +3260,10 @@ async function uploadToStorage(bucket, file, folder = '') {
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const path = folder ? `${folder}/${timestamp}_${safeName}` : `${timestamp}_${safeName}`;
     
-    const { data, error } = await db.storage.from(bucket).upload(path, file);
+    const { data, error } = await supabase.storage.from(bucket).upload(path, file);
     if (error) throw error;
     
-    const { data: urlData } = db.storage.from(bucket).getPublicUrl(path);
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
     return urlData.publicUrl;
 }
 
@@ -3495,7 +3284,7 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
         const data = Object.fromEntries(formData);
         
         // Generate rental ID
-        const { count } = await db.from('rentals').select('*', { count: 'exact', head: true });
+        const { count } = await supabase.from('rentals').select('*', { count: 'exact', head: true });
         data.rental_id = `R-${String((count || 0) + 1).padStart(3, '0')}`;
         data.rental_status = 'active';
         
@@ -3522,11 +3311,11 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
         }
         
         // Insert rental
-        const { error: rentalError } = await db.from('rentals').insert([data]);
+        const { error: rentalError } = await supabase.from('rentals').insert([data]);
         if (rentalError) throw rentalError;
         
         // Update vehicle status
-        await db.from('vehicles').update({ vehicle_status: 'rented' }).eq('id', data.vehicle_id);
+        await supabase.from('vehicles').update({ vehicle_status: 'rented' }).eq('id', data.vehicle_id);
         
         showToast('Rental started successfully! 🚗', 'success');
         closeModal('start-rental');
@@ -3552,7 +3341,7 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
 // ===========================
 async function loadPaymentFormData() {
     try {
-        const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
+        const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
         allRentalsCache = rentals || [];
         
         const select = document.getElementById('payment-rental-select');
@@ -3623,7 +3412,7 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
         const data = Object.fromEntries(formData);
         
         // Generate payment ID
-        const { count } = await db.from('payments').select('*', { count: 'exact', head: true });
+        const { count } = await supabase.from('payments').select('*', { count: 'exact', head: true });
         data.payment_id = `P-${String((count || 0) + 1).padStart(3, '0')}`;
         data.payment_status = 'confirmed';
         data.paid_amount = parseFloat(data.paid_amount);
@@ -3641,13 +3430,13 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
             // Update rental next payment due
             const nextDue = new Date(rental.next_payment_due || new Date());
             nextDue.setDate(nextDue.getDate() + 7);
-            await db.from('rentals').update({ 
+            await supabase.from('rentals').update({ 
                 next_payment_due: nextDue.toISOString().split('T')[0],
                 last_payment_date: data.paid_date
             }).eq('id', data.rental_id);
         }
         
-        const { error } = await db.from('payments').insert([data]);
+        const { error } = await supabase.from('payments').insert([data]);
         if (error) throw error;
         
         showToast('Payment recorded successfully! 💰', 'success');
@@ -3673,7 +3462,7 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
 // ===========================
 async function loadEndRentalFormData() {
     try {
-        const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
+        const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
         allRentalsCache = rentals || [];
         
         const select = document.getElementById('end-rental-select');
@@ -3768,12 +3557,12 @@ document.getElementById('form-end-rental').addEventListener('submit', async (e) 
             return_notes: data.return_notes
         };
         
-        const { error } = await db.from('rentals').update(updateData).eq('id', data.rental_id);
+        const { error } = await supabase.from('rentals').update(updateData).eq('id', data.rental_id);
         if (error) throw error;
         
         // Update vehicle status back to available and update mileage
         if (rental) {
-            await db.from('vehicles').update({ 
+            await supabase.from('vehicles').update({ 
                 vehicle_status: 'available',
                 current_mileage: parseInt(data.end_mileage)
             }).eq('id', rental.vehicle_id);
@@ -3802,7 +3591,7 @@ document.getElementById('form-end-rental').addEventListener('submit', async (e) 
 // ===========================
 async function loadExpenseFormData() {
     try {
-        const { data: vehicles } = await db.from('vehicles').select('*');
+        const { data: vehicles } = await supabase.from('vehicles').select('*');
         allVehiclesCache = vehicles || [];
         
         const select = document.getElementById('expense-vehicle-select');
@@ -3861,7 +3650,7 @@ document.getElementById('form-log-expense').addEventListener('submit', async (e)
             data.receipt_url = await uploadToStorage('payment-screenshots', expenseReceiptFile, `expense_${data.expense_id}`);
         }
         
-        const { error } = await db.from('expenses').insert([data]);
+        const { error } = await supabase.from('expenses').insert([data]);
         if (error) throw error;
         
         showToast('Expense logged successfully! 📝', 'success');
@@ -3885,7 +3674,7 @@ async function approveCustomer(customerId) {
     if (!confirm('Approve this customer application?')) return;
     
     try {
-        const { error } = await db.from('customers').update({ 
+        const { error } = await supabase.from('customers').update({ 
             application_status: 'approved',
             status: 'approved',
             approved_at: new Date().toISOString()
@@ -3908,7 +3697,7 @@ async function rejectCustomer(customerId) {
     if (reason === null) return;
     
     try {
-        const { error } = await db.from('customers').update({ 
+        const { error } = await supabase.from('customers').update({ 
             application_status: 'rejected',
             status: 'rejected',
             rejection_reason: reason || null,
