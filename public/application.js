@@ -652,6 +652,7 @@ function validateLicense() {
     const licenseFront = document.getElementById('licenseFront')?.files?.length;
     const licenseBack = document.getElementById('licenseBack')?.files?.length;
     const licenseNumber = document.getElementById('licenseNumber')?.value?.trim();
+    const licenseState = document.getElementById('licenseState')?.value;
     const licenseExpiration = document.getElementById('licenseExpiration')?.value;
     
     if (!licenseFront) {
@@ -667,6 +668,12 @@ function validateLicense() {
     if (!licenseNumber) {
         showValidationError('Please enter your driver\'s license number');
         document.getElementById('licenseNumber')?.focus();
+        return false;
+    }
+    
+    if (!licenseState) {
+        showValidationError('Please select the state that issued your driver\'s license');
+        document.getElementById('licenseState')?.focus();
         return false;
     }
     
@@ -1032,7 +1039,7 @@ function collectFormData() {
         licenseBack: document.getElementById('licenseBack')?.files?.[0],
         licenseNumber: document.getElementById('licenseNumber')?.value?.trim() || '',
         licenseExpiration: document.getElementById('licenseExpiration')?.value || '',
-        licenseState: document.getElementById('licenseState')?.value || document.getElementById('state')?.value || '',
+        licenseState: document.getElementById('licenseState')?.value || '',
         
         // Income
         incomeSource: document.getElementById('incomeSource')?.value || '',
