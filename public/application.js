@@ -20,6 +20,14 @@ let vehicles = [];
 let selectedVehicle = null;
 let selfieStream = null;
 
+// Language helper
+function t(key) {
+    if (window.FleetzyLanguage && typeof window.FleetzyLanguage.translate === "function") {
+        return window.FleetzyLanguage.translate(key);
+    }
+    return key.split(".").pop(); // fallback to last part of key
+}
+
 // ============================================
 // INITIALIZATION
 // ============================================

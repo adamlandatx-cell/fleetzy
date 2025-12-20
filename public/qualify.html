@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="See if you qualify for Fleetzy weekly car rental in Houston, Texas. Fast 60-second check.">
     <meta name="theme-color" content="#059669">
-    <title>See If You Qualify - Fleetzy</title>
+    <title data-i18n="qualify.pageTitle">See If You Qualify - Fleetzy</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="fleetzy-icon.png">
@@ -85,7 +85,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                 </svg>
-                <span>(281) 271-3900</span>
+                <span data-i18n="common.phone">(281) 271-3900</span>
             </a>
         </div>
     </header>
@@ -97,7 +97,7 @@
             <!-- Progress Bar -->
             <div class="bg-gray-100 px-6 py-4">
                 <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
-                    <span id="progressText">Step 1 of 5</span>
+                    <span id="progressText" data-i18n="qualify.progress.step">Step 1 of 5</span>
                     <span id="progressPercent">20%</span>
                 </div>
                 <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -111,15 +111,15 @@
                 <!-- STEP 1: PATH SELECTION (ENTRY POINT) -->
                 <!-- ================================================ -->
                 <div class="step active" id="step-entry">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">What brings you to Fleetzy?</h1>
-                    <p class="text-gray-600 mb-6">We'll customize your experience based on your needs.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.entry.title">What brings you to Fleetzy?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.entry.subtitle">We'll customize your experience based on your needs.</p>
                     
                     <div class="space-y-3">
                         <div class="option-card rounded-xl p-4 flex items-center gap-4" onclick="selectPath('gig')">
                             <div class="text-3xl">🚗</div>
                             <div class="flex-1">
-                                <div class="font-semibold text-gray-900">I drive for rideshare/delivery</div>
-                                <div class="text-sm text-gray-500">Uber, Lyft, DoorDash, etc.</div>
+                                <div class="font-semibold text-gray-900" data-i18n="qualify.entry.options.gig.title">I drive for rideshare/delivery</div>
+                                <div class="text-sm text-gray-500" data-i18n="qualify.entry.options.gig.subtitle">Uber, Lyft, DoorDash, etc.</div>
                             </div>
                             <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,8 +131,8 @@
                         <div class="option-card rounded-xl p-4 flex items-center gap-4" onclick="selectPath('corporate')">
                             <div class="text-3xl">🏢</div>
                             <div class="flex-1">
-                                <div class="font-semibold text-gray-900">My company needs vehicles</div>
-                                <div class="text-sm text-gray-500">Fleet rentals for employees</div>
+                                <div class="font-semibold text-gray-900" data-i18n="qualify.entry.options.corporate.title">My company needs vehicles</div>
+                                <div class="text-sm text-gray-500" data-i18n="qualify.entry.options.corporate.subtitle">Fleet rentals for employees</div>
                             </div>
                             <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,8 +144,8 @@
                         <div class="option-card rounded-xl p-4 flex items-center gap-4" onclick="selectPath('temporary')">
                             <div class="text-3xl">⏱️</div>
                             <div class="flex-1">
-                                <div class="font-semibold text-gray-900">I need temporary transportation</div>
-                                <div class="text-sm text-gray-500">Car in shop, between vehicles, etc.</div>
+                                <div class="font-semibold text-gray-900" data-i18n="qualify.entry.options.temporary.title">I need temporary transportation</div>
+                                <div class="text-sm text-gray-500" data-i18n="qualify.entry.options.temporary.subtitle">Car in shop, between vehicles, etc.</div>
                             </div>
                             <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,8 +157,8 @@
                         <div class="option-card rounded-xl p-4 flex items-center gap-4" onclick="selectPath('fresh')">
                             <div class="text-3xl">🌱</div>
                             <div class="flex-1">
-                                <div class="font-semibold text-gray-900">I'm starting fresh</div>
-                                <div class="text-sm text-gray-500">New to gig work, need a vehicle to start</div>
+                                <div class="font-semibold text-gray-900" data-i18n="qualify.entry.options.fresh.title">I'm starting fresh</div>
+                                <div class="text-sm text-gray-500" data-i18n="qualify.entry.options.fresh.subtitle">New to gig work, need a vehicle to start</div>
                             </div>
                             <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,15 +175,15 @@
                 
                 <!-- GIG Step 2: Experience -->
                 <div class="step" id="step-gig-experience">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">How long have you been driving?</h1>
-                    <p class="text-gray-600 mb-6">Your experience helps us find the right vehicle for you.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.gig.experience.title">How long have you been driving?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.gig.experience.subtitle">Your experience helps us find the right vehicle for you.</p>
                     
                     <div class="space-y-3">
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigExperience', '2+ years')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">2+ years</div>
-                                    <div class="text-sm text-gray-500">Experienced driver</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.gig.experience.options.twoPlus">2+ years</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.gig.experience.options.twoPlusDesc">Experienced driver</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,8 +196,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigExperience', '1-2 years')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">1-2 years</div>
-                                    <div class="text-sm text-gray-500">Solid experience</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.gig.experience.options.oneTwo">1-2 years</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.gig.experience.options.oneTwoDesc">Solid experience</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,8 +210,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigExperience', '6-12 months')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">6-12 months</div>
-                                    <div class="text-sm text-gray-500">Getting established</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.gig.experience.options.sixTwelve">6-12 months</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.gig.experience.options.sixTwelveDesc">Getting established</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,8 +224,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigExperience', 'less than 6 months')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Less than 6 months</div>
-                                    <div class="text-sm text-gray-500">Just getting started</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.gig.experience.options.lessSix">Less than 6 months</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.gig.experience.options.lessSixDesc">Just getting started</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -237,15 +237,15 @@
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextGigStep('experience')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextGigStep('experience')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
                 
                 <!-- GIG Step 3: Platforms -->
                 <div class="step" id="step-gig-platforms">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Which platforms do you drive for?</h1>
-                    <p class="text-gray-600 mb-6">Select all that apply.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.gig.platforms.title">Which platforms do you drive for?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.gig.platforms.subtitle">Select all that apply.</p>
                     
                     <div class="grid grid-cols-2 gap-3">
                         <div class="option-card rounded-xl p-4 text-center" onclick="togglePlatform(this, 'Uber')">
@@ -275,22 +275,22 @@
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextGigStep('platforms')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextGigStep('platforms')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
                 
                 <!-- GIG Step 4: Earnings -->
                 <div class="step" id="step-gig-earnings">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">What are your weekly earnings?</h1>
-                    <p class="text-gray-600 mb-6">This helps us ensure the rental fits your budget.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.gig.earnings.title">What are your weekly earnings?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.gig.earnings.subtitle">This helps us ensure the rental fits your budget.</p>
                     
                     <div class="space-y-3">
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigEarnings', '$1500+')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">$1,500+ per week</div>
-                                    <div class="text-sm text-gray-500">Full-time driver</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.gig.earnings.options.high">$1,500+ per week</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.gig.earnings.options.highDesc">Full-time driver</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -303,8 +303,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigEarnings', '$1000-1500')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">$1,000 - $1,500 per week</div>
-                                    <div class="text-sm text-gray-500">Consistent earner</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.gig.earnings.options.medium">$1,000 - $1,500 per week</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.gig.earnings.options.mediumDesc">Consistent earner</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,8 +317,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigEarnings', '$500-1000')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">$500 - $1,000 per week</div>
-                                    <div class="text-sm text-gray-500">Part-time driver</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.gig.earnings.options.low">$500 - $1,000 per week</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.gig.earnings.options.lowDesc">Part-time driver</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,8 +331,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'gigEarnings', 'less than $500')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Less than $500 per week</div>
-                                    <div class="text-sm text-gray-500">Just starting or casual</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.gig.earnings.options.veryLow">Less than $500 per week</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.gig.earnings.options.veryLowDesc">Just starting or casual</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,42 +344,42 @@
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextGigStep('earnings')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextGigStep('earnings')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
                 
                 <!-- GIG Step 5: Eligibility -->
                 <div class="step" id="step-gig-eligibility">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Quick eligibility check</h1>
-                    <p class="text-gray-600 mb-6">Just a few quick questions to confirm your eligibility.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.eligibility.title">Quick eligibility check</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.eligibility.subtitle">Just a few quick questions to confirm your eligibility.</p>
                     
                     <div class="space-y-4">
                         <div class="bg-gray-50 rounded-xl p-4">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" id="gig-age" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I am 25 years or older</span>
+                                <span class="text-gray-900" data-i18n="qualify.eligibility.age">I am 25 years or older</span>
                             </label>
                         </div>
                         
                         <div class="bg-gray-50 rounded-xl p-4">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" id="gig-license" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I have a valid driver's license</span>
+                                <span class="text-gray-900" data-i18n="qualify.eligibility.license">I have a valid driver's license</span>
                             </label>
                         </div>
                         
                         <div class="bg-gray-50 rounded-xl p-4">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" id="gig-background" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I can pass a background check</span>
+                                <span class="text-gray-900" data-i18n="qualify.eligibility.background">I can pass a background check</span>
                             </label>
                         </div>
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="checkGigEligibility()" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Check Eligibility →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="checkGigEligibility()" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="qualify.eligibility.checkButton">Check Eligibility →</button>
                     </div>
                 </div>
 
@@ -389,58 +389,58 @@
                 
                 <!-- Corporate Step 2: Company Info -->
                 <div class="step" id="step-corp-company">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Tell us about your company</h1>
-                    <p class="text-gray-600 mb-6">We'll customize a fleet solution for your business.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.corporate.company.title">Tell us about your company</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.corporate.company.subtitle">We'll customize a fleet solution for your business.</p>
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-                            <input type="text" id="corpCompanyName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent" placeholder="ABC Company LLC">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="qualify.corporate.company.nameLabel">Company Name</label>
+                            <input type="text" id="corpCompanyName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent" data-i18n-placeholder="qualify.corporate.company.namePlaceholder" placeholder="ABC Company LLC">
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Role</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="qualify.corporate.company.roleLabel">Your Role</label>
                             <select id="corpRole" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
-                                <option value="">Select your role</option>
-                                <option value="HR Manager">HR Manager</option>
-                                <option value="Fleet Manager">Fleet Manager</option>
-                                <option value="Operations Manager">Operations Manager</option>
-                                <option value="Owner/CEO">Owner/CEO</option>
-                                <option value="Other">Other</option>
+                                <option value="" data-i18n="qualify.corporate.company.roleSelect">Select your role</option>
+                                <option value="HR Manager" data-i18n="qualify.corporate.company.roles.hr">HR Manager</option>
+                                <option value="Fleet Manager" data-i18n="qualify.corporate.company.roles.fleet">Fleet Manager</option>
+                                <option value="Operations Manager" data-i18n="qualify.corporate.company.roles.operations">Operations Manager</option>
+                                <option value="Owner/CEO" data-i18n="qualify.corporate.company.roles.owner">Owner/CEO</option>
+                                <option value="Other" data-i18n="qualify.corporate.company.roles.other">Other</option>
                             </select>
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Industry</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="qualify.corporate.company.industryLabel">Industry</label>
                             <select id="corpIndustry" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
-                                <option value="">Select industry</option>
-                                <option value="Logistics/Delivery">Logistics/Delivery</option>
-                                <option value="Sales/Field Service">Sales/Field Service</option>
-                                <option value="Healthcare">Healthcare</option>
-                                <option value="Construction">Construction</option>
-                                <option value="Real Estate">Real Estate</option>
-                                <option value="Other">Other</option>
+                                <option value="" data-i18n="qualify.corporate.company.industrySelect">Select industry</option>
+                                <option value="Logistics/Delivery" data-i18n="qualify.corporate.company.industries.logistics">Logistics/Delivery</option>
+                                <option value="Sales/Field Service" data-i18n="qualify.corporate.company.industries.sales">Sales/Field Service</option>
+                                <option value="Healthcare" data-i18n="qualify.corporate.company.industries.healthcare">Healthcare</option>
+                                <option value="Construction" data-i18n="qualify.corporate.company.industries.construction">Construction</option>
+                                <option value="Real Estate" data-i18n="qualify.corporate.company.industries.realEstate">Real Estate</option>
+                                <option value="Other" data-i18n="qualify.corporate.company.industries.other">Other</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextCorpStep('company')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextCorpStep('company')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
                 
                 <!-- Corporate Step 3: Fleet Size -->
                 <div class="step" id="step-corp-fleet">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">How many vehicles do you need?</h1>
-                    <p class="text-gray-600 mb-6">Select the fleet size that fits your needs.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.corporate.fleet.title">How many vehicles do you need?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.corporate.fleet.subtitle">Select the fleet size that fits your needs.</p>
                     
                     <div class="space-y-3">
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpFleet', '1-2')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">1-2 vehicles</div>
-                                    <div class="text-sm text-gray-500">Small team</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.corporate.fleet.options.small">1-2 vehicles</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.corporate.fleet.options.smallDesc">Small team</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -453,8 +453,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpFleet', '3-5')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">3-5 vehicles</div>
-                                    <div class="text-sm text-gray-500">Growing team</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.corporate.fleet.options.medium">3-5 vehicles</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.corporate.fleet.options.mediumDesc">Growing team</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -467,8 +467,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpFleet', '5+')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">5+ vehicles</div>
-                                    <div class="text-sm text-gray-500">Full fleet - custom pricing</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.corporate.fleet.options.large">5+ vehicles</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.corporate.fleet.options.largeDesc">Full fleet - custom pricing</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -480,22 +480,22 @@
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextCorpStep('fleet')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextCorpStep('fleet')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
                 
                 <!-- Corporate Step 4: Duration -->
                 <div class="step" id="step-corp-duration">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">How long do you need the vehicles?</h1>
-                    <p class="text-gray-600 mb-6">Longer terms get better rates.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.corporate.duration.title">How long do you need the vehicles?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.corporate.duration.subtitle">Longer terms get better rates.</p>
                     
                     <div class="space-y-3">
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpDuration', '1-3 months')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">1-3 months</div>
-                                    <div class="text-sm text-gray-500">Short-term project</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.corporate.duration.options.short">1-3 months</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.corporate.duration.options.shortDesc">Short-term project</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -508,8 +508,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpDuration', '3-6 months')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">3-6 months</div>
-                                    <div class="text-sm text-gray-500">Extended project</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.corporate.duration.options.medium">3-6 months</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.corporate.duration.options.mediumDesc">Extended project</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -522,8 +522,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpDuration', '6+ months')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">6+ months</div>
-                                    <div class="text-sm text-gray-500">Long-term - best rates!</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.corporate.duration.options.long">6+ months</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.corporate.duration.options.longDesc">Long-term - best rates!</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -536,8 +536,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'corpDuration', 'ongoing')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Ongoing / Indefinite</div>
-                                    <div class="text-sm text-gray-500">Permanent fleet solution</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.corporate.duration.options.ongoing">Ongoing / Indefinite</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.corporate.duration.options.ongoingDesc">Permanent fleet solution</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -549,8 +549,8 @@
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextCorpStep('duration')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextCorpStep('duration')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
 
@@ -560,15 +560,15 @@
                 
                 <!-- Temp Step 2: Reason -->
                 <div class="step" id="step-temp-reason">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Why do you need temporary transportation?</h1>
-                    <p class="text-gray-600 mb-6">This helps us understand your situation.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.temporary.reason.title">Why do you need temporary transportation?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.temporary.reason.subtitle">This helps us understand your situation.</p>
                     
                     <div class="space-y-3">
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempReason', 'car in shop')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">My car is in the shop</div>
-                                    <div class="text-sm text-gray-500">Need wheels while it's being fixed</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.reason.options.shop">My car is in the shop</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.reason.options.shopDesc">Need wheels while it's being fixed</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -581,8 +581,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempReason', 'between vehicles')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Between vehicles</div>
-                                    <div class="text-sm text-gray-500">Sold my car, waiting on new one</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.reason.options.between">Between vehicles</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.reason.options.betweenDesc">Sold my car, waiting on new one</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -595,8 +595,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempReason', 'visiting')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Visiting Houston</div>
-                                    <div class="text-sm text-gray-500">Extended stay, need reliable transport</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.reason.options.visiting">Visiting Houston</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.reason.options.visitingDesc">Extended stay, need reliable transport</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -609,8 +609,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempReason', 'other')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Other reason</div>
-                                    <div class="text-sm text-gray-500">Something else entirely</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.reason.options.other">Other reason</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.reason.options.otherDesc">Something else entirely</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -622,22 +622,22 @@
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextTempStep('reason')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextTempStep('reason')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
                 
                 <!-- Temp Step 3: Duration -->
                 <div class="step" id="step-temp-duration">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">How long do you need the vehicle?</h1>
-                    <p class="text-gray-600 mb-6">Minimum rental is 2 weeks.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.temporary.duration.title">How long do you need the vehicle?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.temporary.duration.subtitle">Minimum rental is 2 weeks.</p>
                     
                     <div class="space-y-3">
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempDuration', '2-4 weeks')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">2-4 weeks</div>
-                                    <div class="text-sm text-gray-500">Quick fix</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.duration.options.twoFour">2-4 weeks</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.duration.options.twoFourDesc">Quick fix</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -650,8 +650,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempDuration', '1-2 months')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">1-2 months</div>
-                                    <div class="text-sm text-gray-500">Extended period</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.duration.options.oneTwo">1-2 months</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.duration.options.oneTwoDesc">Extended period</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -664,8 +664,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempDuration', 'not sure')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Not sure yet</div>
-                                    <div class="text-sm text-gray-500">Flexible week-to-week</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.duration.options.notSure">Not sure yet</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.duration.options.notSureDesc">Flexible week-to-week</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -677,22 +677,22 @@
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextTempStep('duration')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextTempStep('duration')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
                 
                 <!-- Temp Step 4: Employment -->
                 <div class="step" id="step-temp-employment">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">What's your employment status?</h1>
-                    <p class="text-gray-600 mb-6">This helps us verify you can afford the rental.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.temporary.employment.title">What's your employment status?</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.temporary.employment.subtitle">This helps us verify you can afford the rental.</p>
                     
                     <div class="space-y-3">
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempEmployment', 'employed')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Employed (W-2)</div>
-                                    <div class="text-sm text-gray-500">Regular paycheck</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.employment.options.employed">Employed (W-2)</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.employment.options.employedDesc">Regular paycheck</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -705,8 +705,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempEmployment', 'self-employed')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Self-employed</div>
-                                    <div class="text-sm text-gray-500">Business owner or contractor</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.employment.options.selfEmployed">Self-employed</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.employment.options.selfEmployedDesc">Business owner or contractor</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -719,8 +719,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempEmployment', 'gig')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Gig worker</div>
-                                    <div class="text-sm text-gray-500">Uber, DoorDash, etc.</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.employment.options.gig">Gig worker</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.employment.options.gigDesc">Uber, DoorDash, etc.</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -733,8 +733,8 @@
                         <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'tempEmployment', 'unemployed')">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="font-semibold text-gray-900">Currently unemployed</div>
-                                    <div class="text-sm text-gray-500">Between jobs</div>
+                                    <div class="font-semibold text-gray-900" data-i18n="qualify.temporary.employment.options.unemployed">Currently unemployed</div>
+                                    <div class="text-sm text-gray-500" data-i18n="qualify.temporary.employment.options.unemployedDesc">Between jobs</div>
                                 </div>
                                 <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -746,383 +746,50 @@
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextTempStep('employment')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="nextTempStep('employment')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="common.buttons.continue">Continue →</button>
                     </div>
                 </div>
                 
                 <!-- Temp Step 5: Eligibility -->
                 <div class="step" id="step-temp-eligibility">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Quick eligibility check</h1>
-                    <p class="text-gray-600 mb-6">Just a few quick questions to confirm.</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.eligibility.title">Quick eligibility check</h1>
+                    <p class="text-gray-600 mb-6" data-i18n="qualify.eligibility.subtitleShort">Just a few quick questions to confirm.</p>
                     
                     <div class="space-y-4">
                         <div class="bg-gray-50 rounded-xl p-4">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" id="temp-age" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I am 25 years or older</span>
+                                <span class="text-gray-900" data-i18n="qualify.eligibility.age">I am 25 years or older</span>
                             </label>
                         </div>
                         
                         <div class="bg-gray-50 rounded-xl p-4">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" id="temp-license" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I have a valid driver's license</span>
+                                <span class="text-gray-900" data-i18n="qualify.eligibility.license">I have a valid driver's license</span>
                             </label>
                         </div>
                         
                         <div class="bg-gray-50 rounded-xl p-4">
                             <label class="flex items-center gap-3 cursor-pointer">
                                 <input type="checkbox" id="temp-background" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I can pass a background check</span>
+                                <span class="text-gray-900" data-i18n="qualify.eligibility.background">I can pass a background check</span>
                             </label>
                         </div>
                     </div>
                     
                     <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="checkTempEligibility()" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Check Eligibility →</button>
+                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900" data-i18n="common.buttons.back">← Back</button>
+                        <button onclick="checkTempEligibility()" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition" data-i18n="qualify.eligibility.checkButton">Check Eligibility →</button>
                     </div>
                 </div>
-
-                <!-- ================================================ -->
-                <!-- FRESH START PATH -->
-                <!-- ================================================ -->
-                
-                <!-- Fresh Step 2: Platform Status -->
-                <div class="step" id="step-fresh-platform">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Are you already approved on a gig platform?</h1>
-                    <p class="text-gray-600 mb-6">This helps us understand your situation.</p>
                     
-                    <div class="space-y-3">
-                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshPlatform', 'approved')">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-semibold text-gray-900">Yes, I'm approved</div>
-                                    <div class="text-sm text-gray-500">Just need a vehicle to start driving</div>
-                                </div>
-                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshPlatform', 'pending')">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-semibold text-gray-900">Application pending</div>
-                                    <div class="text-sm text-gray-500">Waiting for approval</div>
-                                </div>
-                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshPlatform', 'not yet')">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-semibold text-gray-900">Not yet applied</div>
-                                    <div class="text-sm text-gray-500">Haven't started the process</div>
-                                </div>
-                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextFreshStep('platform')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
-                    </div>
-                </div>
-                
-                <!-- Fresh Step 3: Other Income -->
-                <div class="step" id="step-fresh-income">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Do you have other income while you get started?</h1>
-                    <p class="text-gray-600 mb-6">We want to make sure you can afford the weekly payments until you're earning.</p>
-                    
-                    <div class="space-y-3">
-                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshIncome', 'yes-job')">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-semibold text-gray-900">Yes, I have a job</div>
-                                    <div class="text-sm text-gray-500">Gig driving will be additional income</div>
-                                </div>
-                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshIncome', 'yes-savings')">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-semibold text-gray-900">Yes, I have savings</div>
-                                    <div class="text-sm text-gray-500">Can cover a few weeks while I ramp up</div>
-                                </div>
-                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="option-card rounded-xl p-4" onclick="selectOption(this, 'freshIncome', 'no')">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <div class="font-semibold text-gray-900">No other income</div>
-                                    <div class="text-sm text-gray-500">This will be my only income source</div>
-                                </div>
-                                <div class="option-check w-6 h-6 bg-fleetzy-green rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="nextFreshStep('income')" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Continue →</button>
-                    </div>
-                </div>
-                
-                <!-- Fresh Step 4: Eligibility -->
-                <div class="step" id="step-fresh-eligibility">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Quick eligibility check</h1>
-                    <p class="text-gray-600 mb-6">Last step before we show you your options.</p>
-                    
-                    <div class="space-y-4">
-                        <div class="bg-gray-50 rounded-xl p-4">
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" id="fresh-age" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I am 25 years or older</span>
-                            </label>
-                        </div>
-                        
-                        <div class="bg-gray-50 rounded-xl p-4">
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" id="fresh-license" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I have a valid driver's license</span>
-                            </label>
-                        </div>
-                        
-                        <div class="bg-gray-50 rounded-xl p-4">
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" id="fresh-background" class="w-5 h-5 text-fleetzy-green rounded border-gray-300 focus:ring-fleetzy-green">
-                                <span class="text-gray-900">I can pass a background check</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-6 flex justify-between">
-                        <button onclick="goBack()" class="px-6 py-3 text-gray-600 hover:text-gray-900">← Back</button>
-                        <button onclick="checkFreshEligibility()" class="px-8 py-3 bg-fleetzy-green text-white font-semibold rounded-xl hover:bg-fleetzy-dark transition">Check Eligibility →</button>
-                    </div>
-                </div>
-
-                <!-- ================================================ -->
-                <!-- SUCCESS SCREENS -->
-                <!-- ================================================ -->
-                
-                <!-- Success: Gig/Temp/Fresh ($650) -->
-                <div class="step" id="step-success-standard">
-                    <div class="text-center mb-6">
-                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-10 h-10 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                        </div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Great news! You're pre-qualified! 🎉</h1>
-                        <p class="text-gray-600">Based on your answers, you're a great fit for Fleetzy.</p>
-                    </div>
-                    
-                    <!-- Pricing Card -->
-                    <div class="bg-gradient-to-br from-fleetzy-green to-emerald-700 rounded-2xl p-6 text-white mb-6">
-                        <div class="text-center mb-4">
-                            <div class="text-sm uppercase tracking-wide opacity-90">Your weekly rate</div>
-                            <div class="text-5xl font-bold">$400<span class="text-xl font-normal">/week</span></div>
-                        </div>
-                        
-                        <div class="border-t border-white/20 pt-4 space-y-2">
-                            <div class="flex justify-between">
-                                <span class="opacity-90">First week</span>
-                                <span class="font-semibold">$400</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="opacity-90">Refundable deposit</span>
-                                <span class="font-semibold">$250</span>
-                            </div>
-                            <div class="border-t border-white/20 pt-2 mt-2 flex justify-between text-lg">
-                                <span class="font-semibold">Due today</span>
-                                <span class="font-bold">$650</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- What's Included -->
-                    <div class="bg-gray-50 rounded-xl p-4 mb-6">
-                        <h3 class="font-semibold text-gray-900 mb-3">What's included:</h3>
-                        <ul class="space-y-2 text-sm text-gray-700">
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Rideshare & delivery approved vehicle
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Full insurance coverage
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                24/7 roadside assistance
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Flexible week-to-week terms
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-fleetzy-green flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Deposit returned when you're done
-                            </li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Contact Form -->
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                            <input type="text" id="successName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent" placeholder="John Smith">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                            <input type="tel" id="successPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent phone-input" placeholder="(555) 123-4567">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email (optional)</label>
-                            <input type="email" id="successEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-fleetzy-green focus:border-transparent" placeholder="john@email.com">
-                        </div>
-                    </div>
-                    
-                    <button onclick="proceedToApplication('standard')" class="w-full mt-6 px-8 py-4 bg-fleetzy-green text-white font-bold text-lg rounded-xl hover:bg-fleetzy-dark transition shadow-lg">
-                        Complete My Application →
-                    </button>
-                    
-                    <p class="text-center text-sm text-gray-500 mt-4">
-                        Takes about 5 minutes. We'll text you a link.
-                    </p>
-                </div>
-                
-                <!-- Success: Corporate ($600) -->
-                <div class="step" id="step-success-corporate">
-                    <div class="text-center mb-6">
-                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                            </svg>
-                        </div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Perfect for your business! 🏢</h1>
-                        <p class="text-gray-600">Corporate clients get special rates and dedicated support.</p>
-                    </div>
-                    
-                    <!-- Pricing Card -->
-                    <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white mb-6">
-                        <div class="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded">CORPORATE RATE</div>
-                        <div class="text-center mb-4">
-                            <div class="text-sm uppercase tracking-wide opacity-90">Per vehicle weekly rate</div>
-                            <div class="text-5xl font-bold">$350<span class="text-xl font-normal">/week</span></div>
-                            <div class="text-sm opacity-75 mt-1">$50/week savings vs standard</div>
-                        </div>
-                        
-                        <div class="border-t border-white/20 pt-4 space-y-2">
-                            <div class="flex justify-between">
-                                <span class="opacity-90">First week (per vehicle)</span>
-                                <span class="font-semibold">$350</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="opacity-90">Refundable deposit</span>
-                                <span class="font-semibold">$250</span>
-                            </div>
-                            <div class="border-t border-white/20 pt-2 mt-2 flex justify-between text-lg">
-                                <span class="font-semibold">Due per vehicle</span>
-                                <span class="font-bold">$600</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Corporate Benefits -->
-                    <div class="bg-blue-50 rounded-xl p-4 mb-6">
-                        <h3 class="font-semibold text-gray-900 mb-3">Corporate benefits:</h3>
-                        <ul class="space-y-2 text-sm text-gray-700">
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Dedicated account manager
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Volume discounts for 5+ vehicles
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Consolidated billing
-                            </li>
-                            <li class="flex items-center gap-2">
-                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                Priority vehicle replacement
-                            </li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Contact Form -->
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Contact Name</label>
-                            <input type="text" id="corpContactName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="John Smith">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Work Email</label>
-                            <input type="email" id="corpContactEmail" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="john@company.com">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                            <input type="tel" id="corpContactPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent phone-input" placeholder="(555) 123-4567">
-                        </div>
-                    </div>
-                    
-                    <button onclick="proceedToApplication('corporate')" class="w-full mt-6 px-8 py-4 bg-blue-600 text-white font-bold text-lg rounded-xl hover:bg-blue-700 transition shadow-lg">
+                    <button onclick="proceedToApplication('corporate')" class="w-full mt-6 px-8 py-4 bg-blue-600 text-white font-bold text-lg rounded-xl hover:bg-blue-700 transition shadow-lg" data-i18n="qualify.success.corporate.form.submitButton">
                         Get Started →
                     </button>
                     
-                    <p class="text-center text-sm text-gray-500 mt-4">
+                    <p class="text-center text-sm text-gray-500 mt-4" data-i18n="qualify.success.corporate.form.note">
                         We'll reach out within 24 hours to discuss your fleet needs.
                     </p>
                 </div>
@@ -1137,36 +804,36 @@
                         <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span class="text-4xl">🎂</span>
                         </div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Almost there!</h1>
-                        <p class="text-gray-600">You need to be 25 or older to rent with Fleetzy. This is an insurance requirement.</p>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.disqualified.age.title">Almost there!</h1>
+                        <p class="text-gray-600" data-i18n="qualify.disqualified.age.subtitle">You need to be 25 or older to rent with Fleetzy. This is an insurance requirement.</p>
                     </div>
                     
                     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-                        <p class="text-yellow-800 text-sm">
+                        <p class="text-yellow-800 text-sm" data-i18n-html="qualify.disqualified.age.goodNews">
                             <strong>Good news:</strong> Join our waitlist and we'll notify you when you're eligible!
                         </p>
                     </div>
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                            <input type="text" id="dqAgeName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent" placeholder="John Smith">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="qualify.success.form.nameLabel">Your Name</label>
+                            <input type="text" id="dqAgeName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent" data-i18n-placeholder="qualify.success.form.namePlaceholder" placeholder="John Smith">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="qualify.success.form.phoneLabel">Phone Number</label>
                             <input type="tel" id="dqAgePhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent phone-input" placeholder="(555) 123-4567">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Your 25th Birthday</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" data-i18n="qualify.disqualified.age.birthdayLabel">Your 25th Birthday</label>
                             <input type="date" id="dqAgeBirthday" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
                         </div>
                     </div>
                     
-                    <button onclick="submitWaitlist('age')" class="w-full mt-6 px-8 py-4 bg-yellow-500 text-white font-bold text-lg rounded-xl hover:bg-yellow-600 transition">
+                    <button onclick="submitWaitlist('age')" class="w-full mt-6 px-8 py-4 bg-yellow-500 text-white font-bold text-lg rounded-xl hover:bg-yellow-600 transition" data-i18n="qualify.disqualified.age.button">
                         🔔 Notify Me When I'm Eligible
                     </button>
                     
-                    <a href="index.html" class="block text-center text-gray-500 hover:text-gray-700 mt-4">← Back to Home</a>
+                    <a href="index.html" class="block text-center text-gray-500 hover:text-gray-700 mt-4" data-i18n="common.buttons.backToHome">← Back to Home</a>
                 </div>
                 
                 <!-- DQ: No License / Can't Pass Background -->
@@ -1175,17 +842,17 @@
                         <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span class="text-4xl">🚫</span>
                         </div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">We can't help right now</h1>
-                        <p class="text-gray-600">A valid driver's license and clear background check are required to rent a vehicle.</p>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.disqualified.license.title">We can't help right now</h1>
+                        <p class="text-gray-600" data-i18n="qualify.disqualified.license.subtitle">A valid driver's license and clear background check are required to rent a vehicle.</p>
                     </div>
                     
                     <div class="bg-gray-50 rounded-xl p-4 mb-6">
-                        <p class="text-gray-700 text-sm">
+                        <p class="text-gray-700 text-sm" data-i18n="qualify.disqualified.license.message">
                             If your situation changes, we'd love to help you get on the road. Feel free to check back anytime.
                         </p>
                     </div>
                     
-                    <a href="index.html" class="block w-full text-center px-8 py-4 bg-gray-200 text-gray-700 font-bold text-lg rounded-xl hover:bg-gray-300 transition">
+                    <a href="index.html" class="block w-full text-center px-8 py-4 bg-gray-200 text-gray-700 font-bold text-lg rounded-xl hover:bg-gray-300 transition" data-i18n="common.buttons.backToHome">
                         ← Back to Home
                     </a>
                 </div>
@@ -1196,34 +863,34 @@
                         <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span class="text-4xl">💰</span>
                         </div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Let's talk!</h1>
-                        <p class="text-gray-600">Your earnings are a bit low for our standard program, but we might have options.</p>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.disqualified.earnings.title">Let's talk!</h1>
+                        <p class="text-gray-600" data-i18n="qualify.disqualified.earnings.subtitle">Your earnings are a bit low for our standard program, but we might have options.</p>
                     </div>
                     
                     <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
-                        <p class="text-orange-800 text-sm">
+                        <p class="text-orange-800 text-sm" data-i18n-html="qualify.disqualified.earnings.callUs">
                             <strong>Call us:</strong> We can discuss a higher deposit or other arrangements that might work for your situation.
                         </p>
                     </div>
                     
                     <a href="tel:+12812713900" class="block w-full text-center px-8 py-4 bg-orange-500 text-white font-bold text-lg rounded-xl hover:bg-orange-600 transition mb-4">
-                        📞 Call (281) 271-3900
+                        📞 <span data-i18n="qualify.disqualified.earnings.callButton">Call (281) 271-3900</span>
                     </a>
                     
-                    <div class="text-center text-gray-500 text-sm">
+                    <div class="text-center text-gray-500 text-sm" data-i18n="qualify.disqualified.earnings.orLeaveInfo">
                         Or leave your info and we'll call you:
                     </div>
                     
                     <div class="space-y-4 mt-4">
                         <div>
-                            <input type="text" id="dqEarningsName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent" placeholder="Your name">
+                            <input type="text" id="dqEarningsName" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent" data-i18n-placeholder="qualify.disqualified.earnings.namePlaceholder" placeholder="Your name">
                         </div>
                         <div>
-                            <input type="tel" id="dqEarningsPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent phone-input" placeholder="Your phone number">
+                            <input type="tel" id="dqEarningsPhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent phone-input" data-i18n-placeholder="qualify.disqualified.earnings.phonePlaceholder" placeholder="Your phone number">
                         </div>
                     </div>
                     
-                    <button onclick="submitCallback('earnings')" class="w-full mt-4 px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition">
+                    <button onclick="submitCallback('earnings')" class="w-full mt-4 px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition" data-i18n="qualify.disqualified.earnings.requestCallback">
                         Request a Callback
                     </button>
                 </div>
@@ -1234,21 +901,21 @@
                         <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span class="text-4xl">💼</span>
                         </div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Let's explore options</h1>
-                        <p class="text-gray-600">Without current income, our standard program might not be the best fit—but let's talk.</p>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.disqualified.unemployed.title">Let's explore options</h1>
+                        <p class="text-gray-600" data-i18n="qualify.disqualified.unemployed.subtitle">Without current income, our standard program might not be the best fit—but let's talk.</p>
                     </div>
                     
                     <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 mb-6">
-                        <p class="text-purple-800 text-sm">
+                        <p class="text-purple-800 text-sm" data-i18n-html="qualify.disqualified.unemployed.option">
                             <strong>Option:</strong> If you have savings or a co-signer, we might be able to work something out.
                         </p>
                     </div>
                     
                     <a href="tel:+12812713900" class="block w-full text-center px-8 py-4 bg-purple-600 text-white font-bold text-lg rounded-xl hover:bg-purple-700 transition mb-4">
-                        📞 Call (281) 271-3900
+                        📞 <span data-i18n="qualify.disqualified.unemployed.callButton">Call (281) 271-3900</span>
                     </a>
                     
-                    <a href="index.html" class="block text-center text-gray-500 hover:text-gray-700">← Back to Home</a>
+                    <a href="index.html" class="block text-center text-gray-500 hover:text-gray-700" data-i18n="common.buttons.backToHome">← Back to Home</a>
                 </div>
                 
                 <!-- DQ: No Other Income (Fresh Start) -->
@@ -1257,31 +924,31 @@
                         <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <span class="text-4xl">🌱</span>
                         </div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Starting fresh is tough</h1>
-                        <p class="text-gray-600">Without income or savings, it's risky for both of us. But there might be options.</p>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-i18n="qualify.disqualified.noIncome.title">Starting fresh is tough</h1>
+                        <p class="text-gray-600" data-i18n="qualify.disqualified.noIncome.subtitle">Without income or savings, it's risky for both of us. But there might be options.</p>
                     </div>
                     
                     <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-6">
-                        <p class="text-indigo-800 text-sm">
+                        <p class="text-indigo-800 text-sm" data-i18n-html="qualify.disqualified.noIncome.ideas">
                             <strong>Ideas:</strong> If you can get a co-signer, put down a larger deposit, or start part-time while you have another job, we can probably make it work.
                         </p>
                     </div>
                     
                     <a href="tel:+12812713900" class="block w-full text-center px-8 py-4 bg-indigo-600 text-white font-bold text-lg rounded-xl hover:bg-indigo-700 transition mb-4">
-                        📞 Let's Talk Options
+                        📞 <span data-i18n="qualify.disqualified.noIncome.callButton">Let's Talk Options</span>
                     </a>
                     
                     <div class="space-y-4 mt-6">
-                        <div class="text-center text-gray-500 text-sm">Or join the waitlist for when you're ready:</div>
+                        <div class="text-center text-gray-500 text-sm" data-i18n="qualify.disqualified.noIncome.waitlistText">Or join the waitlist for when you're ready:</div>
                         <div>
-                            <input type="text" id="dqNoIncomeName" class="w-full px-4 py-3 border border-gray-300 rounded-xl" placeholder="Your name">
+                            <input type="text" id="dqNoIncomeName" class="w-full px-4 py-3 border border-gray-300 rounded-xl" data-i18n-placeholder="qualify.disqualified.earnings.namePlaceholder" placeholder="Your name">
                         </div>
                         <div>
-                            <input type="tel" id="dqNoIncomePhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl phone-input" placeholder="Your phone">
+                            <input type="tel" id="dqNoIncomePhone" class="w-full px-4 py-3 border border-gray-300 rounded-xl phone-input" data-i18n-placeholder="qualify.disqualified.earnings.phonePlaceholder" placeholder="Your phone">
                         </div>
                     </div>
                     
-                    <button onclick="submitWaitlist('no-income')" class="w-full mt-4 px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition">
+                    <button onclick="submitWaitlist('no-income')" class="w-full mt-4 px-8 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition" data-i18n="qualify.disqualified.noIncome.joinWaitlist">
                         Join Waitlist
                     </button>
                 </div>
@@ -1292,8 +959,12 @@
 
     <!-- Footer -->
     <footer class="text-center py-6 text-sm text-gray-500">
-        <p>© 2025 Fleetzy. Houston, TX | (281) 271-3900</p>
+        <p>© 2025 Fleetzy. Houston, TX | <span data-i18n="common.phone">(281) 271-3900</span></p>
     </footer>
+
+    <!-- Translation Scripts -->
+    <script src="translations.js"></script>
+    <script src="language-switcher.js"></script>
 
     <!-- JavaScript -->
     <script>
@@ -1342,6 +1013,10 @@
             if (step) {
                 step.classList.add('active');
                 updateProgress();
+                // Re-apply translations when switching steps
+                if (window.FleetzyLanguage) {
+                    window.FleetzyLanguage.apply();
+                }
             }
         }
 
@@ -1364,7 +1039,11 @@
             
             const percent = Math.round((currentStep / totalSteps) * 100);
             document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('progressText').textContent = `Step ${currentStep} of ${totalSteps}`;
+            
+            // Use translation for step text
+            const lang = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            const stepText = lang === 'es' ? `Paso ${currentStep} de ${totalSteps}` : `Step ${currentStep} of ${totalSteps}`;
+            document.getElementById('progressText').textContent = stepText;
             document.getElementById('progressPercent').textContent = percent + '%';
         }
 
@@ -1424,10 +1103,17 @@
         // GIG PATH LOGIC
         // ============================================
         function nextGigStep(from) {
+            const lang = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            const alerts = {
+                experience: lang === 'es' ? 'Por favor seleccione su nivel de experiencia' : 'Please select your experience level',
+                platforms: lang === 'es' ? 'Por favor seleccione al menos una plataforma' : 'Please select at least one platform',
+                earnings: lang === 'es' ? 'Por favor seleccione su rango de ingresos' : 'Please select your earnings range'
+            };
+            
             switch(from) {
                 case 'experience':
                     if (!formData.gigExperience) {
-                        alert('Please select your experience level');
+                        alert(alerts.experience);
                         return;
                     }
                     // If less than 6 months, redirect to Fresh path
@@ -1441,14 +1127,14 @@
                     break;
                 case 'platforms':
                     if (formData.gigPlatforms.length === 0) {
-                        alert('Please select at least one platform');
+                        alert(alerts.platforms);
                         return;
                     }
                     navigateTo('step-gig-earnings');
                     break;
                 case 'earnings':
                     if (!formData.gigEarnings) {
-                        alert('Please select your earnings range');
+                        alert(alerts.earnings);
                         return;
                     }
                     // Check earnings - if too low, DQ
@@ -1479,6 +1165,13 @@
         // CORPORATE PATH LOGIC
         // ============================================
         function nextCorpStep(from) {
+            const lang = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            const alerts = {
+                company: lang === 'es' ? 'Por favor ingrese el nombre de la empresa y su cargo' : 'Please fill in company name and your role',
+                fleet: lang === 'es' ? 'Por favor seleccione el tamaño de la flota' : 'Please select fleet size',
+                duration: lang === 'es' ? 'Por favor seleccione la duración de la renta' : 'Please select rental duration'
+            };
+            
             switch(from) {
                 case 'company':
                     formData.corpCompanyName = document.getElementById('corpCompanyName').value;
@@ -1486,21 +1179,21 @@
                     formData.corpIndustry = document.getElementById('corpIndustry').value;
                     
                     if (!formData.corpCompanyName || !formData.corpRole) {
-                        alert('Please fill in company name and your role');
+                        alert(alerts.company);
                         return;
                     }
                     navigateTo('step-corp-fleet');
                     break;
                 case 'fleet':
                     if (!formData.corpFleet) {
-                        alert('Please select fleet size');
+                        alert(alerts.fleet);
                         return;
                     }
                     navigateTo('step-corp-duration');
                     break;
                 case 'duration':
                     if (!formData.corpDuration) {
-                        alert('Please select rental duration');
+                        alert(alerts.duration);
                         return;
                     }
                     navigateTo('step-success-corporate');
@@ -1512,24 +1205,31 @@
         // TEMPORARY PATH LOGIC
         // ============================================
         function nextTempStep(from) {
+            const lang = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            const alerts = {
+                reason: lang === 'es' ? 'Por favor seleccione una razón' : 'Please select a reason',
+                duration: lang === 'es' ? 'Por favor seleccione la duración' : 'Please select duration',
+                employment: lang === 'es' ? 'Por favor seleccione su estado laboral' : 'Please select employment status'
+            };
+            
             switch(from) {
                 case 'reason':
                     if (!formData.tempReason) {
-                        alert('Please select a reason');
+                        alert(alerts.reason);
                         return;
                     }
                     navigateTo('step-temp-duration');
                     break;
                 case 'duration':
                     if (!formData.tempDuration) {
-                        alert('Please select duration');
+                        alert(alerts.duration);
                         return;
                     }
                     navigateTo('step-temp-employment');
                     break;
                 case 'employment':
                     if (!formData.tempEmployment) {
-                        alert('Please select employment status');
+                        alert(alerts.employment);
                         return;
                     }
                     if (formData.tempEmployment === 'unemployed') {
@@ -1559,10 +1259,16 @@
         // FRESH START PATH LOGIC
         // ============================================
         function nextFreshStep(from) {
+            const lang = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            const alerts = {
+                platform: lang === 'es' ? 'Por favor seleccione su estado en la plataforma' : 'Please select your platform status',
+                income: lang === 'es' ? 'Por favor seleccione su situación de ingresos' : 'Please select your income situation'
+            };
+            
             switch(from) {
                 case 'platform':
                     if (!formData.freshPlatform) {
-                        alert('Please select your platform status');
+                        alert(alerts.platform);
                         return;
                     }
                     // If already approved, redirect to gig path
@@ -1577,7 +1283,7 @@
                     break;
                 case 'income':
                     if (!formData.freshIncome) {
-                        alert('Please select your income situation');
+                        alert(alerts.income);
                         return;
                     }
                     if (formData.freshIncome === 'no') {
@@ -1607,6 +1313,9 @@
         // LEAD CAPTURE & SUBMISSION
         // ============================================
         async function saveLead(leadData) {
+            // Add language preference
+            leadData.preferred_language = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
                     method: 'POST',
@@ -1628,6 +1337,9 @@
         }
 
         function proceedToApplication(type) {
+            const lang = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            const alertMsg = lang === 'es' ? 'Por favor ingrese su nombre y número de teléfono' : 'Please enter your name and phone number';
+            
             let name, phone, email;
             
             if (type === 'corporate') {
@@ -1641,7 +1353,7 @@
             }
             
             if (!name || !phone) {
-                alert('Please enter your name and phone number');
+                alert(alertMsg);
                 return;
             }
             
@@ -1653,6 +1365,7 @@
                 email: email,
                 type: type,
                 qualified: true,
+                language: lang,
                 timestamp: new Date().toISOString()
             };
             localStorage.setItem('fleetzy_qualifier', JSON.stringify(qualifierData));
@@ -1681,6 +1394,10 @@
         }
 
         async function submitWaitlist(reason) {
+            const lang = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            const alertMsg = lang === 'es' ? 'Por favor ingrese su nombre y número de teléfono' : 'Please enter your name and phone number';
+            const successMsg = lang === 'es' ? '¡Gracias! Le avisaremos cuando sea elegible. 🎉' : "Thanks! We'll reach out when you're eligible. 🎉";
+            
             let name, phone, birthday;
             
             if (reason === 'age') {
@@ -1693,7 +1410,7 @@
             }
             
             if (!name || !phone) {
-                alert('Please enter your name and phone number');
+                alert(alertMsg);
                 return;
             }
             
@@ -1711,16 +1428,20 @@
                 }
             });
             
-            alert('Thanks! We\'ll reach out when you\'re eligible. 🎉');
+            alert(successMsg);
             window.location.href = 'index.html';
         }
 
         async function submitCallback(reason) {
+            const lang = window.FleetzyLanguage ? window.FleetzyLanguage.get() : 'en';
+            const alertMsg = lang === 'es' ? 'Por favor ingrese su nombre y número de teléfono' : 'Please enter your name and phone number';
+            const successMsg = lang === 'es' ? '¡Entendido! Le llamaremos pronto. 📞' : "Got it! We'll call you soon. 📞";
+            
             const name = document.getElementById('dqEarningsName').value;
             const phone = document.getElementById('dqEarningsPhone').value;
             
             if (!name || !phone) {
-                alert('Please enter your name and phone number');
+                alert(alertMsg);
                 return;
             }
             
@@ -1737,7 +1458,7 @@
                 }
             });
             
-            alert('Got it! We\'ll call you soon. 📞');
+            alert(successMsg);
             window.location.href = 'index.html';
         }
 
