@@ -621,6 +621,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabaseClient = supabase; // Make globally accessible
 
         // ===========================
         // DARK MODE
@@ -1064,6 +1065,10 @@
                 showToast('Welcome to Fleetzy Admin Dashboard! 🚗', 'success');
             }, 500);
         });
+        // Export functions to window for cross-script access
+        window.showToast = showToast;
+        window.toggleDarkMode = toggleDarkMode;
+        window.loadDashboardData = loadDashboardData;
     </script>
 
     <!-- ========================================
@@ -2508,6 +2513,9 @@
 </style>
 
 <script>
+// Get supabase client from global scope
+const supabase = window.supabaseClient;
+
 // Global variables for this form
 let vehiclePhotoFile = null;
 
