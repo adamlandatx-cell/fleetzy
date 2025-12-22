@@ -275,7 +275,7 @@ async function loadVehicles() {
     
     try {
         // Fetch available vehicles from Supabase
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/vehicles?select=*&vehicle_status=eq.Active&order=monthly_payment.asc`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/vehicles?select=*&status=eq.Active&order=monthly_payment.asc`, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -335,8 +335,8 @@ function renderVehicles() {
     const gallery = document.getElementById('vehicleGallery');
     
     gallery.innerHTML = vehicles.map(vehicle => {
-        const isAvailable = vehicle.vehicle_status === 'Active';
-        const statusBadge = getStatusBadge(vehicle.vehicle_status);
+        const isAvailable = vehicle.status === 'Active';
+        const statusBadge = getStatusBadge(vehicle.status);
         const imageUrl = vehicle.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80';
         const displayName = vehicle.friendly_name || `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
         const monthlyRate = vehicle.monthly_payment || 400;
