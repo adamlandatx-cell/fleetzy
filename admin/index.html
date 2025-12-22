@@ -3048,6 +3048,437 @@ Tag them below! 👇
 </style>
 
 <script>
+// ===========================
+// CONFIGURATION
+// ===========================
+const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ===========================
+// TOAST NOTIFICATIONS
+// ===========================
+function showToast(message, type = 'success') {
+    const toastColors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        warning: 'bg-orange-500',
+        info: 'bg-blue-500'
+    };
+    
+    const toastIcons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${toastColors[type]} text-white flex items-center space-x-3`;
+    toast.innerHTML = `
+        <i class="fas ${toastIcons[type]} text-xl"></i>
+        <span class="flex-1">${message}</span>
+        <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('hiding');
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
+}
+
+// ===========================
+// DATA LOADING
+// ===========================
+async function loadDashboardData() {
+    try {
+        // Load all data
+        const { data: vehicles } = await supabase.from('vehicles').select('*');
+        const { data: customers } = await supabase.from('customers').select('*');
+        const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)');
+        const { data: payments } = await supabase.from('payments').select('*, customers(*)');
+        const { data: applications } = await supabase.from('applications').select('*');
+        
+        // Update metrics
+        updateMetrics(vehicles || [], customers || [], rentals || [], payments || []);
+        updatePendingApplications(applications || []);
+        updateFleetOverview(vehicles || [], rentals || []);
+        updateActiveRentalsTable(rentals || []);
+        updateReports(vehicles || [], rentals || [], payments || []);
+        
+        document.getElementById('last-updated').innerHTML = 'Just now <i class="fas fa-sync-alt text-xs ml-1"></i>';
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        showToast('Error loading data. Please refresh.', 'error');
+    }
+}
+
+function updateMetrics(vehicles, customers, rentals, payments) {
+    document.getElementById('total-vehicles').textContent = vehicles.length;
+    
+    const activeRentals = rentals.filter(r => r.rental_status === 'active').length;
+    document.getElementById('active-rentals').textContent = activeRentals;
+    
+    const utilizationRate = vehicles.length > 0 ? Math.round((activeRentals / vehicles.length) * 100) : 0;
+    document.getElementById('utilization-rate').textContent = `${utilizationRate}%`;
+    
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const monthlyPayments = payments.filter(p => {
+        const paidDate = new Date(p.paid_date);
+        return paidDate.getMonth() === currentMonth && paidDate.getFullYear() === currentYear;
+    });
+    const monthlyRevenue = monthlyPayments.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+    document.getElementById('monthly-revenue').textContent = `$${monthlyRevenue.toLocaleString()}`;
+    
+    const outstanding = activeRentals * 400;
+    document.getElementById('outstanding-amount').textContent = `$${outstanding.toLocaleString()}`;
+}
+
+function updatePendingApplications(applications) {
+    const pending = applications.filter(a => 
+        a.status === 'pending_verification' || 
+        a.status === 'pending' || 
+        a.status === 'Pending'
+    );
+    document.getElementById('pending-apps-badge').textContent = `${pending.length} New`;
+    
+    const list = document.getElementById('pending-applications-list');
+    if (pending.length === 0) {
+        list.innerHTML = `
+            <div class="p-8 text-center text-gray-500">
+                <i class="fas fa-inbox text-4xl mb-2"></i>
+                <p>No pending applications</p>
+            </div>
+        `;
+        return;
+    }
+    
+    list.innerHTML = pending.slice(0, 3).map(app => `
+        <div class="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+            <div class="flex items-start justify-between">
+                <div class="flex items-start space-x-4">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(app.full_name || 'New Applicant')}&background=059669&color=fff" 
+                         class="w-16 h-16 rounded-full border-2 border-fleetzy-green">
+                    <div>
+                        <h3 class="font-semibold text-lg">${app.full_name || 'New Applicant'}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">${app.email || 'No email'} • ${app.phone || 'No phone'}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            <i class="fas fa-clock mr-1"></i>Applied ${new Date(app.created_at).toLocaleDateString()}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex flex-col space-y-2">
+                    <button onclick="approveCustomer('${app.id}')" class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-check mr-2"></i>Approve
+                    </button>
+                    <button onclick="reviewCustomer('${app.id}')" class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-eye mr-2"></i>Review
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateActiveRentalsTable(rentals) {
+    const active = rentals.filter(r => r.rental_status === 'active');
+    const tbody = document.getElementById('active-rentals-body');
+    
+    if (active.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                    <i class="fas fa-inbox text-4xl mb-2"></i>
+                    <p>No active rentals</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = active.map(rental => `
+        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(rental.customers?.first_name + ' ' + rental.customers?.last_name)}&background=059669&color=fff" 
+                         class="w-10 h-10 rounded-full mr-3">
+                    <div>
+                        <div class="text-sm font-medium">
+                            ${rental.customers?.first_name} ${rental.customers?.last_name}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">${rental.customers?.email || ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">${rental.vehicles?.vehicle_id || 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold">$${rental.weekly_rate}/wk</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">${rental.next_payment_due ? new Date(rental.next_payment_due).toLocaleDateString() : 'N/A'}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="status-badge bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Current</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <button onclick="openModal('record-payment')" class="text-fleetzy-green hover:text-green-700 mr-3">
+                    <i class="fas fa-dollar-sign mr-1"></i>Payment
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function updateFleetOverview(vehicles, rentals) {
+    const grid = document.getElementById('fleet-overview-grid');
+    if (vehicles.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-2 py-8 text-center text-gray-500">
+                <i class="fas fa-car text-4xl mb-2"></i>
+                <p>No vehicles in fleet yet</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = vehicles.map(vehicle => {
+        const rental = rentals.find(r => r.vehicle_id === vehicle.id && r.rental_status === 'active');
+        const status = rental ? 'rented' : (vehicle.vehicle_status === 'Maintenance' ? 'maintenance' : 'available');
+        
+        const statusBadges = {
+            rented: { bg: 'bg-green-500', text: 'text-white', icon: 'fa-check-circle', label: 'RENTED' },
+            available: { bg: 'bg-blue-500', text: 'text-white', icon: 'fa-check', label: 'AVAILABLE' },
+            maintenance: { bg: 'bg-orange-500', text: 'text-white', icon: 'fa-wrench', label: 'MAINTENANCE' }
+        };
+        const badge = statusBadges[status];
+        
+        const imageUrl = vehicle.image_url || 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop';
+        
+        let actionButtons = '';
+        if (status === 'rented') {
+            actionButtons = `
+                <button onclick="showToast('View Details coming soon!', 'info')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
+                    <i class="fas fa-info-circle mr-2"></i>View Details
+                </button>
+                <button onclick="openModal('log-expense')" class="w-full bg-orange-600 dark:bg-orange-700 text-white px-3 py-2 rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors text-sm">
+                    <i class="fas fa-dollar-sign mr-2"></i>Log Expense
+                </button>
+            `;
+        } else if (status === 'available') {
+            actionButtons = `
+                <button onclick="openModal('start-rental')" class="w-full bg-fleetzy-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                    <i class="fas fa-user-plus mr-2"></i>Assign Customer
+                </button>
+                <button onclick="showToast('Service History coming soon!', 'info')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
+                    <i class="fas fa-wrench mr-2"></i>Service History
+                </button>
+            `;
+        } else {
+            actionButtons = `
+                <button onclick="showToast('Mark Complete coming soon!', 'info')" class="w-full bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm col-span-2">
+                    <i class="fas fa-check mr-2"></i>Mark Complete
+                </button>
+            `;
+        }
+        
+        return `
+            <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow bg-white dark:bg-gray-800">
+                <div class="relative h-48">
+                    <img src="${imageUrl}" 
+                         class="w-full h-full object-cover" 
+                         alt="${vehicle.year} ${vehicle.make} ${vehicle.model}"
+                         onerror="this.src='https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop'">
+                    <span class="absolute top-3 right-3 ${badge.bg} ${badge.text} px-3 py-1 rounded-full text-xs font-semibold shadow-lg flex items-center">
+                        <i class="fas ${badge.icon} mr-1"></i>${badge.label}
+                    </span>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg mb-1">${vehicle.year} ${vehicle.make} ${vehicle.model}</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${vehicle.vehicle_id} • ${vehicle.color || 'N/A'}</p>
+                    <div class="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Mileage</p>
+                            <p class="font-semibold">${(vehicle.current_mileage || 0).toLocaleString()}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${status === 'rented' ? 'Customer' : 'Status'}</p>
+                            <p class="font-semibold ${status === 'available' ? 'text-blue-600 dark:text-blue-400' : ''}">${
+                                status === 'rented' ? (rental?.customers?.first_name || 'N/A') :
+                                status === 'available' ? 'Ready' :
+                                'Service'
+                            }</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Rate</p>
+                            <p class="font-semibold">$${vehicle.weekly_rate || 400}/wk</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        ${actionButtons}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateReports(vehicles, rentals, payments) {
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    
+    const monthlyPayments = payments.filter(p => {
+        const paidDate = new Date(p.paid_date);
+        return paidDate.getMonth() === currentMonth && paidDate.getFullYear() === currentYear;
+    });
+    
+    const revenue = monthlyPayments.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+    const expenses = vehicles.length * 300;
+    const profit = revenue - expenses;
+    
+    const revenueEl = document.getElementById('report-revenue');
+    const expensesEl = document.getElementById('report-expenses');
+    const profitEl = document.getElementById('report-profit');
+    
+    if (revenueEl) revenueEl.textContent = `$${revenue.toLocaleString()}`;
+    if (expensesEl) expensesEl.textContent = `$${expenses.toLocaleString()}`;
+    if (profitEl) profitEl.textContent = `$${profit.toLocaleString()}`;
+    
+    const activeRentals = rentals.filter(r => r.rental_status === 'active').length;
+    const utilization = vehicles.length > 0 ? Math.round((activeRentals / vehicles.length) * 100) : 0;
+    const avgPerVehicle = vehicles.length > 0 ? Math.round(revenue / vehicles.length) : 0;
+    
+    const utilizationEl = document.getElementById('report-utilization');
+    const avgEl = document.getElementById('report-avg-per-vehicle');
+    const topEl = document.getElementById('report-top-earner');
+    
+    if (utilizationEl) utilizationEl.textContent = `${utilization}%`;
+    if (avgEl) avgEl.textContent = `$${avgPerVehicle.toLocaleString()}/mo`;
+    if (topEl) topEl.textContent = vehicles[0]?.vehicle_id || '-';
+    
+    const totalCustomers = rentals.map(r => r.customer_id).filter((v, i, a) => a.indexOf(v) === i).length;
+    const totalEl = document.getElementById('report-total-customers');
+    const activeEl = document.getElementById('report-active-customers');
+    const scoreEl = document.getElementById('report-avg-score');
+    
+    if (totalEl) totalEl.textContent = totalCustomers;
+    if (activeEl) activeEl.textContent = activeRentals;
+    if (scoreEl) scoreEl.textContent = '-';
+}
+
+// ===========================
+// MODAL FUNCTIONS
+// ===========================
+function openModal(modalName) {
+    const modal = document.getElementById(`modal-${modalName}`);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Load data for dropdowns
+        if (modalName === 'start-rental') {
+            loadRentalModalData();
+        } else if (modalName === 'record-payment') {
+            loadPaymentModalData();
+        } else if (modalName === 'end-rental') {
+            loadEndRentalModalData();
+        } else if (modalName === 'log-expense') {
+            loadExpenseModalData();
+        }
+    }
+}
+
+function closeModal(modalName) {
+    const modal = document.getElementById(`modal-${modalName}`);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
+
+async function loadRentalModalData() {
+    // Load customers
+    const { data: customers } = await supabase.from('customers').select('*');
+    const customerSelect = document.getElementById('rental-customer-select');
+    if (customerSelect && customers) {
+        customerSelect.innerHTML = '<option value="">Select customer...</option>';
+        customers.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.id;
+            option.textContent = `${c.first_name} ${c.last_name} (${c.phone || 'No phone'})`;
+            customerSelect.appendChild(option);
+        });
+    }
+    
+    // Load available vehicles
+    const { data: vehicles } = await supabase.from('vehicles').select('*').eq('vehicle_status', 'Active');
+    const vehicleSelect = document.getElementById('rental-vehicle-select');
+    if (vehicleSelect && vehicles) {
+        vehicleSelect.innerHTML = '<option value="">Select vehicle...</option>';
+        vehicles.forEach(v => {
+            const option = document.createElement('option');
+            option.value = v.id;
+            option.textContent = `${v.year} ${v.make} ${v.model} (${v.vehicle_id})`;
+            option.dataset.rate = v.weekly_rate || 400;
+            vehicleSelect.appendChild(option);
+        });
+    }
+}
+
+async function loadPaymentModalData() {
+    const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
+    const select = document.getElementById('payment-rental-select');
+    if (select && rentals) {
+        select.innerHTML = '<option value="">Select active rental...</option>';
+        rentals.forEach(r => {
+            const option = document.createElement('option');
+            option.value = r.id;
+            option.textContent = `${r.customers?.first_name} ${r.customers?.last_name} - ${r.vehicles?.vehicle_id}`;
+            select.appendChild(option);
+        });
+    }
+}
+
+async function loadEndRentalModalData() {
+    const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
+    const select = document.getElementById('end-rental-select');
+    if (select && rentals) {
+        select.innerHTML = '<option value="">Select rental to end...</option>';
+        rentals.forEach(r => {
+            const option = document.createElement('option');
+            option.value = r.id;
+            option.textContent = `${r.customers?.first_name} ${r.customers?.last_name} - ${r.vehicles?.vehicle_id}`;
+            select.appendChild(option);
+        });
+    }
+}
+
+async function loadExpenseModalData() {
+    const { data: vehicles } = await supabase.from('vehicles').select('*');
+    const select = document.getElementById('expense-vehicle-select');
+    if (select && vehicles) {
+        select.innerHTML = '<option value="">Select vehicle...</option>';
+        vehicles.forEach(v => {
+            const option = document.createElement('option');
+            option.value = v.id;
+            option.textContent = `${v.year} ${v.make} ${v.model} (${v.vehicle_id})`;
+            select.appendChild(option);
+        });
+    }
+}
+
+// ===========================
+// INITIALIZATION
+// ===========================
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadDashboardData();
+    setInterval(loadDashboardData, 30000);
+});
+</script>
+
+<script>
 // Global variables for this form
 let vehiclePhotoFile = null;
 
