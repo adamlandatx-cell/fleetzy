@@ -237,6 +237,58 @@
         </div>
     </nav>
 
+    <!-- Main Layout with Sidebar -->
+    <div class="flex">
+
+    <!-- Sidebar -->
+    <aside class="sidebar hidden md:block">
+        <nav class="py-4">
+            <div class="px-4 mb-4">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Main Menu</p>
+            </div>
+            <div class="sidebar-item active" onclick="showSection('dashboard')">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="sidebar-item" onclick="showSection('vehicles')">
+                <i class="fas fa-car"></i>
+                <span>Vehicles</span>
+            </div>
+            <div class="sidebar-item" onclick="showSection('customers')">
+                <i class="fas fa-users"></i>
+                <span>Customers</span>
+            </div>
+            <div class="sidebar-item" onclick="showSection('rentals')">
+                <i class="fas fa-key"></i>
+                <span>Rentals</span>
+            </div>
+            <div class="sidebar-item" onclick="showSection('payments')">
+                <i class="fas fa-credit-card"></i>
+                <span>Payments</span>
+            </div>
+            
+            <div class="px-4 my-4">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tools</p>
+            </div>
+            <div class="sidebar-item" onclick="showSection('marketplace')">
+                <i class="fab fa-facebook text-blue-500"></i>
+                <span>FB Marketplace</span>
+            </div>
+            <div class="sidebar-item" onclick="showSection('reports')">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reports</span>
+            </div>
+            <div class="sidebar-item" onclick="showSection('settings')">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+        </nav>
+    </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div id="section-dashboard" class="content-section active">
+
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
@@ -613,6 +665,184 @@
     <!-- Hover Preview Container -->
     <div id="hover-preview" class="hover-preview"></div>
 
+    
+            </div>
+            
+
+<!-- Facebook Marketplace Section -->
+<div id="section-marketplace" class="content-section">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold flex items-center">
+            <i class="fab fa-facebook text-blue-500 mr-3"></i>
+            Facebook Marketplace Assistant
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1">Generate optimized listings for your vehicles</p>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Left Column - Vehicle Selection & Templates -->
+        <div class="space-y-6">
+            <!-- Vehicle Selection -->
+            <div class="dashboard-card p-6">
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    <i class="fas fa-car text-fleetzy-green mr-2"></i>
+                    Select Vehicle
+                </h3>
+                <select id="mp-vehicle-select" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" onchange="updateMarketplacePreview()">
+                    <option value="">-- Select a vehicle --</option>
+                </select>
+            </div>
+            
+            <!-- Template Selection -->
+            <div class="dashboard-card p-6">
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    <i class="fas fa-magic text-purple-500 mr-2"></i>
+                    Choose Template Style
+                </h3>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="template-card selected" data-template="professional" onclick="selectTemplate(this)">
+                        <div class="flex items-center mb-2">
+                            <span class="text-2xl mr-3">💼</span>
+                            <span class="font-bold text-white">Professional</span>
+                        </div>
+                        <p class="text-sm text-gray-400">Clean, business-focused listing</p>
+                    </div>
+                    <div class="template-card" data-template="friendly" onclick="selectTemplate(this)">
+                        <div class="flex items-center mb-2">
+                            <span class="text-2xl mr-3">😊</span>
+                            <span class="font-bold text-white">Friendly</span>
+                        </div>
+                        <p class="text-sm text-gray-400">Casual, approachable tone</p>
+                    </div>
+                    <div class="template-card" data-template="detailed" onclick="selectTemplate(this)">
+                        <div class="flex items-center mb-2">
+                            <span class="text-2xl mr-3">📋</span>
+                            <span class="font-bold text-white">Detailed</span>
+                        </div>
+                        <p class="text-sm text-gray-400">Comprehensive with all specs</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Custom Options -->
+            <div class="dashboard-card p-6">
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    <i class="fas fa-sliders-h text-orange-500 mr-2"></i>
+                    Customize
+                </h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Weekly Rate ($)</label>
+                        <input type="number" id="mp-weekly-rate" value="400" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700" onchange="updateMarketplacePreview()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Deposit ($)</label>
+                        <input type="number" id="mp-deposit" value="500" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700" onchange="updateMarketplacePreview()">
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="mp-include-phone" checked class="mr-2" onchange="updateMarketplacePreview()">
+                        <label for="mp-include-phone">Include phone number</label>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="generateMarketplaceListing()" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg">
+                <i class="fab fa-facebook mr-2"></i>
+                Generate Listing
+            </button>
+        </div>
+        
+        <!-- Right Column - Preview -->
+        <div class="space-y-6">
+            <div class="dashboard-card p-6">
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    <i class="fas fa-eye text-fleetzy-green mr-2"></i>
+                    Preview
+                </h3>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">Title</label>
+                    <div id="mp-output-title" class="output-box text-lg font-semibold">Select a vehicle to preview</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">Description</label>
+                    <div id="mp-output-description" class="output-box">Your listing will appear here...</div>
+                </div>
+                
+                <div class="flex gap-3 mt-4">
+                    <button onclick="copyMarketplace('title')" class="copy-btn flex-1">
+                        <i class="fas fa-copy mr-2"></i>Copy Title
+                    </button>
+                    <button onclick="copyMarketplace('description')" class="copy-btn flex-1">
+                        <i class="fas fa-copy mr-2"></i>Copy Description
+                    </button>
+                </div>
+                <button onclick="copyMarketplace('all')" class="copy-btn w-full mt-3">
+                    <i class="fas fa-clipboard-list mr-2"></i>Copy Everything
+                </button>
+            </div>
+            
+            <div class="dashboard-card p-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <h4 class="font-bold text-blue-700 dark:text-blue-300 mb-2">
+                    <i class="fab fa-facebook-square mr-2"></i>
+                    How to Post
+                </h4>
+                <ol class="text-sm text-blue-600 dark:text-blue-400 space-y-2">
+                    <li>1. Open Facebook Marketplace</li>
+                    <li>2. Click "Create new listing" → "Vehicle for sale"</li>
+                    <li>3. Copy & paste the title and description</li>
+                    <li>4. Upload your vehicle photos</li>
+                    <li>5. Set price as $400 (weekly rate)</li>
+                    <li>6. Publish!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+            
+            <!-- Placeholder sections for other menu items -->
+            <div id="section-vehicles" class="content-section">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <h1 class="text-3xl font-bold mb-4">Vehicles</h1>
+                    <p class="text-gray-500">Vehicle management coming soon! For now, use the Dashboard.</p>
+                </div>
+            </div>
+            <div id="section-customers" class="content-section">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <h1 class="text-3xl font-bold mb-4">Customers</h1>
+                    <p class="text-gray-500">Customer management coming soon!</p>
+                </div>
+            </div>
+            <div id="section-rentals" class="content-section">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <h1 class="text-3xl font-bold mb-4">Rentals</h1>
+                    <p class="text-gray-500">Rental management coming soon!</p>
+                </div>
+            </div>
+            <div id="section-payments" class="content-section">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <h1 class="text-3xl font-bold mb-4">Payments</h1>
+                    <p class="text-gray-500">Payment tracking coming soon!</p>
+                </div>
+            </div>
+            <div id="section-reports" class="content-section">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <h1 class="text-3xl font-bold mb-4">Reports</h1>
+                    <p class="text-gray-500">Reporting features coming soon!</p>
+                </div>
+            </div>
+            <div id="section-settings" class="content-section">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <h1 class="text-3xl font-bold mb-4">Settings</h1>
+                    <p class="text-gray-500">Settings coming soon!</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
     <script>
         // ===========================
         // CONFIGURATION
@@ -620,8 +850,7 @@
         const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        window.supabaseClient = supabase; // Make globally accessible
+        var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ===========================
         // DARK MODE
@@ -771,11 +1000,11 @@
         async function loadDashboardData() {
             try {
                 // Load all data
-                const { data: vehicles } = await supabase.from('vehicles').select('*');
-                const { data: customers } = await supabase.from('customers').select('*');
-                const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)');
-                const { data: payments } = await supabase.from('payments').select('*, customers(*)');
-                const { data: applications } = await supabase.from('applications').select('*');
+                const { data: vehicles } = await db.from('vehicles').select('*');
+                const { data: customers } = await db.from('customers').select('*');
+                const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)');
+                const { data: payments } = await db.from('payments').select('*, customers(*)');
+                const { data: applications } = await db.from('applications').select('*');
                 
                 // Update metrics
                 updateMetrics(vehicles || [], customers || [], rentals || [], payments || []);
@@ -934,13 +1163,8 @@
                 };
                 const badge = statusBadges[status];
                 
-                // Vehicle placeholder image (you can replace with actual vehicle images)
-                const imageUrl = `https://images.unsplash.com/photo-${
-                    vehicle.make === 'Toyota' ? '1621007947622' : 
-                    vehicle.make === 'Honda' ? '1621007947200' : 
-                    vehicle.make === 'Nissan' ? '1621007947300' : 
-                    '1621007947400'
-                }-${vehicle.model?.toLowerCase() || 'car'}?w=400&h=250&fit=crop`;
+                // Use actual image if available, otherwise use placeholder
+                const imageUrl = vehicle.image_url || 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop';
                 
                 // Action buttons based on status
                 let actionButtons = '';
@@ -1065,10 +1289,210 @@
                 showToast('Welcome to Fleetzy Admin Dashboard! 🚗', 'success');
             }, 500);
         });
-        // Export functions to window for cross-script access
-        window.showToast = showToast;
-        window.toggleDarkMode = toggleDarkMode;
-        window.loadDashboardData = loadDashboardData;
+    
+
+
+// Section Navigation
+function showSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Remove active from all sidebar items
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Show selected section
+    const section = document.getElementById('section-' + sectionId);
+    if (section) {
+        section.classList.add('active');
+    } else {
+        // Default to dashboard if section not found
+        document.getElementById('section-dashboard').classList.add('active');
+        showToast('Coming soon!', 'info');
+        sectionId = 'dashboard';
+    }
+    
+    // Activate sidebar item
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        if (item.textContent.toLowerCase().includes(sectionId) || 
+            (sectionId === 'marketplace' && item.textContent.includes('Marketplace'))) {
+            item.classList.add('active');
+        }
+    });
+    
+    // Load marketplace vehicles if switching to marketplace
+    if (sectionId === 'marketplace') {
+        loadMarketplaceVehicles();
+    }
+}
+
+// Marketplace Functions
+var marketplaceVehicles = [];
+
+async function loadMarketplaceVehicles() {
+    try {
+        const { data, error } = await db.from('vehicles').select('*');
+        if (error) throw error;
+        marketplaceVehicles = data || [];
+        
+        const select = document.getElementById('mp-vehicle-select');
+        if (select) {
+            select.innerHTML = '<option value="">-- Select a vehicle --</option>' +
+                marketplaceVehicles.map(v => 
+                    `<option value="${v.id}">${v.year} ${v.make} ${v.model} (${v.license_plate || 'No plate'})</option>`
+                ).join('');
+        }
+    } catch (err) {
+        console.error('Error loading vehicles for marketplace:', err);
+    }
+}
+
+function selectTemplate(el) {
+    document.querySelectorAll('.template-card').forEach(card => card.classList.remove('selected'));
+    el.classList.add('selected');
+    updateMarketplacePreview();
+}
+
+function getSelectedTemplate() {
+    const selected = document.querySelector('.template-card.selected');
+    return selected ? selected.dataset.template : 'professional';
+}
+
+function updateMarketplacePreview() {
+    const vehicleId = document.getElementById('mp-vehicle-select')?.value;
+    if (!vehicleId) return;
+    
+    const vehicle = marketplaceVehicles.find(v => v.id === vehicleId);
+    if (!vehicle) return;
+    
+    const rate = document.getElementById('mp-weekly-rate')?.value || 400;
+    const deposit = document.getElementById('mp-deposit')?.value || 500;
+    const includePhone = document.getElementById('mp-include-phone')?.checked;
+    const template = getSelectedTemplate();
+    
+    const listing = generateListingContent(vehicle, template, rate, deposit, includePhone);
+    
+    document.getElementById('mp-output-title').textContent = listing.title;
+    document.getElementById('mp-output-description').textContent = listing.description;
+}
+
+function generateListingContent(vehicle, template, rate, deposit, includePhone) {
+    const title = `${vehicle.year} ${vehicle.make} ${vehicle.model} - Weekly Rental $${rate}`;
+    
+    let description = '';
+    
+    if (template === 'professional') {
+        description = `🚗 ${vehicle.year} ${vehicle.make} ${vehicle.model} FOR RENT
+
+📍 Houston, TX Area
+💰 $${rate}/week | $${deposit} refundable deposit
+
+VEHICLE DETAILS:
+• Year: ${vehicle.year}
+• Make: ${vehicle.make}
+• Model: ${vehicle.model}
+• Color: ${vehicle.color || 'See photos'}
+• Mileage: ${vehicle.current_mileage?.toLocaleString() || 'Low miles'}
+
+PERFECT FOR:
+✅ Uber & Lyft drivers
+✅ DoorDash & delivery drivers
+✅ Anyone needing reliable transportation
+
+REQUIREMENTS:
+• Valid driver's license
+• Clean driving record
+• Background check
+• Minimum 2-week rental
+
+${includePhone ? '📞 Contact: (281) 271-3900' : '💬 Message for details'}
+
+Ready to rent? Contact us today!`;
+    } else if (template === 'friendly') {
+        description = `Hey there! 👋
+
+Looking for a reliable ride for gig work? I've got you covered!
+
+🚙 ${vehicle.year} ${vehicle.make} ${vehicle.model}
+💵 Just $${rate}/week + $${deposit} deposit
+
+This ${vehicle.color || 'beautiful'} ${vehicle.make} is perfect for:
+- Rideshare (Uber/Lyft)
+- Deliveries (DoorDash, UberEats)
+- Getting around Houston
+
+No long-term commitment needed - rent week by week!
+
+${includePhone ? 'Give me a call at (281) 271-3900 or shoot me a message!' : 'Drop me a message and let\'s get you on the road! 🛣️'}`;
+    } else {
+        description = `📋 DETAILED VEHICLE LISTING
+
+${vehicle.year} ${vehicle.make} ${vehicle.model}
+
+SPECIFICATIONS:
+━━━━━━━━━━━━━━━━━━━━━━
+• Year: ${vehicle.year}
+• Make: ${vehicle.make}
+• Model: ${vehicle.model}
+• Color: ${vehicle.color || 'N/A'}
+• VIN: ${vehicle.vin || 'Available upon request'}
+• Current Mileage: ${vehicle.current_mileage?.toLocaleString() || 'N/A'} miles
+• License Plate: ${vehicle.license_plate || 'N/A'}
+
+RENTAL TERMS:
+━━━━━━━━━━━━━━━━━━━━━━
+• Weekly Rate: $${rate}
+• Security Deposit: $${deposit} (refundable)
+• Minimum Rental: 2 weeks
+• Payment: Due weekly in advance
+• Insurance: Required
+
+IDEAL FOR:
+━━━━━━━━━━━━━━━━━━━━━━
+• Uber/Lyft rideshare drivers
+• DoorDash/UberEats/Instacart drivers
+• Business use
+• Temporary transportation needs
+
+REQUIREMENTS:
+━━━━━━━━━━━━━━━━━━━━━━
+• Valid driver's license (21+)
+• Clean driving record
+• Pass background check
+• Proof of insurance
+
+LOCATION: Houston, TX
+
+${includePhone ? 'CONTACT: (281) 271-3900' : 'Send a message for more information'}`;
+    }
+    
+    return { title, description };
+}
+
+function generateMarketplaceListing() {
+    updateMarketplacePreview();
+    showToast('Listing generated! Copy and paste to Facebook Marketplace', 'success');
+}
+
+function copyMarketplace(type) {
+    const title = document.getElementById('mp-output-title')?.textContent || '';
+    const description = document.getElementById('mp-output-description')?.textContent || '';
+    
+    let text = '';
+    if (type === 'title') text = title;
+    else if (type === 'description') text = description;
+    else text = title + '\n\n' + description;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard!', 'success');
+    }).catch(() => {
+        showToast('Failed to copy', 'error');
+    });
+}
+
     </script>
 
     <!-- ========================================
@@ -2510,12 +2934,112 @@
     border-style: solid;
     border-color: #059669;
 }
-</style>
+
+/* Facebook Marketplace Styles */
+.marketplace-section {
+    display: none;
+}
+.marketplace-section.active {
+    display: block;
+}
+.fb-blue { color: #1877f2; }
+.template-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.template-card:hover, .template-card.selected {
+    border-color: #10b981;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+}
+.template-card.selected {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%);
+}
+.output-box {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'DM Sans', monospace;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.copy-btn {
+    background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+.copy-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: 250px;
+    min-height: calc(100vh - 64px);
+    background: white;
+    border-right: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+.dark .sidebar {
+    background: #1f2937;
+    border-color: #374151;
+}
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+.sidebar-item:hover {
+    background: #f3f4f6;
+    color: #059669;
+}
+.dark .sidebar-item:hover {
+    background: #374151;
+}
+.sidebar-item.active {
+    background: #ecfdf5;
+    color: #059669;
+    border-left-color: #059669;
+    font-weight: 600;
+}
+.dark .sidebar-item.active {
+    background: rgba(5, 150, 105, 0.1);
+}
+.sidebar-item i {
+    width: 24px;
+    margin-right: 12px;
+}
+.main-content {
+    flex: 1;
+    min-width: 0;
+}
+.content-section {
+    display: none;
+}
+.content-section.active {
+    display: block;
+}
+
+    </style>
 
 <script>
-// Get supabase client from global scope
-const supabase = window.supabaseClient;
-
 // Global variables for this form
 let vehiclePhotoFile = null;
 
@@ -2640,7 +3164,7 @@ async function uploadVehiclePhoto(vehicleId) {
     const filePath = fileName;
     
     // Upload to Supabase Storage (vehicle-images bucket)
-    const { data, error } = await supabase.storage
+    const { data, error } = await db.storage
         .from('vehicle-images')
         .upload(filePath, vehiclePhotoFile, {
             cacheControl: '3600',
@@ -2652,7 +3176,7 @@ async function uploadVehiclePhoto(vehicleId) {
     }
     
     // Get public URL
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = db.storage
         .from('vehicle-images')
         .getPublicUrl(filePath);
     
@@ -2925,7 +3449,7 @@ async function uploadCustomerImage(customerId, file, type) {
     const fileExt = file.name.split('.').pop();
     const fileName = `${fileNameMap[type]}.${fileExt}`;
     
-    const { data, error } = await supabase.storage
+    const { data, error } = await db.storage
         .from(bucket)
         .upload(fileName, file, {
             cacheControl: '3600',
@@ -2936,7 +3460,7 @@ async function uploadCustomerImage(customerId, file, type) {
         throw error;
     }
     
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = db.storage
         .from(bucket)
         .getPublicUrl(fileName);
     
@@ -3185,14 +3709,14 @@ function closeModal(modalName) {
 async function loadStartRentalData() {
     try {
         // Load approved customers
-        const { data: customers } = await supabase.from('customers').select('*').or('application_status.eq.approved,status.eq.approved');
+        const { data: customers } = await db.from('customers').select('*').or('application_status.eq.approved,status.eq.approved');
         const customerSelect = document.querySelector('#form-start-rental select[name="customer_id"]');
         customerSelect.innerHTML = '<option value="">Select a customer...</option>' +
             (customers || []).map(c => `<option value="${c.id}">${c.full_name || c.first_name + ' ' + (c.last_name || '')} - ${c.phone || ''}</option>`).join('');
         
         // Load available vehicles
-        const { data: vehicles } = await supabase.from('vehicles').select('*').or('vehicle_status.eq.available,vehicle_status.eq.Active');
-        const { data: activeRentals } = await supabase.from('rentals').select('vehicle_id').eq('rental_status', 'active');
+        const { data: vehicles } = await db.from('vehicles').select('*').or('vehicle_status.eq.available,vehicle_status.eq.Active');
+        const { data: activeRentals } = await db.from('rentals').select('vehicle_id').eq('rental_status', 'active');
         const rentedVehicleIds = (activeRentals || []).map(r => r.vehicle_id);
         const availableVehicles = (vehicles || []).filter(v => !rentedVehicleIds.includes(v.id));
         
@@ -3268,10 +3792,10 @@ async function uploadToStorage(bucket, file, folder = '') {
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const path = folder ? `${folder}/${timestamp}_${safeName}` : `${timestamp}_${safeName}`;
     
-    const { data, error } = await supabase.storage.from(bucket).upload(path, file);
+    const { data, error } = await db.storage.from(bucket).upload(path, file);
     if (error) throw error;
     
-    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+    const { data: urlData } = db.storage.from(bucket).getPublicUrl(path);
     return urlData.publicUrl;
 }
 
@@ -3292,7 +3816,7 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
         const data = Object.fromEntries(formData);
         
         // Generate rental ID
-        const { count } = await supabase.from('rentals').select('*', { count: 'exact', head: true });
+        const { count } = await db.from('rentals').select('*', { count: 'exact', head: true });
         data.rental_id = `R-${String((count || 0) + 1).padStart(3, '0')}`;
         data.rental_status = 'active';
         
@@ -3319,11 +3843,11 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
         }
         
         // Insert rental
-        const { error: rentalError } = await supabase.from('rentals').insert([data]);
+        const { error: rentalError } = await db.from('rentals').insert([data]);
         if (rentalError) throw rentalError;
         
         // Update vehicle status
-        await supabase.from('vehicles').update({ vehicle_status: 'rented' }).eq('id', data.vehicle_id);
+        await db.from('vehicles').update({ vehicle_status: 'rented' }).eq('id', data.vehicle_id);
         
         showToast('Rental started successfully! 🚗', 'success');
         closeModal('start-rental');
@@ -3349,7 +3873,7 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
 // ===========================
 async function loadPaymentFormData() {
     try {
-        const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
+        const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
         allRentalsCache = rentals || [];
         
         const select = document.getElementById('payment-rental-select');
@@ -3420,7 +3944,7 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
         const data = Object.fromEntries(formData);
         
         // Generate payment ID
-        const { count } = await supabase.from('payments').select('*', { count: 'exact', head: true });
+        const { count } = await db.from('payments').select('*', { count: 'exact', head: true });
         data.payment_id = `P-${String((count || 0) + 1).padStart(3, '0')}`;
         data.payment_status = 'confirmed';
         data.paid_amount = parseFloat(data.paid_amount);
@@ -3438,13 +3962,13 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
             // Update rental next payment due
             const nextDue = new Date(rental.next_payment_due || new Date());
             nextDue.setDate(nextDue.getDate() + 7);
-            await supabase.from('rentals').update({ 
+            await db.from('rentals').update({ 
                 next_payment_due: nextDue.toISOString().split('T')[0],
                 last_payment_date: data.paid_date
             }).eq('id', data.rental_id);
         }
         
-        const { error } = await supabase.from('payments').insert([data]);
+        const { error } = await db.from('payments').insert([data]);
         if (error) throw error;
         
         showToast('Payment recorded successfully! 💰', 'success');
@@ -3470,7 +3994,7 @@ document.getElementById('form-record-payment').addEventListener('submit', async 
 // ===========================
 async function loadEndRentalFormData() {
     try {
-        const { data: rentals } = await supabase.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
+        const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)').eq('rental_status', 'active');
         allRentalsCache = rentals || [];
         
         const select = document.getElementById('end-rental-select');
@@ -3565,12 +4089,12 @@ document.getElementById('form-end-rental').addEventListener('submit', async (e) 
             return_notes: data.return_notes
         };
         
-        const { error } = await supabase.from('rentals').update(updateData).eq('id', data.rental_id);
+        const { error } = await db.from('rentals').update(updateData).eq('id', data.rental_id);
         if (error) throw error;
         
         // Update vehicle status back to available and update mileage
         if (rental) {
-            await supabase.from('vehicles').update({ 
+            await db.from('vehicles').update({ 
                 vehicle_status: 'available',
                 current_mileage: parseInt(data.end_mileage)
             }).eq('id', rental.vehicle_id);
@@ -3599,7 +4123,7 @@ document.getElementById('form-end-rental').addEventListener('submit', async (e) 
 // ===========================
 async function loadExpenseFormData() {
     try {
-        const { data: vehicles } = await supabase.from('vehicles').select('*');
+        const { data: vehicles } = await db.from('vehicles').select('*');
         allVehiclesCache = vehicles || [];
         
         const select = document.getElementById('expense-vehicle-select');
@@ -3658,7 +4182,7 @@ document.getElementById('form-log-expense').addEventListener('submit', async (e)
             data.receipt_url = await uploadToStorage('payment-screenshots', expenseReceiptFile, `expense_${data.expense_id}`);
         }
         
-        const { error } = await supabase.from('expenses').insert([data]);
+        const { error } = await db.from('expenses').insert([data]);
         if (error) throw error;
         
         showToast('Expense logged successfully! 📝', 'success');
@@ -3682,7 +4206,7 @@ async function approveCustomer(customerId) {
     if (!confirm('Approve this customer application?')) return;
     
     try {
-        const { error } = await supabase.from('customers').update({ 
+        const { error } = await db.from('customers').update({ 
             application_status: 'approved',
             status: 'approved',
             approved_at: new Date().toISOString()
@@ -3705,7 +4229,7 @@ async function rejectCustomer(customerId) {
     if (reason === null) return;
     
     try {
-        const { error } = await supabase.from('customers').update({ 
+        const { error } = await db.from('customers').update({ 
             application_status: 'rejected',
             status: 'rejected',
             rejection_reason: reason || null,
