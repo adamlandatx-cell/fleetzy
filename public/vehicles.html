@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#059669">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fleetzy">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Browse our fleet of rideshare-approved vehicles available for weekly rental in Houston, Texas. Toyota Camry, Corolla and more.">
+    
+    <title>Our Vehicles - Fleetzy | Weekly Car Rentals Houston</title>
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="/icons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'fleetzy-green': '#059669',
+                        'fleetzy-blue': '#475569',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Translation System -->
+    <script src="translations.js"></script>
+    <script src="language-switcher.js"></script>
+    
+    <style>
+        /* Custom Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .fade-in-up-delay-1 {
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+        
+        .fade-in-up-delay-2 {
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+        
+        .fade-in-up-delay-3 {
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+        
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Vehicle card hover effect */
+        .vehicle-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .vehicle-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Skeleton loading animation */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        /* Availability badge pulse */
+        .available-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md fixed w-full top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <a href="index.html">
+                            <img src="fleetzy-logo.png" alt="Fleetzy" class="h-10 w-auto">
+                        </a>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="index.html#how-it-works" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium transition">How It Works</a>
+                        <a href="index.html#pricing" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium transition">Pricing</a>
+                        <a href="vehicles.html" class="text-fleetzy-green font-semibold px-3 py-2 rounded-md text-sm transition">Vehicles</a>
+                        <a href="index.html#faq" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium transition">FAQ</a>
+                    </div>
+                </div>
+                <div>
+                    <a href="qualify.html" class="bg-fleetzy-green text-white px-6 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">
+                        Apply Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile menu button -->
+        <div class="md:hidden px-4 pb-3">
+            <div class="flex items-baseline space-x-2 overflow-x-auto">
+                <a href="index.html#how-it-works" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap">How It Works</a>
+                <a href="index.html#pricing" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap">Pricing</a>
+                <a href="vehicles.html" class="text-fleetzy-green font-semibold px-3 py-2 rounded-md text-sm whitespace-nowrap">Vehicles</a>
+                <a href="index.html#faq" class="text-gray-700 hover:text-fleetzy-green px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap">FAQ</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-24 pb-12 px-4 bg-gradient-to-br from-fleetzy-green to-emerald-600 text-white">
+        <div class="max-w-7xl mx-auto text-center fade-in-up">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Our Fleet</h1>
+            <p class="text-xl text-emerald-100 max-w-2xl mx-auto">
+                Quality, rideshare-approved vehicles ready for you. All vehicles are well-maintained and ready to hit the road.
+            </p>
+            <div class="mt-8 flex flex-wrap justify-center gap-6 text-sm">
+                <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <svg class="w-5 h-5 text-emerald-200" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Uber & Lyft Approved</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <svg class="w-5 h-5 text-emerald-200" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Well Maintained</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <svg class="w-5 h-5 text-emerald-200" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>GPS Equipped</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter/Stats Bar -->
+    <section class="bg-white border-b border-gray-200 py-4 sticky top-16 z-40">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <span class="text-gray-600">Showing:</span>
+                    <span id="vehicle-count" class="font-semibold text-fleetzy-green">Loading...</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="w-3 h-3 bg-green-500 rounded-full available-pulse"></span>
+                        <span class="text-gray-600">Available Now</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                        <span class="text-gray-600">Coming Soon</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm">
+                        <span class="w-3 h-3 bg-gray-400 rounded-full"></span>
+                        <span class="text-gray-600">Rented</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vehicles Grid -->
+    <section class="py-12 px-4">
+        <div class="max-w-7xl mx-auto">
+            <!-- Loading State -->
+            <div id="loading-state" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Skeleton Cards -->
+                <div class="bg-white rounded-2xl overflow-hidden shadow-lg">
+                    <div class="skeleton h-56 w-full"></div>
+                    <div class="p-6">
+                        <div class="skeleton h-6 w-3/4 rounded mb-3"></div>
+                        <div class="skeleton h-4 w-1/2 rounded mb-4"></div>
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl overflow-hidden shadow-lg">
+                    <div class="skeleton h-56 w-full"></div>
+                    <div class="p-6">
+                        <div class="skeleton h-6 w-3/4 rounded mb-3"></div>
+                        <div class="skeleton h-4 w-1/2 rounded mb-4"></div>
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl overflow-hidden shadow-lg">
+                    <div class="skeleton h-56 w-full"></div>
+                    <div class="p-6">
+                        <div class="skeleton h-6 w-3/4 rounded mb-3"></div>
+                        <div class="skeleton h-4 w-1/2 rounded mb-4"></div>
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vehicles Container -->
+            <div id="vehicles-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 hidden">
+                <!-- Vehicle cards will be inserted here -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden text-center py-16">
+                <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">No Vehicles Available</h3>
+                <p class="text-gray-600 mb-6">Check back soon! We're adding new vehicles to our fleet.</p>
+                <a href="contact.html" class="inline-flex items-center gap-2 bg-fleetzy-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    Contact Us
+                </a>
+            </div>
+            
+            <!-- Error State -->
+            <div id="error-state" class="hidden text-center py-16">
+                <div class="bg-red-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Something Went Wrong</h3>
+                <p class="text-gray-600 mb-6">We couldn't load the vehicles. Please try again.</p>
+                <button onclick="loadVehicles()" class="inline-flex items-center gap-2 bg-fleetzy-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Try Again
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 px-4 bg-gradient-to-br from-fleetzy-green to-emerald-600 text-white">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Hit the Road?</h2>
+            <p class="text-xl text-emerald-100 mb-8">
+                Apply now and get approved within 24 hours. Start earning with a reliable vehicle.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="qualify.html" class="bg-white text-fleetzy-green px-8 py-4 rounded-lg font-bold text-lg hover:bg-emerald-50 transition inline-flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Start Application
+                </a>
+                <a href="tel:+12812713900" class="border-2 border-white text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-white hover:text-fleetzy-green transition inline-flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                    </svg>
+                    Call (281) 271-3900
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-white py-12 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <img src="fleetzy-logo.png" alt="Fleetzy" class="h-10 w-auto mb-4 brightness-0 invert">
+                    <p class="text-gray-300 text-sm">Weekly car rentals for individual drivers and corporate fleet solutions in Houston, Texas.</p>
+                </div>
+                <div>
+                    <h6 class="font-bold mb-4">Quick Links</h6>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="index.html#how-it-works" class="text-gray-300 hover:text-white transition">How It Works</a></li>
+                        <li><a href="index.html#pricing" class="text-gray-300 hover:text-white transition">Pricing</a></li>
+                        <li><a href="vehicles.html" class="text-gray-300 hover:text-white transition">Vehicles</a></li>
+                        <li><a href="qualify.html" class="text-gray-300 hover:text-white transition">Apply Now</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h6 class="font-bold mb-4">Contact</h6>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>Houston, Texas</li>
+                        <li>Phone: (281) 271-3900</li>
+                        <li>Email: hello@getfleetzy.com</li>
+                    </ul>
+                </div>
+                <div>
+                    <h6 class="font-bold mb-4">Hours</h6>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li>Monday - Friday: 9am - 7pm</li>
+                        <li>Saturday: 10am - 5pm</li>
+                        <li>Sunday: Closed</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-slate-600 pt-8 text-center text-sm text-gray-300">
+                <p>&copy; 2025 Fleetzy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE1MTMwNTMsImV4cCI6MjA0NzA4OTA1M30.K-RwLbhVFSKosRlU0RGUS_MXzuY8MTCJ8TDMnMzr1xQ';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Default vehicle image if none provided
+        const DEFAULT_VEHICLE_IMAGE = 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=600&h=400&fit=crop';
+        
+        // Load vehicles on page load
+        document.addEventListener('DOMContentLoaded', loadVehicles);
+        
+        async function loadVehicles() {
+            const loadingState = document.getElementById('loading-state');
+            const vehiclesGrid = document.getElementById('vehicles-grid');
+            const emptyState = document.getElementById('empty-state');
+            const errorState = document.getElementById('error-state');
+            const vehicleCount = document.getElementById('vehicle-count');
+            
+            // Show loading
+            loadingState.classList.remove('hidden');
+            vehiclesGrid.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            
+            try {
+                // Fetch vehicles (exclude Retired)
+                const { data: vehicles, error: vehiclesError } = await supabase
+                    .from('vehicles')
+                    .select('*')
+                    .neq('vehicle_status', 'Retired')
+                    .order('created_at', { ascending: false });
+                
+                if (vehiclesError) throw vehiclesError;
+                
+                // Fetch active rentals to check availability
+                const { data: rentals, error: rentalsError } = await supabase
+                    .from('rentals')
+                    .select('vehicle_id, end_date, rental_status')
+                    .eq('rental_status', 'Active');
+                
+                if (rentalsError) throw rentalsError;
+                
+                // Create a map of vehicle_id to rental info
+                const rentalMap = {};
+                rentals?.forEach(rental => {
+                    rentalMap[rental.vehicle_id] = rental;
+                });
+                
+                // Hide loading
+                loadingState.classList.add('hidden');
+                
+                if (!vehicles || vehicles.length === 0) {
+                    // Show empty state
+                    emptyState.classList.remove('hidden');
+                    vehicleCount.textContent = '0 vehicles';
+                    return;
+                }
+                
+                // Count available vehicles
+                let availableCount = 0;
+                vehicles.forEach(v => {
+                    const rental = rentalMap[v.id];
+                    if (v.vehicle_status === 'Active' && !rental) availableCount++;
+                });
+                
+                vehicleCount.textContent = `${vehicles.length} vehicles (${availableCount} available)`;
+                
+                // Generate vehicle cards
+                vehiclesGrid.innerHTML = vehicles.map((vehicle, index) => {
+                    const rental = rentalMap[vehicle.id];
+                    const availability = getAvailabilityInfo(vehicle, rental);
+                    const animationDelay = `fade-in-up-delay-${(index % 3) + 1}`;
+                    
+                    return `
+                        <div class="vehicle-card bg-white rounded-2xl overflow-hidden shadow-lg ${animationDelay}">
+                            <!-- Vehicle Image -->
+                            <div class="relative h-56 bg-gray-200">
+                                <img 
+                                    src="${vehicle.image_url || DEFAULT_VEHICLE_IMAGE}" 
+                                    alt="${vehicle.year} ${vehicle.make} ${vehicle.model}"
+                                    class="w-full h-full object-cover"
+                                    onerror="this.src='${DEFAULT_VEHICLE_IMAGE}'"
+                                >
+                                <!-- Availability Badge -->
+                                <div class="absolute top-4 right-4">
+                                    <span class="${availability.badgeClass} px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1.5">
+                                        ${availability.icon}
+                                        ${availability.text}
+                                    </span>
+                                </div>
+                                <!-- Year Badge -->
+                                <div class="absolute bottom-4 left-4">
+                                    <span class="bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                        ${vehicle.year}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- Vehicle Details -->
+                            <div class="p-6">
+                                <div class="mb-4">
+                                    <h3 class="text-xl font-bold text-gray-900">${vehicle.make} ${vehicle.model}</h3>
+                                    <p class="text-gray-500">${vehicle.color || 'Color not specified'}</p>
+                                </div>
+                                
+                                <!-- Features -->
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
+                                        Rideshare Ready
+                                    </span>
+                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
+                                        GPS Tracked
+                                    </span>
+                                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-medium">
+                                        Insured
+                                    </span>
+                                </div>
+                                
+                                <!-- Price & CTA -->
+                                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                                    <div>
+                                        <span class="text-2xl font-bold text-fleetzy-green">$${vehicle.weekly_rate || 400}</span>
+                                        <span class="text-gray-500">/week</span>
+                                    </div>
+                                    ${availability.isAvailable ? `
+                                        <a href="qualify.html" class="bg-fleetzy-green text-white px-5 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition text-sm">
+                                            Apply Now
+                                        </a>
+                                    ` : `
+                                        <span class="text-gray-400 text-sm font-medium">
+                                            ${availability.availableDate || 'Not Available'}
+                                        </span>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                vehiclesGrid.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error loading vehicles:', error);
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                vehicleCount.textContent = 'Error loading';
+            }
+        }
+        
+        function getAvailabilityInfo(vehicle, rental) {
+            // Check if vehicle is in maintenance
+            if (vehicle.vehicle_status === 'Maintenance') {
+                return {
+                    text: 'In Service',
+                    badgeClass: 'bg-yellow-100 text-yellow-800',
+                    icon: '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>',
+                    isAvailable: false,
+                    availableDate: null
+                };
+            }
+            
+            // Check if vehicle has an active rental
+            if (rental) {
+                if (rental.end_date) {
+                    const endDate = new Date(rental.end_date);
+                    const formattedDate = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    return {
+                        text: 'Rented',
+                        badgeClass: 'bg-gray-100 text-gray-700',
+                        icon: '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>',
+                        isAvailable: false,
+                        availableDate: `Available ${formattedDate}`
+                    };
+                }
+                return {
+                    text: 'Rented',
+                    badgeClass: 'bg-gray-100 text-gray-700',
+                    icon: '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>',
+                    isAvailable: false,
+                    availableDate: null
+                };
+            }
+            
+            // Vehicle is available
+            return {
+                text: 'Available',
+                badgeClass: 'bg-green-100 text-green-800',
+                icon: '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>',
+                isAvailable: true,
+                availableDate: null
+            };
+        }
+    </script>
+
+</body>
+</html>
