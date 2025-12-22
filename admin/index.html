@@ -965,7 +965,7 @@
                         <div class="space-y-2 text-sm">
                             <div class="flex items-center justify-between">
                                 <span class="text-gray-500 dark:text-gray-400">Status:</span>
-                                <span class="status-badge ${data.vehicle_status === 'Active' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}">${data.vehicle_status}</span>
+                                <span class="status-badge ${data.status === 'Active' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}">${data.status}</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-gray-500 dark:text-gray-400">Mileage:</span>
@@ -1153,7 +1153,7 @@
             grid.innerHTML = vehicles.map(vehicle => {
                 // Determine vehicle status based on rentals
                 const rental = rentals.find(r => r.vehicle_id === vehicle.id && r.rental_status === 'active');
-                const status = rental ? 'rented' : (vehicle.vehicle_status === 'Maintenance' ? 'maintenance' : 'available');
+                const status = rental ? 'rented' : (vehicle.status === 'Maintenance' ? 'maintenance' : 'available');
                 
                 // Status badge styling
                 const statusBadges = {
@@ -3246,7 +3246,7 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
             toll_tag_id: data.toll_tag_id ? data.toll_tag_id.trim() : null,
             insurance_monthly: parseFloat(data.insurance_monthly),
             registration_cost: data.registration_cost ? parseFloat(data.registration_cost) : null,
-            vehicle_status: 'Active',
+            status: 'Active',
             image_url: photoUrl,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -3715,7 +3715,7 @@ async function loadStartRentalData() {
             (customers || []).map(c => `<option value="${c.id}">${c.full_name || c.first_name + ' ' + (c.last_name || '')} - ${c.phone || ''}</option>`).join('');
         
         // Load available vehicles
-        const { data: vehicles } = await db.from('vehicles').select('*').or('vehicle_status.eq.Active,vehicle_status.eq.active');
+        const { data: vehicles } = await db.from('vehicles').select('*').or('status.eq.Active,status.eq.active');
         const { data: activeRentals } = await db.from('rentals').select('vehicle_id').eq('rental_status', 'active');
         const rentedVehicleIds = (activeRentals || []).map(r => r.vehicle_id);
         const availableVehicles = (vehicles || []).filter(v => !rentedVehicleIds.includes(v.id));
@@ -3847,7 +3847,7 @@ document.getElementById('form-start-rental').addEventListener('submit', async (e
         if (rentalError) throw rentalError;
         
         // Update vehicle status
-        await db.from('vehicles').update({ vehicle_status: 'rented' }).eq('id', data.vehicle_id);
+        await db.from('vehicles').update({ status: 'rented' }).eq('id', data.vehicle_id);
         
         showToast('Rental started successfully! 🚗', 'success');
         closeModal('start-rental');
@@ -4095,7 +4095,7 @@ document.getElementById('form-end-rental').addEventListener('submit', async (e) 
         // Update vehicle status back to Active and update mileage
         if (rental) {
             await db.from('vehicles').update({ 
-                vehicle_status: 'Active',
+                status: 'Active',
                 current_mileage: parseInt(data.end_mileage)
             }).eq('id', rental.vehicle_id);
         }
