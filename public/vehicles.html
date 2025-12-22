@@ -342,15 +342,10 @@
         </div>
     </footer>
 
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script>
-        // Supabase configuration
+        // Supabase configuration - using direct fetch to avoid SDK conflicts
         const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE1MTMwNTMsImV4cCI6MjA0NzA4OTA1M30.K-RwLbhVFSKosRlU0RGUS_MXzuY8MTCJ8TDMnMzr1xQ';
-        
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
         
         // Default vehicle image if none provided
         const DEFAULT_VEHICLE_IMAGE = 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=600&h=400&fit=crop';
@@ -372,22 +367,35 @@
             errorState.classList.add('hidden');
             
             try {
-                // Fetch vehicles (exclude Retired)
-                const { data: vehicles, error: vehiclesError } = await supabase
-                    .from('vehicles')
-                    .select('*')
-                    .neq('vehicle_status', 'Retired')
-                    .order('created_at', { ascending: false });
+                // Fetch vehicles (exclude Retired) using direct fetch API
+                const vehiclesResponse = await fetch(
+                    `${SUPABASE_URL}/rest/v1/vehicles?vehicle_status=neq.Retired&order=created_at.desc`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
                 
-                if (vehiclesError) throw vehiclesError;
+                if (!vehiclesResponse.ok) throw new Error('Failed to fetch vehicles');
+                const vehicles = await vehiclesResponse.json();
                 
                 // Fetch active rentals to check availability
-                const { data: rentals, error: rentalsError } = await supabase
-                    .from('rentals')
-                    .select('vehicle_id, end_date, rental_status')
-                    .eq('rental_status', 'Active');
+                const rentalsResponse = await fetch(
+                    `${SUPABASE_URL}/rest/v1/rentals?rental_status=eq.Active&select=vehicle_id,end_date,rental_status`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
                 
-                if (rentalsError) throw rentalsError;
+                if (!rentalsResponse.ok) throw new Error('Failed to fetch rentals');
+                const rentals = await rentalsResponse.json();
                 
                 // Create a map of vehicle_id to rental info
                 const rentalMap = {};
