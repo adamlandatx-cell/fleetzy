@@ -367,9 +367,9 @@
             errorState.classList.add('hidden');
             
             try {
-                // Fetch vehicles (exclude Retired) using direct fetch API
+                // Fetch all vehicles using direct fetch API
                 const vehiclesResponse = await fetch(
-                    `${SUPABASE_URL}/rest/v1/vehicles?vehicle_status=neq.Retired&order=created_at.desc`,
+                    `${SUPABASE_URL}/rest/v1/vehicles?select=*`,
                     {
                         headers: {
                             'apikey': SUPABASE_ANON_KEY,
@@ -384,7 +384,7 @@
                 
                 // Fetch active rentals to check availability
                 const rentalsResponse = await fetch(
-                    `${SUPABASE_URL}/rest/v1/rentals?rental_status=eq.Active&select=vehicle_id,end_date,rental_status`,
+                    `${SUPABASE_URL}/rest/v1/rentals?select=vehicle_id,end_date,rental_status`,
                     {
                         headers: {
                             'apikey': SUPABASE_ANON_KEY,
@@ -395,7 +395,13 @@
                 );
                 
                 if (!rentalsResponse.ok) throw new Error('Failed to fetch rentals');
-                const rentals = await rentalsResponse.json();
+                const allRentals = await rentalsResponse.json();
+                
+                // Filter to only active rentals client-side
+                const rentals = allRentals.filter(r => r.rental_status === 'Active');
+                
+                // Filter vehicles to exclude Retired client-side
+                const activeVehicles = vehicles.filter(v => v.vehicle_status !== 'Retired');
                 
                 // Create a map of vehicle_id to rental info
                 const rentalMap = {};
@@ -406,7 +412,7 @@
                 // Hide loading
                 loadingState.classList.add('hidden');
                 
-                if (!vehicles || vehicles.length === 0) {
+                if (!activeVehicles || activeVehicles.length === 0) {
                     // Show empty state
                     emptyState.classList.remove('hidden');
                     vehicleCount.textContent = '0 vehicles';
@@ -415,15 +421,15 @@
                 
                 // Count available vehicles
                 let availableCount = 0;
-                vehicles.forEach(v => {
+                activeVehicles.forEach(v => {
                     const rental = rentalMap[v.id];
-                    if (v.vehicle_status === 'Active' && !rental) availableCount++;
+                    if ((v.vehicle_status === 'Active' || v.vehicle_status === 'Available') && !rental) availableCount++;
                 });
                 
-                vehicleCount.textContent = `${vehicles.length} vehicles (${availableCount} available)`;
+                vehicleCount.textContent = `${activeVehicles.length} vehicles (${availableCount} available)`;
                 
                 // Generate vehicle cards
-                vehiclesGrid.innerHTML = vehicles.map((vehicle, index) => {
+                vehiclesGrid.innerHTML = activeVehicles.map((vehicle, index) => {
                     const rental = rentalMap[vehicle.id];
                     const availability = getAvailabilityInfo(vehicle, rental);
                     const animationDelay = `fade-in-up-delay-${(index % 3) + 1}`;
@@ -506,7 +512,7 @@
         
         function getAvailabilityInfo(vehicle, rental) {
             // Check if vehicle is in maintenance
-            if (vehicle.vehicle_status === 'Maintenance') {
+            if (vehicle.vehicle_status === 'Maintenance' || vehicle.vehicle_status === 'In Maintenance') {
                 return {
                     text: 'In Service',
                     badgeClass: 'bg-yellow-100 text-yellow-800',
