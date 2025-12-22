@@ -3246,7 +3246,7 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
             toll_tag_id: data.toll_tag_id ? data.toll_tag_id.trim() : null,
             insurance_monthly: parseFloat(data.insurance_monthly),
             registration_cost: data.registration_cost ? parseFloat(data.registration_cost) : null,
-            status: 'available',
+            vehicle_status: 'Active',
             image_url: photoUrl,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -3715,7 +3715,7 @@ async function loadStartRentalData() {
             (customers || []).map(c => `<option value="${c.id}">${c.full_name || c.first_name + ' ' + (c.last_name || '')} - ${c.phone || ''}</option>`).join('');
         
         // Load available vehicles
-        const { data: vehicles } = await db.from('vehicles').select('*').or('vehicle_status.eq.available,vehicle_status.eq.Active');
+        const { data: vehicles } = await db.from('vehicles').select('*').or('vehicle_status.eq.Active,vehicle_status.eq.active');
         const { data: activeRentals } = await db.from('rentals').select('vehicle_id').eq('rental_status', 'active');
         const rentedVehicleIds = (activeRentals || []).map(r => r.vehicle_id);
         const availableVehicles = (vehicles || []).filter(v => !rentedVehicleIds.includes(v.id));
@@ -4092,10 +4092,10 @@ document.getElementById('form-end-rental').addEventListener('submit', async (e) 
         const { error } = await db.from('rentals').update(updateData).eq('id', data.rental_id);
         if (error) throw error;
         
-        // Update vehicle status back to available and update mileage
+        // Update vehicle status back to Active and update mileage
         if (rental) {
             await db.from('vehicles').update({ 
-                vehicle_status: 'available',
+                vehicle_status: 'Active',
                 current_mileage: parseInt(data.end_mileage)
             }).eq('id', rental.vehicle_id);
         }
