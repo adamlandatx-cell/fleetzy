@@ -3115,7 +3115,7 @@ async function validateVIN(input) {
     
     // Check if VIN already exists in database
     if (vin.length === 17) {
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('vehicles')
             .select('vin')
             .eq('vin', vin)
@@ -3132,7 +3132,7 @@ async function validateVIN(input) {
 
 // Generate next vehicle ID (V-001, V-002, etc.)
 async function generateVehicleId() {
-    const { data, error } = await supabase
+    const { data, error } = await db
         .from('vehicles')
         .select('vehicle_id')
         .order('created_at', { ascending: false })
@@ -3253,7 +3253,7 @@ document.getElementById('form-add-vehicle').addEventListener('submit', async (e)
         };
         
         // Insert into database
-        const { data: insertedVehicle, error: insertError } = await supabase
+        const { data: insertedVehicle, error: insertError } = await db
             .from('vehicles')
             .insert([vehicleData])
             .select()
@@ -3404,7 +3404,7 @@ function removeImage(type) {
 
 // Generate customer ID
 async function generateCustomerId() {
-    const { data, error } = await supabase
+    const { data, error } = await db
         .from('customers')
         .select('customer_id')
         .order('created_at', { ascending: false })
@@ -3605,7 +3605,7 @@ document.getElementById('form-add-customer').addEventListener('submit', async (e
         };
         
         // Insert into database
-        const { data: insertedCustomer, error: insertError } = await supabase
+        const { data: insertedCustomer, error: insertError } = await db
             .from('customers')
             .insert([customerData])
             .select()
