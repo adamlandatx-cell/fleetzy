@@ -1166,30 +1166,33 @@
                 // Use actual image if available, otherwise use placeholder
                 const imageUrl = vehicle.image_url || 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop';
                 
-                // Action buttons based on status
+                // Action buttons based on status - Now with working modal functions!
                 let actionButtons = '';
                 if (status === 'rented') {
                     actionButtons = `
-                        <button onclick="showToast('View Details coming soon!', 'info')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
-                            <i class="fas fa-info-circle mr-2"></i>View Details
+                        <button onclick="openVehicleStats('${vehicle.id}')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
+                            <i class="fas fa-chart-line mr-2"></i>View Stats
                         </button>
-                        <button onclick="openModal('log-expense')" class="w-full bg-orange-600 dark:bg-orange-700 text-white px-3 py-2 rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors text-sm">
-                            <i class="fas fa-dollar-sign mr-2"></i>Log Expense
+                        <button onclick="openVehicleExpenses('${vehicle.id}')" class="w-full bg-orange-600 dark:bg-orange-700 text-white px-3 py-2 rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors text-sm">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i>Expenses
                         </button>
                     `;
                 } else if (status === 'available') {
                     actionButtons = `
-                        <button onclick="showToast('Assign Customer coming soon!', 'info')" class="w-full bg-fleetzy-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                            <i class="fas fa-user-plus mr-2"></i>Assign Customer
+                        <button onclick="openEditVehicle('${vehicle.id}')" class="w-full bg-fleetzy-green text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                            <i class="fas fa-edit mr-2"></i>Edit Vehicle
                         </button>
-                        <button onclick="showToast('Service History coming soon!', 'info')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
+                        <button onclick="openServiceHistory('${vehicle.id}')" class="w-full bg-gray-600 dark:bg-gray-700 text-white px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors text-sm">
                             <i class="fas fa-wrench mr-2"></i>Service History
                         </button>
                     `;
                 } else {
                     actionButtons = `
-                        <button onclick="showToast('Mark Complete coming soon!', 'info')" class="w-full bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm col-span-2">
+                        <button onclick="markMaintenanceComplete('${vehicle.id}')" class="w-full bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm">
                             <i class="fas fa-check mr-2"></i>Mark Complete
+                        </button>
+                        <button onclick="openServiceHistory('${vehicle.id}')" class="w-full bg-gray-600 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm">
+                            <i class="fas fa-history mr-2"></i>Service Log
                         </button>
                     `;
                 }
@@ -2911,6 +2914,541 @@ function copyMarketplace(type) {
     </div>
 </div>
 
+<!-- ============================================ -->
+<!-- MODAL: EDIT VEHICLE -->
+<!-- ============================================ -->
+<div id="modal-edit-vehicle" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+                <i class="fas fa-edit text-fleetzy-green mr-2"></i>Edit Vehicle
+            </h2>
+            <button onclick="closeModal('edit-vehicle')" class="text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <form id="form-edit-vehicle" class="p-6 space-y-6">
+            <!-- Hidden field for vehicle ID -->
+            <input type="hidden" name="id" id="edit-vehicle-id">
+            
+            <!-- Vehicle Header with Image -->
+            <div class="flex items-start space-x-6">
+                <div class="w-48 h-36 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                    <img id="edit-vehicle-image" src="" class="w-full h-full object-cover" alt="Vehicle">
+                </div>
+                <div class="flex-1">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vehicle ID</label>
+                            <input type="text" id="edit-vehicle-display-id" disabled class="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Friendly Name</label>
+                            <input type="text" name="friendly_name" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white" placeholder="e.g., White Camry #1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Basic Info Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    <i class="fas fa-car text-fleetzy-green mr-2"></i>Vehicle Information
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Year</label>
+                        <input type="number" name="year" min="2000" max="2030" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Make</label>
+                        <input type="text" name="make" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Model</label>
+                        <input type="text" name="model" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Color</label>
+                        <input type="text" name="color" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">VIN</label>
+                        <input type="text" name="vin" maxlength="17" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white font-mono uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">License Plate</label>
+                        <input type="text" name="license_plate" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                        <select name="status" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                            <option value="Active">Active</option>
+                            <option value="Maintenance">In Maintenance</option>
+                            <option value="Retired">Retired</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mileage & Service Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    <i class="fas fa-tachometer-alt text-blue-500 mr-2"></i>Mileage & Service
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Mileage</label>
+                        <input type="number" name="current_mileage" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Service Date</label>
+                        <input type="date" name="last_service_date" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Service Mileage</label>
+                        <input type="number" name="last_service_mileage" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition</label>
+                        <select name="condition" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                            <option value="Excellent">Excellent</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Financial Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    <i class="fas fa-dollar-sign text-green-500 mr-2"></i>Financial Information
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monthly Payment ($)</label>
+                        <input type="number" name="monthly_payment" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Insurance/Month ($)</label>
+                        <input type="number" name="insurance_monthly" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GPS Cost/Month ($)</label>
+                        <input type="number" name="gps_cost_monthly" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Amount ($)</label>
+                        <input type="number" name="loan_amount" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- GPS & Tracking Section -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>GPS & Tracking
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GPS Device ID</label>
+                        <input type="text" name="gps_device_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Toll Tag ID</label>
+                        <input type="text" name="toll_tag_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div class="flex items-center pt-6">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" name="gps_active" class="w-5 h-5 text-fleetzy-green rounded focus:ring-fleetzy-green">
+                            <span class="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">GPS Active</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <button type="button" onclick="closeModal('edit-vehicle')" class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+            <button type="submit" form="form-edit-vehicle" id="btn-submit-edit-vehicle" class="px-6 py-2 bg-fleetzy-green text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                <span id="edit-vehicle-submit-text">Save Changes</span>
+                <i id="edit-vehicle-submit-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: SERVICE HISTORY -->
+<!-- ============================================ -->
+<div id="modal-service-history" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+                    <i class="fas fa-wrench text-orange-500 mr-2"></i>Service History
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" id="service-history-vehicle-name">Loading...</p>
+            </div>
+            <button onclick="closeModal('service-history')" class="text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Add Service Button -->
+        <div class="px-6 pt-4">
+            <button onclick="showAddServiceForm()" id="btn-show-add-service" class="px-4 py-2 bg-fleetzy-green text-white rounded-lg hover:bg-green-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Service Record
+            </button>
+        </div>
+        
+        <!-- Add Service Form (Hidden by default) -->
+        <div id="add-service-form-container" class="hidden px-6 py-4">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                <h4 class="font-semibold text-gray-800 dark:text-white mb-4">
+                    <i class="fas fa-plus-circle text-fleetzy-green mr-2"></i>New Service Record
+                </h4>
+                <form id="form-add-service" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <input type="hidden" name="vehicle_id" id="add-service-vehicle-id">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Service Type <span class="text-red-500">*</span></label>
+                        <select name="maintenance_type" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-600 dark:text-white">
+                            <option value="">Select...</option>
+                            <option value="Oil Change">Oil Change</option>
+                            <option value="Tire Rotation">Tire Rotation</option>
+                            <option value="Brake Service">Brake Service</option>
+                            <option value="Transmission">Transmission Service</option>
+                            <option value="State Inspection">State Inspection</option>
+                            <option value="AC Service">AC Service</option>
+                            <option value="Battery">Battery Replacement</option>
+                            <option value="Tires">New Tires</option>
+                            <option value="General Repair">General Repair</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date <span class="text-red-500">*</span></label>
+                        <input type="date" name="actual_date" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-600 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mileage <span class="text-red-500">*</span></label>
+                        <input type="number" name="actual_mileage" required min="0" placeholder="105,600" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-600 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost ($) <span class="text-red-500">*</span></label>
+                        <input type="number" name="cost" required step="0.01" min="0" placeholder="75.00" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-600 dark:text-white">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Service Provider</label>
+                        <input type="text" name="service_provider" placeholder="Triple 7 Roadside" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-600 dark:text-white">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                        <input type="text" name="notes" placeholder="Additional details..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-fleetzy-green dark:bg-gray-600 dark:text-white">
+                    </div>
+                    <div class="col-span-4 flex justify-end space-x-2 pt-2">
+                        <button type="button" onclick="hideAddServiceForm()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">Cancel</button>
+                        <button type="submit" id="btn-submit-service" class="px-4 py-2 bg-fleetzy-green text-white rounded-lg hover:bg-green-700 transition-colors">
+                            <span id="add-service-submit-text">Add Service</span>
+                            <i id="add-service-submit-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Service History Table -->
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Date</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Service Type</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Mileage</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Cost</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Provider</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Notes</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="service-history-tbody" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p>Loading service history...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Summary Stats -->
+            <div id="service-summary" class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-gray-800 dark:text-white" id="service-total-count">0</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Total Services</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-green-600" id="service-total-cost">$0</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Total Spent</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-blue-600" id="service-last-date">-</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Last Service</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+                    <p class="text-2xl font-bold text-orange-600" id="service-avg-cost">$0</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Avg Cost/Service</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: VEHICLE EXPENSES -->
+<!-- ============================================ -->
+<div id="modal-vehicle-expenses" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+                    <i class="fas fa-file-invoice-dollar text-green-600 mr-2"></i>Vehicle Expenses
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" id="vehicle-expenses-name">Loading...</p>
+            </div>
+            <button onclick="closeModal('vehicle-expenses')" class="text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Date Filter -->
+        <div class="px-6 pt-4 flex flex-wrap items-center gap-4">
+            <div class="flex items-center space-x-2">
+                <label class="text-sm text-gray-600 dark:text-gray-400">From:</label>
+                <input type="date" id="expense-filter-from" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm">
+            </div>
+            <div class="flex items-center space-x-2">
+                <label class="text-sm text-gray-600 dark:text-gray-400">To:</label>
+                <input type="date" id="expense-filter-to" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm">
+            </div>
+            <button onclick="filterVehicleExpenses()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm">
+                <i class="fas fa-filter mr-1"></i>Filter
+            </button>
+            <button onclick="clearExpenseFilter()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm">
+                Clear
+            </button>
+            <div class="flex-1"></div>
+            <button onclick="openLogExpenseForVehicle()" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Expense
+            </button>
+        </div>
+        
+        <!-- Expense Summary Cards -->
+        <div class="px-6 py-4">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+                    <p class="text-2xl font-bold" id="expense-total">$0</p>
+                    <p class="text-sm opacity-80">Total Expenses</p>
+                </div>
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                    <p class="text-2xl font-bold" id="expense-maintenance">$0</p>
+                    <p class="text-sm opacity-80">Maintenance</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                    <p class="text-2xl font-bold" id="expense-fuel">$0</p>
+                    <p class="text-sm opacity-80">Fuel</p>
+                </div>
+                <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+                    <p class="text-2xl font-bold" id="expense-insurance">$0</p>
+                    <p class="text-sm opacity-80">Insurance</p>
+                </div>
+                <div class="bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg p-4 text-white">
+                    <p class="text-2xl font-bold" id="expense-other">$0</p>
+                    <p class="text-sm opacity-80">Other</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Expenses Table -->
+        <div class="p-6 pt-0">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-100 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Date</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Type</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Amount</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Vendor</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Description</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Receipt</th>
+                            <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vehicle-expenses-tbody" class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p>Loading expenses...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- MODAL: VEHICLE STATS -->
+<!-- ============================================ -->
+<div id="modal-vehicle-stats" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">
+                    <i class="fas fa-chart-line text-purple-500 mr-2"></i>Vehicle Statistics
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" id="vehicle-stats-name">Loading...</p>
+            </div>
+            <button onclick="closeModal('vehicle-stats')" class="text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 space-y-6">
+            <!-- Vehicle Overview Card -->
+            <div class="flex items-start space-x-6 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-6">
+                <div class="w-56 h-40 bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden flex-shrink-0">
+                    <img id="stats-vehicle-image" src="" class="w-full h-full object-cover" alt="Vehicle">
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white" id="stats-vehicle-title">Loading...</h3>
+                    <p class="text-gray-500 dark:text-gray-400 mb-4" id="stats-vehicle-subtitle">Loading...</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Status</p>
+                            <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold" id="stats-vehicle-status">-</span>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Current Mileage</p>
+                            <p class="text-lg font-bold text-gray-800 dark:text-white" id="stats-current-mileage">-</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Condition</p>
+                            <p class="text-lg font-bold text-gray-800 dark:text-white" id="stats-condition">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Key Metrics Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-5 text-white">
+                    <i class="fas fa-dollar-sign text-3xl opacity-50 mb-2"></i>
+                    <p class="text-3xl font-bold" id="stats-total-revenue">$0</p>
+                    <p class="text-sm opacity-80">Total Revenue</p>
+                </div>
+                <div class="bg-gradient-to-br from-red-500 to-rose-600 rounded-xl p-5 text-white">
+                    <i class="fas fa-receipt text-3xl opacity-50 mb-2"></i>
+                    <p class="text-3xl font-bold" id="stats-total-expenses">$0</p>
+                    <p class="text-sm opacity-80">Total Expenses</p>
+                </div>
+                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-5 text-white">
+                    <i class="fas fa-chart-pie text-3xl opacity-50 mb-2"></i>
+                    <p class="text-3xl font-bold" id="stats-net-profit">$0</p>
+                    <p class="text-sm opacity-80">Net Profit</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl p-5 text-white">
+                    <i class="fas fa-percentage text-3xl opacity-50 mb-2"></i>
+                    <p class="text-3xl font-bold" id="stats-roi">0%</p>
+                    <p class="text-sm opacity-80">ROI</p>
+                </div>
+            </div>
+            
+            <!-- Rental History & Performance -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Rental Stats -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                    <h4 class="font-semibold text-gray-800 dark:text-white mb-4">
+                        <i class="fas fa-car-side text-fleetzy-green mr-2"></i>Rental Performance
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Total Rentals</span>
+                            <span class="font-bold text-gray-800 dark:text-white" id="stats-total-rentals">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Days Rented (All Time)</span>
+                            <span class="font-bold text-gray-800 dark:text-white" id="stats-days-rented">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Utilization Rate</span>
+                            <span class="font-bold text-fleetzy-green" id="stats-utilization">0%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Avg Rental Duration</span>
+                            <span class="font-bold text-gray-800 dark:text-white" id="stats-avg-duration">0 days</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Miles Driven (Total)</span>
+                            <span class="font-bold text-gray-800 dark:text-white" id="stats-miles-driven">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cost Breakdown -->
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                    <h4 class="font-semibold text-gray-800 dark:text-white mb-4">
+                        <i class="fas fa-coins text-orange-500 mr-2"></i>Cost Breakdown
+                    </h4>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Purchase Price</span>
+                            <span class="font-bold text-gray-800 dark:text-white" id="stats-purchase-price">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Loan Payments (Total)</span>
+                            <span class="font-bold text-gray-800 dark:text-white" id="stats-loan-total">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Insurance (Total)</span>
+                            <span class="font-bold text-gray-800 dark:text-white" id="stats-insurance-total">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Maintenance (Total)</span>
+                            <span class="font-bold text-gray-800 dark:text-white" id="stats-maintenance-total">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Monthly Operating Cost</span>
+                            <span class="font-bold text-orange-600" id="stats-monthly-cost">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity Timeline -->
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                <h4 class="font-semibold text-gray-800 dark:text-white mb-4">
+                    <i class="fas fa-history text-blue-500 mr-2"></i>Recent Activity
+                </h4>
+                <div id="stats-recent-activity" class="space-y-3">
+                    <p class="text-gray-500 dark:text-gray-400 text-center py-4">Loading activity...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <button onclick="exportVehicleStats()" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <i class="fas fa-download mr-2"></i>Export Report
+            </button>
+            <button onclick="closeModal('vehicle-stats')" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">Close</button>
+        </div>
+    </div>
+</div>
+
 <style>
 /* Photo upload boxes for inspection */
 .photo-upload-box {
@@ -4249,7 +4787,7 @@ async function rejectCustomer(customerId) {
 }
 
 // Close modals on backdrop click
-['start-rental', 'record-payment', 'end-rental', 'log-expense'].forEach(modalName => {
+['start-rental', 'record-payment', 'end-rental', 'log-expense', 'edit-vehicle', 'service-history', 'vehicle-expenses', 'vehicle-stats'].forEach(modalName => {
     const modal = document.getElementById(`modal-${modalName}`);
     if (modal) {
         modal.addEventListener('click', (e) => {
@@ -4261,7 +4799,7 @@ async function rejectCustomer(customerId) {
 // Close modals on Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        ['add-vehicle', 'add-customer', 'start-rental', 'record-payment', 'end-rental', 'log-expense'].forEach(modalName => {
+        ['add-vehicle', 'add-customer', 'start-rental', 'record-payment', 'end-rental', 'log-expense', 'edit-vehicle', 'service-history', 'vehicle-expenses', 'vehicle-stats'].forEach(modalName => {
             const modal = document.getElementById(`modal-${modalName}`);
             if (modal && !modal.classList.contains('hidden')) {
                 closeModal(modalName);
@@ -4269,6 +4807,733 @@ document.addEventListener('keydown', (e) => {
         });
     }
 });
+
+// ===========================
+// EDIT VEHICLE MODAL
+// ===========================
+let currentEditVehicleId = null;
+
+async function openEditVehicle(vehicleId) {
+    currentEditVehicleId = vehicleId;
+    
+    try {
+        // Fetch vehicle data
+        const { data: vehicle, error } = await db
+            .from('vehicles')
+            .select('*')
+            .eq('id', vehicleId)
+            .single();
+        
+        if (error) throw error;
+        
+        // Populate form fields
+        document.getElementById('edit-vehicle-id').value = vehicle.id;
+        document.getElementById('edit-vehicle-display-id').value = vehicle.vehicle_id;
+        document.getElementById('edit-vehicle-image').src = vehicle.image_url || 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop';
+        
+        // Basic info
+        const form = document.getElementById('form-edit-vehicle');
+        form.querySelector('[name="friendly_name"]').value = vehicle.friendly_name || '';
+        form.querySelector('[name="year"]').value = vehicle.year || '';
+        form.querySelector('[name="make"]').value = vehicle.make || '';
+        form.querySelector('[name="model"]').value = vehicle.model || '';
+        form.querySelector('[name="color"]').value = vehicle.color || '';
+        form.querySelector('[name="vin"]').value = vehicle.vin || '';
+        form.querySelector('[name="license_plate"]').value = vehicle.license_plate || '';
+        form.querySelector('[name="status"]').value = vehicle.status || 'Active';
+        
+        // Mileage & Service
+        form.querySelector('[name="current_mileage"]').value = vehicle.current_mileage || '';
+        form.querySelector('[name="last_service_date"]').value = vehicle.last_service_date || '';
+        form.querySelector('[name="last_service_mileage"]').value = vehicle.last_service_mileage || '';
+        form.querySelector('[name="condition"]').value = vehicle.condition || 'Good';
+        
+        // Financial
+        form.querySelector('[name="monthly_payment"]').value = vehicle.monthly_payment || '';
+        form.querySelector('[name="insurance_monthly"]').value = vehicle.insurance_monthly || '';
+        form.querySelector('[name="gps_cost_monthly"]').value = vehicle.gps_cost_monthly || '';
+        form.querySelector('[name="loan_amount"]').value = vehicle.loan_amount || '';
+        
+        // GPS & Tracking
+        form.querySelector('[name="gps_device_id"]').value = vehicle.gps_device_id || '';
+        form.querySelector('[name="toll_tag_id"]').value = vehicle.toll_tag_id || '';
+        form.querySelector('[name="gps_active"]').checked = vehicle.gps_active !== false;
+        
+        openModal('edit-vehicle');
+    } catch (error) {
+        console.error('Error loading vehicle:', error);
+        showToast('Error loading vehicle data', 'error');
+    }
+}
+
+// Form submission for Edit Vehicle
+document.getElementById('form-edit-vehicle').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('btn-submit-edit-vehicle');
+    const submitText = document.getElementById('edit-vehicle-submit-text');
+    const submitSpinner = document.getElementById('edit-vehicle-submit-spinner');
+    
+    submitBtn.disabled = true;
+    submitText.textContent = 'Saving...';
+    submitSpinner.classList.remove('hidden');
+    
+    try {
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        const updateData = {
+            friendly_name: data.friendly_name || null,
+            year: parseInt(data.year) || null,
+            make: data.make || null,
+            model: data.model || null,
+            color: data.color || null,
+            vin: data.vin ? data.vin.toUpperCase() : null,
+            license_plate: data.license_plate ? data.license_plate.toUpperCase() : null,
+            status: data.status || 'Active',
+            current_mileage: parseInt(data.current_mileage) || null,
+            last_service_date: data.last_service_date || null,
+            last_service_mileage: parseInt(data.last_service_mileage) || null,
+            condition: data.condition || null,
+            monthly_payment: parseFloat(data.monthly_payment) || null,
+            insurance_monthly: parseFloat(data.insurance_monthly) || null,
+            gps_cost_monthly: parseFloat(data.gps_cost_monthly) || null,
+            loan_amount: parseFloat(data.loan_amount) || null,
+            gps_device_id: data.gps_device_id || null,
+            toll_tag_id: data.toll_tag_id || null,
+            gps_active: data.gps_active === 'on',
+            updated_at: new Date().toISOString()
+        };
+        
+        const { error } = await db
+            .from('vehicles')
+            .update(updateData)
+            .eq('id', data.id);
+        
+        if (error) throw error;
+        
+        showToast('Vehicle updated successfully! ✓', 'success');
+        closeModal('edit-vehicle');
+        
+        // Refresh dashboard
+        if (typeof loadDashboardData === 'function') {
+            await loadDashboardData();
+        }
+    } catch (error) {
+        console.error('Error updating vehicle:', error);
+        showToast(error.message || 'Error updating vehicle', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = 'Save Changes';
+        submitSpinner.classList.add('hidden');
+    }
+});
+
+// ===========================
+// SERVICE HISTORY MODAL
+// ===========================
+let currentServiceVehicleId = null;
+let currentServiceVehicleData = null;
+
+async function openServiceHistory(vehicleId) {
+    currentServiceVehicleId = vehicleId;
+    
+    try {
+        // Fetch vehicle info
+        const { data: vehicle } = await db
+            .from('vehicles')
+            .select('*')
+            .eq('id', vehicleId)
+            .single();
+        
+        currentServiceVehicleData = vehicle;
+        document.getElementById('service-history-vehicle-name').textContent = 
+            `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.vehicle_id})`;
+        document.getElementById('add-service-vehicle-id').value = vehicleId;
+        
+        // Set default date for add service form
+        document.querySelector('#form-add-service input[name="actual_date"]').value = new Date().toISOString().split('T')[0];
+        document.querySelector('#form-add-service input[name="actual_mileage"]').value = vehicle.current_mileage || '';
+        
+        openModal('service-history');
+        await loadServiceHistory(vehicleId);
+    } catch (error) {
+        console.error('Error opening service history:', error);
+        showToast('Error loading vehicle', 'error');
+    }
+}
+
+async function loadServiceHistory(vehicleId) {
+    const tbody = document.getElementById('service-history-tbody');
+    
+    try {
+        const { data: services, error } = await db
+            .from('maintenance_schedule')
+            .select('*')
+            .eq('vehicle_id', vehicleId)
+            .order('actual_date', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (!services || services.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-tools text-4xl mb-3 text-gray-300"></i>
+                        <p>No service records yet.</p>
+                        <p class="text-sm">Click "Add Service Record" to log maintenance.</p>
+                    </td>
+                </tr>
+            `;
+            updateServiceSummary([]);
+            return;
+        }
+        
+        tbody.innerHTML = services.map(service => `
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">${formatDate(service.actual_date)}</td>
+                <td class="px-4 py-3 text-sm">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${getServiceTypeBadge(service.maintenance_type)}">
+                        ${service.maintenance_type}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">${(service.actual_mileage || 0).toLocaleString()} mi</td>
+                <td class="px-4 py-3 text-sm font-semibold text-green-600">$${(service.cost || 0).toFixed(2)}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${service.service_provider || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${service.notes || '-'}</td>
+                <td class="px-4 py-3 text-sm">
+                    <button onclick="deleteServiceRecord('${service.id}')" class="text-red-600 hover:text-red-800" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        updateServiceSummary(services);
+    } catch (error) {
+        console.error('Error loading service history:', error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-4 py-8 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p>Error loading service history</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateServiceSummary(services) {
+    const totalCount = services.length;
+    const totalCost = services.reduce((sum, s) => sum + (s.cost || 0), 0);
+    const lastDate = services.length > 0 ? formatDate(services[0].actual_date) : '-';
+    const avgCost = totalCount > 0 ? (totalCost / totalCount) : 0;
+    
+    document.getElementById('service-total-count').textContent = totalCount;
+    document.getElementById('service-total-cost').textContent = '$' + totalCost.toFixed(2);
+    document.getElementById('service-last-date').textContent = lastDate;
+    document.getElementById('service-avg-cost').textContent = '$' + avgCost.toFixed(2);
+}
+
+function getServiceTypeBadge(type) {
+    const badges = {
+        'Oil Change': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        'Tire Rotation': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+        'Brake Service': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+        'State Inspection': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+        'General Repair': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+    };
+    return badges[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+}
+
+function showAddServiceForm() {
+    document.getElementById('add-service-form-container').classList.remove('hidden');
+    document.getElementById('btn-show-add-service').classList.add('hidden');
+}
+
+function hideAddServiceForm() {
+    document.getElementById('add-service-form-container').classList.add('hidden');
+    document.getElementById('btn-show-add-service').classList.remove('hidden');
+    document.getElementById('form-add-service').reset();
+    // Reset default values
+    document.querySelector('#form-add-service input[name="actual_date"]').value = new Date().toISOString().split('T')[0];
+    if (currentServiceVehicleData) {
+        document.querySelector('#form-add-service input[name="actual_mileage"]').value = currentServiceVehicleData.current_mileage || '';
+    }
+}
+
+// Add Service Record form submission
+document.getElementById('form-add-service').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('btn-submit-service');
+    const submitText = document.getElementById('add-service-submit-text');
+    const submitSpinner = document.getElementById('add-service-submit-spinner');
+    
+    submitBtn.disabled = true;
+    submitText.textContent = 'Adding...';
+    submitSpinner.classList.remove('hidden');
+    
+    try {
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        const serviceRecord = {
+            vehicle_id: data.vehicle_id,
+            maintenance_type: data.maintenance_type,
+            actual_date: data.actual_date,
+            actual_mileage: parseInt(data.actual_mileage),
+            cost: parseFloat(data.cost),
+            service_provider: data.service_provider || null,
+            notes: data.notes || null,
+            status: 'Completed',
+            created_at: new Date().toISOString()
+        };
+        
+        const { error } = await db
+            .from('maintenance_schedule')
+            .insert([serviceRecord]);
+        
+        if (error) throw error;
+        
+        // Update vehicle's last service info
+        await db
+            .from('vehicles')
+            .update({
+                last_service_date: data.actual_date,
+                last_service_mileage: parseInt(data.actual_mileage),
+                current_mileage: Math.max(currentServiceVehicleData?.current_mileage || 0, parseInt(data.actual_mileage)),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', data.vehicle_id);
+        
+        showToast('Service record added! ✓', 'success');
+        hideAddServiceForm();
+        await loadServiceHistory(currentServiceVehicleId);
+        
+        // Refresh dashboard
+        if (typeof loadDashboardData === 'function') {
+            await loadDashboardData();
+        }
+    } catch (error) {
+        console.error('Error adding service record:', error);
+        showToast(error.message || 'Error adding service record', 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = 'Add Service';
+        submitSpinner.classList.add('hidden');
+    }
+});
+
+async function deleteServiceRecord(serviceId) {
+    if (!confirm('Delete this service record?')) return;
+    
+    try {
+        const { error } = await db
+            .from('maintenance_schedule')
+            .delete()
+            .eq('id', serviceId);
+        
+        if (error) throw error;
+        
+        showToast('Service record deleted', 'info');
+        await loadServiceHistory(currentServiceVehicleId);
+    } catch (error) {
+        console.error('Error deleting service record:', error);
+        showToast('Error deleting record', 'error');
+    }
+}
+
+// ===========================
+// VEHICLE EXPENSES MODAL
+// ===========================
+let currentExpenseVehicleId = null;
+let currentExpenseVehicleData = null;
+let allVehicleExpenses = [];
+
+async function openVehicleExpenses(vehicleId) {
+    currentExpenseVehicleId = vehicleId;
+    
+    try {
+        // Fetch vehicle info
+        const { data: vehicle } = await db
+            .from('vehicles')
+            .select('*')
+            .eq('id', vehicleId)
+            .single();
+        
+        currentExpenseVehicleData = vehicle;
+        document.getElementById('vehicle-expenses-name').textContent = 
+            `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.vehicle_id})`;
+        
+        // Set default date range (last 3 months)
+        const today = new Date();
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+        
+        document.getElementById('expense-filter-from').value = threeMonthsAgo.toISOString().split('T')[0];
+        document.getElementById('expense-filter-to').value = today.toISOString().split('T')[0];
+        
+        openModal('vehicle-expenses');
+        await loadVehicleExpenses(vehicleId);
+    } catch (error) {
+        console.error('Error opening vehicle expenses:', error);
+        showToast('Error loading vehicle', 'error');
+    }
+}
+
+async function loadVehicleExpenses(vehicleId, fromDate = null, toDate = null) {
+    const tbody = document.getElementById('vehicle-expenses-tbody');
+    
+    try {
+        let query = db
+            .from('expenses')
+            .select('*')
+            .eq('vehicle_id', vehicleId)
+            .order('expense_date', { ascending: false });
+        
+        if (fromDate) query = query.gte('expense_date', fromDate);
+        if (toDate) query = query.lte('expense_date', toDate);
+        
+        const { data: expenses, error } = await query;
+        
+        if (error) throw error;
+        
+        allVehicleExpenses = expenses || [];
+        
+        if (!expenses || expenses.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-file-invoice text-4xl mb-3 text-gray-300"></i>
+                        <p>No expenses recorded.</p>
+                        <p class="text-sm">Click "Add Expense" to log an expense.</p>
+                    </td>
+                </tr>
+            `;
+            updateExpenseSummary([]);
+            return;
+        }
+        
+        tbody.innerHTML = expenses.map(exp => `
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td class="px-4 py-3 text-sm text-gray-800 dark:text-gray-200">${formatDate(exp.expense_date)}</td>
+                <td class="px-4 py-3 text-sm">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${getExpenseTypeBadge(exp.expense_type)}">
+                        ${formatExpenseType(exp.expense_type)}
+                    </span>
+                </td>
+                <td class="px-4 py-3 text-sm font-semibold text-red-600">$${(exp.amount || 0).toFixed(2)}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${exp.vendor || '-'}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">${exp.description || '-'}</td>
+                <td class="px-4 py-3 text-sm">
+                    ${exp.receipt_url ? 
+                        `<a href="${exp.receipt_url}" target="_blank" class="text-blue-600 hover:text-blue-800"><i class="fas fa-file-image"></i></a>` : 
+                        '<span class="text-gray-400">-</span>'}
+                </td>
+                <td class="px-4 py-3 text-sm">
+                    <button onclick="deleteExpenseRecord('${exp.id}')" class="text-red-600 hover:text-red-800" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        updateExpenseSummary(expenses);
+    } catch (error) {
+        console.error('Error loading expenses:', error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-4 py-8 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                    <p>Error loading expenses</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateExpenseSummary(expenses) {
+    const total = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const maintenance = expenses.filter(e => ['maintenance', 'oil_change', 'tires'].includes(e.expense_type)).reduce((sum, e) => sum + (e.amount || 0), 0);
+    const fuel = expenses.filter(e => e.expense_type === 'fuel').reduce((sum, e) => sum + (e.amount || 0), 0);
+    const insurance = expenses.filter(e => e.expense_type === 'insurance').reduce((sum, e) => sum + (e.amount || 0), 0);
+    const other = total - maintenance - fuel - insurance;
+    
+    document.getElementById('expense-total').textContent = '$' + total.toFixed(2);
+    document.getElementById('expense-maintenance').textContent = '$' + maintenance.toFixed(2);
+    document.getElementById('expense-fuel').textContent = '$' + fuel.toFixed(2);
+    document.getElementById('expense-insurance').textContent = '$' + insurance.toFixed(2);
+    document.getElementById('expense-other').textContent = '$' + other.toFixed(2);
+}
+
+function getExpenseTypeBadge(type) {
+    const badges = {
+        'maintenance': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        'oil_change': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        'tires': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+        'insurance': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        'fuel': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+        'registration': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+        'towing': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+    };
+    return badges[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+}
+
+function formatExpenseType(type) {
+    const types = {
+        'maintenance': 'Maintenance',
+        'oil_change': 'Oil Change',
+        'tires': 'Tires',
+        'insurance': 'Insurance',
+        'registration': 'Registration',
+        'car_wash': 'Car Wash',
+        'fuel': 'Fuel',
+        'towing': 'Towing',
+        'other': 'Other'
+    };
+    return types[type] || type;
+}
+
+function filterVehicleExpenses() {
+    const from = document.getElementById('expense-filter-from').value;
+    const to = document.getElementById('expense-filter-to').value;
+    loadVehicleExpenses(currentExpenseVehicleId, from, to);
+}
+
+function clearExpenseFilter() {
+    document.getElementById('expense-filter-from').value = '';
+    document.getElementById('expense-filter-to').value = '';
+    loadVehicleExpenses(currentExpenseVehicleId);
+}
+
+function openLogExpenseForVehicle() {
+    // Pre-select the vehicle in the Log Expense modal
+    closeModal('vehicle-expenses');
+    openModal('log-expense');
+    
+    // Wait for the modal to load, then select the vehicle
+    setTimeout(async () => {
+        const select = document.querySelector('#form-log-expense select[name="vehicle_id"]');
+        if (select && currentExpenseVehicleId) {
+            select.value = currentExpenseVehicleId;
+        }
+    }, 100);
+}
+
+async function deleteExpenseRecord(expenseId) {
+    if (!confirm('Delete this expense record?')) return;
+    
+    try {
+        const { error } = await db
+            .from('expenses')
+            .delete()
+            .eq('id', expenseId);
+        
+        if (error) throw error;
+        
+        showToast('Expense deleted', 'info');
+        await loadVehicleExpenses(currentExpenseVehicleId);
+    } catch (error) {
+        console.error('Error deleting expense:', error);
+        showToast('Error deleting expense', 'error');
+    }
+}
+
+// ===========================
+// VEHICLE STATS MODAL
+// ===========================
+let currentStatsVehicleId = null;
+
+async function openVehicleStats(vehicleId) {
+    currentStatsVehicleId = vehicleId;
+    
+    try {
+        // Fetch all data
+        const [vehicleResult, rentalsResult, expensesResult, paymentsResult, servicesResult] = await Promise.all([
+            db.from('vehicles').select('*').eq('id', vehicleId).single(),
+            db.from('rentals').select('*').eq('vehicle_id', vehicleId),
+            db.from('expenses').select('*').eq('vehicle_id', vehicleId),
+            db.from('payments').select('*, rentals!inner(vehicle_id)').eq('rentals.vehicle_id', vehicleId),
+            db.from('maintenance_schedule').select('*').eq('vehicle_id', vehicleId)
+        ]);
+        
+        const vehicle = vehicleResult.data;
+        const rentals = rentalsResult.data || [];
+        const expenses = expensesResult.data || [];
+        const payments = paymentsResult.data || [];
+        const services = servicesResult.data || [];
+        
+        // Populate vehicle header
+        document.getElementById('vehicle-stats-name').textContent = `${vehicle.year} ${vehicle.make} ${vehicle.model} (${vehicle.vehicle_id})`;
+        document.getElementById('stats-vehicle-image').src = vehicle.image_url || 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=250&fit=crop';
+        document.getElementById('stats-vehicle-title').textContent = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+        document.getElementById('stats-vehicle-subtitle').textContent = `${vehicle.vehicle_id} • ${vehicle.color || 'N/A'} • ${vehicle.license_plate || 'No Plate'}`;
+        
+        // Status badge
+        const statusEl = document.getElementById('stats-vehicle-status');
+        const statusColors = {
+            'Active': 'bg-green-500 text-white',
+            'Maintenance': 'bg-orange-500 text-white',
+            'Retired': 'bg-gray-500 text-white'
+        };
+        statusEl.className = `inline-block px-3 py-1 rounded-full text-sm font-semibold ${statusColors[vehicle.status] || 'bg-gray-500 text-white'}`;
+        statusEl.textContent = vehicle.status || 'Unknown';
+        
+        document.getElementById('stats-current-mileage').textContent = (vehicle.current_mileage || 0).toLocaleString() + ' mi';
+        document.getElementById('stats-condition').textContent = vehicle.condition || '-';
+        
+        // Calculate key metrics
+        const totalRevenue = payments.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+        const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+        const maintenanceCost = services.reduce((sum, s) => sum + (s.cost || 0), 0);
+        const netProfit = totalRevenue - totalExpenses - maintenanceCost;
+        const purchasePrice = vehicle.purchase_price || 0;
+        const roi = purchasePrice > 0 ? ((netProfit / purchasePrice) * 100) : 0;
+        
+        document.getElementById('stats-total-revenue').textContent = '$' + totalRevenue.toLocaleString();
+        document.getElementById('stats-total-expenses').textContent = '$' + (totalExpenses + maintenanceCost).toLocaleString();
+        document.getElementById('stats-net-profit').textContent = '$' + netProfit.toLocaleString();
+        document.getElementById('stats-roi').textContent = roi.toFixed(1) + '%';
+        
+        // Rental stats
+        const totalRentals = rentals.length;
+        const completedRentals = rentals.filter(r => r.rental_status === 'completed');
+        let totalDays = 0;
+        completedRentals.forEach(r => {
+            if (r.start_date && r.end_date) {
+                const start = new Date(r.start_date);
+                const end = new Date(r.end_date);
+                totalDays += Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            }
+        });
+        
+        const purchaseDate = vehicle.purchase_date ? new Date(vehicle.purchase_date) : new Date(vehicle.created_at);
+        const daysSincePurchase = Math.ceil((new Date() - purchaseDate) / (1000 * 60 * 60 * 24));
+        const utilization = daysSincePurchase > 0 ? ((totalDays / daysSincePurchase) * 100) : 0;
+        const avgDuration = totalRentals > 0 ? Math.round(totalDays / totalRentals) : 0;
+        
+        // Miles driven calculation
+        const startMileage = vehicle.last_service_mileage || vehicle.current_mileage || 0;
+        const milesDriven = (vehicle.current_mileage || 0) - (vehicle.purchase_mileage || startMileage);
+        
+        document.getElementById('stats-total-rentals').textContent = totalRentals;
+        document.getElementById('stats-days-rented').textContent = totalDays + ' days';
+        document.getElementById('stats-utilization').textContent = utilization.toFixed(1) + '%';
+        document.getElementById('stats-avg-duration').textContent = avgDuration + ' days';
+        document.getElementById('stats-miles-driven').textContent = Math.max(0, milesDriven).toLocaleString() + ' mi';
+        
+        // Cost breakdown
+        const monthsSincePurchase = Math.max(1, daysSincePurchase / 30);
+        const loanTotal = (vehicle.monthly_payment || 0) * monthsSincePurchase;
+        const insuranceTotal = (vehicle.insurance_monthly || 0) * monthsSincePurchase;
+        const monthlyOperatingCost = (vehicle.monthly_payment || 0) + (vehicle.insurance_monthly || 0) + (vehicle.gps_cost_monthly || 0);
+        
+        document.getElementById('stats-purchase-price').textContent = '$' + (vehicle.purchase_price || 0).toLocaleString();
+        document.getElementById('stats-loan-total').textContent = '$' + loanTotal.toFixed(0);
+        document.getElementById('stats-insurance-total').textContent = '$' + insuranceTotal.toFixed(0);
+        document.getElementById('stats-maintenance-total').textContent = '$' + maintenanceCost.toFixed(0);
+        document.getElementById('stats-monthly-cost').textContent = '$' + monthlyOperatingCost.toFixed(0);
+        
+        // Recent activity timeline
+        const activities = [];
+        
+        // Add recent rentals
+        rentals.slice(0, 3).forEach(r => {
+            activities.push({
+                date: r.start_date,
+                icon: 'fa-car',
+                color: 'bg-green-500',
+                text: `Rental started - ${r.rental_status}`
+            });
+        });
+        
+        // Add recent expenses
+        expenses.slice(0, 3).forEach(e => {
+            activities.push({
+                date: e.expense_date,
+                icon: 'fa-dollar-sign',
+                color: 'bg-red-500',
+                text: `${formatExpenseType(e.expense_type)} - $${(e.amount || 0).toFixed(2)}`
+            });
+        });
+        
+        // Add recent services
+        services.filter(s => s.actual_date).slice(0, 3).forEach(s => {
+            activities.push({
+                date: s.actual_date,
+                icon: 'fa-wrench',
+                color: 'bg-orange-500',
+                text: `${s.maintenance_type} - $${(s.cost || 0).toFixed(2)}`
+            });
+        });
+        
+        // Sort by date and take top 5
+        activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const recentActivities = activities.slice(0, 5);
+        
+        const activityContainer = document.getElementById('stats-recent-activity');
+        if (recentActivities.length === 0) {
+            activityContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center py-4">No recent activity</p>';
+        } else {
+            activityContainer.innerHTML = recentActivities.map(a => `
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 w-8 h-8 ${a.color} rounded-full flex items-center justify-center">
+                        <i class="fas ${a.icon} text-white text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-800 dark:text-white">${a.text}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">${formatDate(a.date)}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        openModal('vehicle-stats');
+    } catch (error) {
+        console.error('Error loading vehicle stats:', error);
+        showToast('Error loading vehicle statistics', 'error');
+    }
+}
+
+function exportVehicleStats() {
+    showToast('Export feature coming soon!', 'info');
+}
+
+// Helper function for date formatting
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// Mark vehicle maintenance as complete
+async function markMaintenanceComplete(vehicleId) {
+    if (!confirm('Mark this vehicle as maintenance complete and return to Active status?')) return;
+    
+    try {
+        const { error } = await db
+            .from('vehicles')
+            .update({ 
+                status: 'Active',
+                last_service_date: new Date().toISOString().split('T')[0],
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', vehicleId);
+        
+        if (error) throw error;
+        
+        showToast('Vehicle returned to Active status! ✓', 'success');
+        
+        // Refresh dashboard
+        if (typeof loadDashboardData === 'function') {
+            await loadDashboardData();
+        }
+    } catch (error) {
+        console.error('Error updating vehicle status:', error);
+        showToast('Error updating vehicle status', 'error');
+    }
+}
 
 </script>
 
