@@ -115,21 +115,32 @@
         // Create and insert switcher
         const switcher = createLanguageSwitcher();
         
+        // Make sure we're not inside a link element
+        let insertPoint = container;
+        while (insertPoint && insertPoint.tagName === 'A') {
+            insertPoint = insertPoint.parentElement;
+        }
+        
         // If container has justify-between, append to end
         // Otherwise, create a wrapper with proper flex layout
-        if (container.classList.contains('justify-between')) {
-            const rightSide = container.querySelector(':last-child');
-            if (rightSide) {
+        if (insertPoint.classList && insertPoint.classList.contains('justify-between')) {
+            // Find the last child that isn't a link
+            let lastChild = insertPoint.lastElementChild;
+            while (lastChild && lastChild.tagName === 'A') {
+                lastChild = lastChild.previousElementSibling;
+            }
+            
+            if (lastChild && lastChild !== insertPoint.firstElementChild) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'flex items-center gap-4';
-                rightSide.parentNode.insertBefore(wrapper, rightSide);
-                wrapper.appendChild(rightSide);
+                lastChild.parentNode.insertBefore(wrapper, lastChild);
+                wrapper.appendChild(lastChild);
                 wrapper.appendChild(switcher);
             } else {
-                container.appendChild(switcher);
+                insertPoint.appendChild(switcher);
             }
         } else {
-            container.appendChild(switcher);
+            insertPoint.appendChild(switcher);
         }
         
         // Add event listeners
@@ -139,20 +150,25 @@
         
         // Toggle menu
         toggleButton.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             menu.classList.toggle('hidden');
         });
         
         // Close menu when clicking outside
         document.addEventListener('click', (e) => {
-            if (!menu.classList.contains('hidden') && !menu.contains(e.target)) {
+            if (!menu.classList.contains('hidden') && !menu.contains(e.target) && !toggleButton.contains(e.target)) {
                 menu.classList.add('hidden');
             }
         });
         
         // Language selection
         options.forEach(option => {
-            option.addEventListener('click', () => {
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const lang = option.getAttribute('data-lang');
                 
                 // Switch language
