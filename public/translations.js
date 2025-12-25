@@ -3,6 +3,73 @@
 
 const translations = {
     en: {
+        // Landing Page (index.html)
+        index: {
+            nav: {
+                howItWorks: "How It Works",
+                pricing: "Pricing",
+                vehicles: "Vehicles",
+                faq: "FAQ"
+            },
+            hero: {
+                title: "Drive Your Dreams,",
+                titleHighlight: "Rent Smart",
+                subtitle: "Reliable weekly car rentals for gig economy drivers. No credit check, fast approval, affordable rates.",
+                badges: {
+                    noCredit: "No Credit Check",
+                    fastApproval: "Fast Approval",
+                    rideshareApproved: "Rideshare Approved"
+                }
+            },
+            stats: {
+                vehiclesAvailable: "Vehicles Available",
+                approvalTime: "Approval Time",
+                rideshareApproved: "Rideshare Approved",
+                weeklyRate: "Weekly Rate"
+            },
+            pricing: {
+                title: "Simple, Transparent Pricing",
+                subtitle: "Choose the plan that works for you",
+                individual: {
+                    title: "Personal Rental",
+                    perWeek: "/week",
+                    features: {
+                        rideshareApproved: "Rideshare Approved",
+                        deposit: "$500 Refundable Deposit",
+                        paymentMethods: "Flexible Payment Methods",
+                        roadside: "24/7 Roadside Assistance"
+                    }
+                },
+                corporate: {
+                    title: "Corporate Rental",
+                    perVehicle: "/vehicle",
+                    badge: "Best for Companies",
+                    features: {
+                        volumeDiscounts: "Volume Discounts Available",
+                        idealFor: "Ideal for delivery/rideshare companies",
+                        hrOnboarding: "HR Onboarding Support",
+                        accountManager: "Dedicated Account Manager"
+                    }
+                },
+                deposit: "$500 Security Deposit",
+                cta: "Contact Us"
+            },
+            howItWorks: {
+                title: "How It Works"
+            }
+        },
+        common: {
+            buttons: {
+                applyNow: "Apply Now",
+                startApplication: "Start Application",
+                learnMore: "Learn More"
+            },
+            pricing: {
+                perWeek: "/week",
+                deposit: "Deposit"
+            }
+        },
+        
         // Application Page
         application: {
             pageTitle: "Apply Now - Fleetzy Car Rental",
@@ -183,6 +250,73 @@ const translations = {
     },
     
     es: {
+        // Página de Inicio (index.html)
+        index: {
+            nav: {
+                howItWorks: "Cómo Funciona",
+                pricing: "Precios",
+                vehicles: "Vehículos",
+                faq: "Preguntas"
+            },
+            hero: {
+                title: "Conduce Tus Sueños,",
+                titleHighlight: "Renta Inteligente",
+                subtitle: "Rentas semanales confiables para conductores de gig economy. Sin verificación de crédito, aprobación rápida, tarifas accesibles.",
+                badges: {
+                    noCredit: "Sin Verificación de Crédito",
+                    fastApproval: "Aprobación Rápida",
+                    rideshareApproved: "Aprobado para Rideshare"
+                }
+            },
+            stats: {
+                vehiclesAvailable: "Vehículos Disponibles",
+                approvalTime: "Tiempo de Aprobación",
+                rideshareApproved: "Aprobado para Rideshare",
+                weeklyRate: "Tarifa Semanal"
+            },
+            pricing: {
+                title: "Precios Simples y Transparentes",
+                subtitle: "Elige el plan que funcione para ti",
+                individual: {
+                    title: "Renta Personal",
+                    perWeek: "/semana",
+                    features: {
+                        rideshareApproved: "Aprobado para Rideshare",
+                        deposit: "Depósito Reembolsable de $500",
+                        paymentMethods: "Métodos de Pago Flexibles",
+                        roadside: "Asistencia en Carretera 24/7"
+                    }
+                },
+                corporate: {
+                    title: "Renta Corporativa",
+                    perVehicle: "/vehículo",
+                    badge: "Mejor para Empresas",
+                    features: {
+                        volumeDiscounts: "Descuentos por Volumen Disponibles",
+                        idealFor: "Ideal para empresas de delivery/rideshare",
+                        hrOnboarding: "Soporte de Incorporación de RRHH",
+                        accountManager: "Gerente de Cuenta Dedicado"
+                    }
+                },
+                deposit: "Depósito de Seguridad de $500",
+                cta: "Contáctanos"
+            },
+            howItWorks: {
+                title: "Cómo Funciona"
+            }
+        },
+        common: {
+            buttons: {
+                applyNow: "Aplicar Ahora",
+                startApplication: "Comenzar Aplicación",
+                learnMore: "Saber Más"
+            },
+            pricing: {
+                perWeek: "/semana",
+                deposit: "Depósito"
+            }
+        },
+        
         // Página de Aplicación
         application: {
             pageTitle: "Aplicar Ahora - Renta de Autos Fleetzy",
