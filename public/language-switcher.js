@@ -1,429 +1,242 @@
-// ============================================
-// FLEETZY LANGUAGE SWITCHER
-// ============================================
-// Version: 1.0 - December 2025
-// 
-// Features:
-// - Auto-detects browser language
-// - Shows confirmation prompt for Spanish browsers
-// - Saves preference to localStorage
-// - Provides toggle UI (English | Español)
-// - Updates all translatable elements on page
-// ============================================
+// Fleetzy Language Switcher Component
+// Creates a toggle button to switch between English and Spanish
 
 (function() {
     'use strict';
-
-    // ============================================
-    // CONFIGURATION
-    // ============================================
     
-    const SUPPORTED_LANGUAGES = ['en', 'es'];
-    const DEFAULT_LANGUAGE = 'en';
-    const STORAGE_KEY = 'fleetzy_language';
-    const PROMPT_SHOWN_KEY = 'fleetzy_lang_prompt_shown';
-
-    // ============================================
-    // INITIALIZATION
-    // ============================================
-
-    document.addEventListener('DOMContentLoaded', function() {
-        initializeLanguage();
-    });
-
-    /**
-     * Initialize language system
-     */
-    function initializeLanguage() {
-        const savedLanguage = localStorage.getItem(STORAGE_KEY);
-        const promptShown = localStorage.getItem(PROMPT_SHOWN_KEY);
+    // Create language switcher HTML
+    function createLanguageSwitcher() {
+        const currentLang = localStorage.getItem('fleetzy_language') || 'en';
         
-        if (savedLanguage) {
-            // User has a saved preference - use it
-            applyLanguage(savedLanguage);
-        } else if (!promptShown) {
-            // First visit - check browser language
-            const browserLang = detectBrowserLanguage();
+        const switcher = document.createElement('div');
+        switcher.className = 'language-switcher';
+        switcher.innerHTML = `
+            <button 
+                id="languageToggle" 
+                class="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-gray-300 hover:border-fleetzy-green transition bg-white"
+                aria-label="Switch language"
+            >
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+                </svg>
+                <span id="currentLanguage" class="font-medium text-gray-700">${currentLang === 'en' ? 'EN' : 'ES'}</span>
+                <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
             
-            if (browserLang === 'es') {
-                // Browser is Spanish - show confirmation prompt
-                showLanguagePrompt();
-            } else {
-                // Browser is English or other - default to English
-                applyLanguage(DEFAULT_LANGUAGE);
-            }
-        } else {
-            // Prompt was shown but dismissed without saving preference
-            applyLanguage(DEFAULT_LANGUAGE);
-        }
-        
-        // Create language toggle UI
-        createLanguageToggle();
-    }
-
-    /**
-     * Detect browser's preferred language
-     */
-    function detectBrowserLanguage() {
-        const browserLang = navigator.language || navigator.userLanguage || 'en';
-        const primaryLang = browserLang.split('-')[0].toLowerCase();
-        
-        return SUPPORTED_LANGUAGES.includes(primaryLang) ? primaryLang : DEFAULT_LANGUAGE;
-    }
-
-    // ============================================
-    // LANGUAGE PROMPT (Modal)
-    // ============================================
-
-    /**
-     * Show language selection prompt for Spanish browser users
-     */
-    function showLanguagePrompt() {
-        // Create overlay
-        const overlay = document.createElement('div');
-        overlay.id = 'lang-prompt-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
-        `;
-        
-        // Create modal
-        const modal = document.createElement('div');
-        modal.id = 'lang-prompt-modal';
-        modal.style.cssText = `
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            animation: slideUp 0.3s ease;
-        `;
-        
-        modal.innerHTML = `
-            <style>
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                @keyframes slideUp {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                #lang-prompt-modal button {
-                    transition: all 0.2s ease;
-                }
-                #lang-prompt-modal button:hover {
-                    transform: translateY(-2px);
-                }
-            </style>
-            <div style="margin-bottom: 24px;">
-                <div style="font-size: 48px; margin-bottom: 16px;">🌐</div>
-                <h2 style="font-size: 24px; font-weight: bold; color: #111827; margin-bottom: 8px;">
-                    ¿Prefieres Español?
-                </h2>
-                <p style="color: #6b7280; font-size: 15px; line-height: 1.5;">
-                    We noticed your browser is set to Spanish. Would you like to view this site in Spanish?
-                </p>
-                <p style="color: #6b7280; font-size: 15px; line-height: 1.5; margin-top: 8px;">
-                    Notamos que tu navegador está en español. ¿Te gustaría ver este sitio en español?
-                </p>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <button id="lang-btn-spanish" style="
-                    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-                    color: white;
-                    border: none;
-                    padding: 14px 24px;
-                    border-radius: 10px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    width: 100%;
-                ">
-                    Sí, cambiar a Español
+            <div id="languageMenu" class="absolute right-0 mt-2 w-48 bg-white border-2 border-gray-200 rounded-lg shadow-lg hidden z-50">
+                <button 
+                    data-lang="en" 
+                    class="language-option w-full text-left px-4 py-3 hover:bg-gray-50 transition flex items-center justify-between ${currentLang === 'en' ? 'bg-green-50 text-fleetzy-green font-semibold' : 'text-gray-700'}"
+                >
+                    <span>🇺🇸 English</span>
+                    ${currentLang === 'en' ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
                 </button>
-                <button id="lang-btn-english" style="
-                    background: #f3f4f6;
-                    color: #374151;
-                    border: none;
-                    padding: 14px 24px;
-                    border-radius: 10px;
-                    font-size: 16px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    width: 100%;
-                ">
-                    No, keep English
+                <button 
+                    data-lang="es" 
+                    class="language-option w-full text-left px-4 py-3 hover:bg-gray-50 transition flex items-center justify-between ${currentLang === 'es' ? 'bg-green-50 text-fleetzy-green font-semibold' : 'text-gray-700'}"
+                >
+                    <span>🇲🇽 Español</span>
+                    ${currentLang === 'es' ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : ''}
                 </button>
             </div>
         `;
         
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
-        
-        // Event listeners
-        document.getElementById('lang-btn-spanish').addEventListener('click', function() {
-            localStorage.setItem(PROMPT_SHOWN_KEY, 'true');
-            setLanguage('es');
-            closePrompt();
-        });
-        
-        document.getElementById('lang-btn-english').addEventListener('click', function() {
-            localStorage.setItem(PROMPT_SHOWN_KEY, 'true');
-            setLanguage('en');
-            closePrompt();
-        });
-        
-        // Close on overlay click (outside modal)
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                localStorage.setItem(PROMPT_SHOWN_KEY, 'true');
-                setLanguage(DEFAULT_LANGUAGE);
-                closePrompt();
-            }
-        });
-        
-        function closePrompt() {
-            overlay.style.animation = 'fadeIn 0.2s ease reverse';
-            setTimeout(function() { overlay.remove(); }, 200);
-        }
+        return switcher;
     }
-
-    // ============================================
-    // LANGUAGE TOGGLE UI
-    // ============================================
-
-    /**
-     * Create language toggle in header
-     */
-    function createLanguageToggle() {
-        // Find header or nav element
-        const header = document.querySelector('header');
-        if (!header) return;
-        
-        // Check if toggle already exists
-        if (document.getElementById('lang-toggle')) return;
-        
-        const currentLang = getCurrentLanguage();
-        
-        // Create toggle container
-        const toggle = document.createElement('div');
-        toggle.id = 'lang-toggle';
-        toggle.style.cssText = `
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            margin-left: 16px;
+    
+    // Add required styles
+    function addStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .language-switcher {
+                position: relative;
+                display: inline-block;
+            }
+            
+            #languageMenu {
+                min-width: 180px;
+            }
+            
+            .language-option:first-child {
+                border-top-left-radius: 0.5rem;
+                border-top-right-radius: 0.5rem;
+            }
+            
+            .language-option:last-child {
+                border-bottom-left-radius: 0.5rem;
+                border-bottom-right-radius: 0.5rem;
+            }
+            
+            .language-option:not(:last-child) {
+                border-bottom: 1px solid #e5e7eb;
+            }
+            
+            @media (max-width: 640px) {
+                #languageToggle span {
+                    display: none;
+                }
+                
+                #languageMenu {
+                    right: -1rem;
+                }
+            }
         `;
+        document.head.appendChild(style);
+    }
+    
+    // Initialize language switcher
+    function initLanguageSwitcher() {
+        // Add styles
+        addStyles();
         
-        toggle.innerHTML = `
-            <a href="#" id="lang-en" class="lang-option ${currentLang === 'en' ? 'active' : ''}" 
-               style="color: ${currentLang === 'en' ? '#059669' : '#6b7280'}; 
-                      text-decoration: none; 
-                      font-weight: ${currentLang === 'en' ? '600' : '400'};
-                      transition: color 0.2s ease;">
-                English
-            </a>
-            <span style="color: #d1d5db;">|</span>
-            <a href="#" id="lang-es" class="lang-option ${currentLang === 'es' ? 'active' : ''}" 
-               style="color: ${currentLang === 'es' ? '#059669' : '#6b7280'}; 
-                      text-decoration: none; 
-                      font-weight: ${currentLang === 'es' ? '600' : '400'};
-                      transition: color 0.2s ease;">
-                Español
-            </a>
-        `;
+        // Find header container (looks for common header structures)
+        const headerContainers = [
+            document.querySelector('header .flex.justify-between'),
+            document.querySelector('header .flex.items-center'),
+            document.querySelector('header > div > div'),
+            document.querySelector('header')
+        ];
         
-        // Find the right place to insert toggle
-        // Strategy: Look for specific patterns in Fleetzy pages
-        
-        // Option 1: Find nav with flex container
-        const nav = header.querySelector('nav');
-        if (nav) {
-            const flexContainer = nav.querySelector('.flex.items-center.gap-6, .flex.items-center.gap-4, .hidden.md\\:flex');
-            if (flexContainer) {
-                flexContainer.appendChild(toggle);
-                return;
+        let container = null;
+        for (const elem of headerContainers) {
+            if (elem) {
+                container = elem;
+                break;
             }
         }
         
-        // Option 2: Find the right side of the header
-        const rightSide = header.querySelector('.flex.items-center.gap-4');
-        if (rightSide) {
-            // Insert before the first button or at the end
-            const firstButton = rightSide.querySelector('a[href*="apply"], a[href*="qualify"], button');
-            if (firstButton) {
-                rightSide.insertBefore(toggle, firstButton);
-            } else {
-                rightSide.appendChild(toggle);
-            }
+        if (!container) {
+            console.warn('Language switcher: Could not find header container');
             return;
         }
         
-        // Option 3: Just append to nav or header
-        if (nav) {
-            nav.appendChild(toggle);
+        // Create and insert switcher
+        const switcher = createLanguageSwitcher();
+        
+        // If container has justify-between, append to end
+        // Otherwise, create a wrapper with proper flex layout
+        if (container.classList.contains('justify-between')) {
+            const rightSide = container.querySelector(':last-child');
+            if (rightSide) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'flex items-center gap-4';
+                rightSide.parentNode.insertBefore(wrapper, rightSide);
+                wrapper.appendChild(rightSide);
+                wrapper.appendChild(switcher);
+            } else {
+                container.appendChild(switcher);
+            }
         } else {
-            const headerInner = header.querySelector('div');
-            if (headerInner) {
-                headerInner.appendChild(toggle);
+            container.appendChild(switcher);
+        }
+        
+        // Add event listeners
+        const toggleButton = document.getElementById('languageToggle');
+        const menu = document.getElementById('languageMenu');
+        const options = document.querySelectorAll('.language-option');
+        
+        // Toggle menu
+        toggleButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('hidden');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!menu.classList.contains('hidden') && !menu.contains(e.target)) {
+                menu.classList.add('hidden');
             }
-        }
-        
-        // Event listeners
-        document.getElementById('lang-en').addEventListener('click', function(e) {
-            e.preventDefault();
-            setLanguage('en');
         });
         
-        document.getElementById('lang-es').addEventListener('click', function(e) {
-            e.preventDefault();
-            setLanguage('es');
-        });
-    }
-
-    /**
-     * Update toggle UI to reflect current language
-     */
-    function updateToggleUI(lang) {
-        const enLink = document.getElementById('lang-en');
-        const esLink = document.getElementById('lang-es');
-        
-        if (enLink && esLink) {
-            enLink.style.color = lang === 'en' ? '#059669' : '#6b7280';
-            enLink.style.fontWeight = lang === 'en' ? '600' : '400';
-            esLink.style.color = lang === 'es' ? '#059669' : '#6b7280';
-            esLink.style.fontWeight = lang === 'es' ? '600' : '400';
-        }
-    }
-
-    // ============================================
-    // LANGUAGE APPLICATION
-    // ============================================
-
-    /**
-     * Get current language
-     */
-    function getCurrentLanguage() {
-        return localStorage.getItem(STORAGE_KEY) || DEFAULT_LANGUAGE;
-    }
-
-    /**
-     * Set language and apply translations
-     */
-    function setLanguage(lang) {
-        if (!SUPPORTED_LANGUAGES.includes(lang)) {
-            lang = DEFAULT_LANGUAGE;
-        }
-        
-        localStorage.setItem(STORAGE_KEY, lang);
-        applyLanguage(lang);
-        updateToggleUI(lang);
-        
-        // Update qualifier data if exists
-        updateQualifierLanguage(lang);
-    }
-
-    /**
-     * Apply language to page
-     */
-    function applyLanguage(lang) {
-        // Set HTML lang attribute
-        document.documentElement.lang = lang;
-        
-        // Update all elements with data-i18n attribute
-        document.querySelectorAll('[data-i18n]').forEach(function(el) {
-            const key = el.getAttribute('data-i18n');
-            const translation = window.t ? window.t(key) : null;
-            
-            if (translation && translation !== key) {
-                // Check if it's an input placeholder
-                if (el.hasAttribute('placeholder')) {
-                    el.placeholder = translation;
-                } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                    // Don't change input values
-                } else {
-                    el.textContent = translation;
+        // Language selection
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                const lang = option.getAttribute('data-lang');
+                
+                // Switch language
+                if (window.switchLanguage) {
+                    window.switchLanguage(lang);
                 }
-            }
+                
+                // Update UI
+                document.getElementById('currentLanguage').textContent = lang.toUpperCase();
+                
+                // Update selected state
+                options.forEach(opt => {
+                    opt.classList.remove('bg-green-50', 'text-fleetzy-green', 'font-semibold');
+                    opt.classList.add('text-gray-700');
+                    const checkmark = opt.querySelector('svg');
+                    if (checkmark) checkmark.remove();
+                });
+                
+                option.classList.add('bg-green-50', 'text-fleetzy-green', 'font-semibold');
+                option.classList.remove('text-gray-700');
+                option.innerHTML += '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+                
+                // Close menu
+                menu.classList.add('hidden');
+                
+                // Optional: Show toast notification
+                showLanguageChangeToast(lang);
+            });
         });
-        
-        // Update elements with data-i18n-placeholder
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
-            const key = el.getAttribute('data-i18n-placeholder');
-            const translation = window.t ? window.t(key) : null;
-            if (translation && translation !== key) {
-                el.placeholder = translation;
-            }
-        });
-        
-        // Update elements with data-i18n-html (for HTML content)
-        document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
-            const key = el.getAttribute('data-i18n-html');
-            const translation = window.t ? window.t(key) : null;
-            if (translation && translation !== key) {
-                el.innerHTML = translation;
-            }
-        });
-        
-        // Update page title if data-i18n-title exists
-        const titleKey = document.body.getAttribute('data-i18n-title') || 
-                         document.documentElement.getAttribute('data-i18n-title');
-        if (titleKey && window.t) {
-            const titleTranslation = window.t(titleKey);
-            if (titleTranslation && titleTranslation !== titleKey) {
-                document.title = titleTranslation;
-            }
-        }
-        
-        // Fire custom event for dynamic content handlers
-        document.dispatchEvent(new CustomEvent('languageChanged', { 
-            detail: { language: lang } 
-        }));
     }
-
-    /**
-     * Update qualifier localStorage with language preference
-     */
-    function updateQualifierLanguage(lang) {
-        try {
-            const qualifier = localStorage.getItem('fleetzy_qualifier');
-            if (qualifier) {
-                const data = JSON.parse(qualifier);
-                data.preferred_language = lang;
-                localStorage.setItem('fleetzy_qualifier', JSON.stringify(data));
-            }
-        } catch (e) {
-            // Ignore JSON parse errors
-        }
-    }
-
-    // ============================================
-    // EXPOSE FUNCTIONS GLOBALLY
-    // ============================================
     
-    window.FleetzyLanguage = {
-        get: getCurrentLanguage,
-        set: setLanguage,
-        apply: applyLanguage,
-        detect: detectBrowserLanguage,
-        supported: SUPPORTED_LANGUAGES
-    };
-
-    // Also expose simpler global functions
-    window.getCurrentLanguage = getCurrentLanguage;
-    window.setCurrentLanguage = setLanguage;
-
+    // Show toast notification (optional)
+    function showLanguageChangeToast(lang) {
+        const messages = {
+            en: 'Language changed to English',
+            es: 'Idioma cambiado a Español'
+        };
+        
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-4 right-4 bg-fleetzy-green text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 animate-fade-in';
+        toast.innerHTML = `
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>${messages[lang]}</span>
+        `;
+        
+        // Add animation
+        const toastStyle = document.createElement('style');
+        toastStyle.textContent = `
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fade-in 0.3s ease-out;
+            }
+        `;
+        document.head.appendChild(toastStyle);
+        
+        document.body.appendChild(toast);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLanguageSwitcher);
+    } else {
+        initLanguageSwitcher();
+    }
+    
+    // Re-initialize on languageChanged event (to update button state)
+    window.addEventListener('languageChanged', (e) => {
+        const lang = e.detail.language;
+        const currentLangElement = document.getElementById('currentLanguage');
+        if (currentLangElement) {
+            currentLangElement.textContent = lang.toUpperCase();
+        }
+    });
+    
 })();
