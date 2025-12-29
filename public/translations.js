@@ -513,7 +513,13 @@ function getTranslation(lang, key) {
                     value = value[fallbackKey];
                 } else {
                     console.warn(`Translation not found: ${key}`);
-                    return key;
+                    // Return a human-readable fallback instead of raw key
+                    // Convert "application.step1.fields.firstName" to "First Name"
+                    const lastPart = key.split('.').pop();
+                    return lastPart
+                        .replace(/([A-Z])/g, ' $1')
+                        .replace(/^./, str => str.toUpperCase())
+                        .trim();
                 }
             }
             break;
