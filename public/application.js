@@ -20,12 +20,21 @@ let vehicles = [];
 let selectedVehicle = null;
 let selfieStream = null;
 
-// Language helper
+// Language helper - uses the proper translations.js system
 function t(key) {
-    if (window.FleetzyLanguage && typeof window.FleetzyLanguage.translate === "function") {
-        return window.FleetzyLanguage.translate(key);
+    // Use the global getTranslation function from translations.js
+    if (typeof window.getTranslation === 'function') {
+        const lang = window.getCurrentLanguage ? window.getCurrentLanguage() : 'en';
+        return window.getTranslation(lang, key);
     }
-    return key.split(".").pop(); // fallback to last part of key
+    // Safe fallback - return a readable format of the key
+    // e.g., "application.step1.fields.firstName" → "First Name"
+    const lastPart = key.split(".").pop();
+    // Convert camelCase to Title Case: firstName → First Name
+    return lastPart
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .trim();
 }
 
 // ============================================
