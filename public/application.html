@@ -912,5 +912,41 @@
             }
         };
     </script>
+    // Prefill form fields from URL parameters (ManyChat integration)
+document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    
+    // Only run if coming from messenger
+    if (params.get('source') === 'messenger') {
+        
+        // Get values from URL
+        const fullName = params.get('name');
+        const email = params.get('email');
+        const phone = params.get('phone');
+        
+        // Split full name into first and last
+        if (fullName) {
+            const nameParts = fullName.trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+            
+            document.getElementById('firstName').value = firstName;
+            document.getElementById('lastName').value = lastName;
+        }
+        
+        // Prefill email
+        if (email) {
+            document.getElementById('email').value = email;
+        }
+        
+        // Prefill phone
+        if (phone) {
+            document.getElementById('phone').value = phone;
+        }
+        
+        console.log('Form prefilled from Messenger:', { fullName, email, phone });
+    }
+});
+</script>
 </body>
 </html>
