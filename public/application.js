@@ -990,7 +990,61 @@ async function handleSubmit(e) {
         `;
         await createRentalApplication(customerId, formData);
         
-        // 5. Store application data for success page
+        // 5. Send notification to n8n workflow (Slack alert + GHL sync)
+        console.log('Step 5: Sending application notification...');
+        submitBtn.innerHTML = `
+            <div class="flex items-center justify-center gap-2">
+                <div class="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                <span>Sending Notification...</span>
+            </div>
+        `;
+        
+        // Notify n8n workflow - this triggers Slack notification + GHL contact creation
+        try {
+            await fetch('https://alliedprc.app.n8n.cloud/webhook/fleetzy-full-application', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    body: {
+                        record: {
+                            id: customerId,
+                            first_name: formData.firstName,
+                            last_name: formData.lastName,
+                            phone: formData.phone,
+                            email: formData.email,
+                            address: formData.address,
+                            city: formData.city,
+                            state: formData.state,
+                            zip_code: formData.zipCode,
+                            date_of_birth: formData.dateOfBirth,
+                            is_company_rental: formData.isCompanyRental,
+                            company_name: formData.companyName || null,
+                            company_contact_name: formData.companyContactName || null,
+                            company_contact_email: formData.companyContactEmail || null,
+                            company_contact_phone: formData.companyContactPhone || null,
+                            license_number: formData.licenseNumber,
+                            license_state: formData.licenseState,
+                            license_expiration: formData.licenseExpiration,
+                            income_source: formData.incomeSource,
+                            selected_vehicle_id: formData.vehicleId || null,
+                            selfie_url: uploadedFiles.selfie || null,
+                            license_front_url: uploadedFiles.licenseFront || null,
+                            license_back_url: uploadedFiles.licenseBack || null,
+                            income_proof_url: uploadedFiles.incomeProof || null,
+                            created_at: new Date().toISOString()
+                        }
+                    }
+                })
+            });
+            console.log('Notification sent successfully');
+        } catch (webhookError) {
+            // Don't fail the submission if webhook fails - just log it
+            console.warn('Webhook notification failed (non-critical):', webhookError);
+        }
+        
+        // 6. Store application data for success page
         localStorage.setItem('fleetzy_application_submitted', JSON.stringify({
             name: `${formData.firstName} ${formData.lastName}`,
             phone: formData.phone,
@@ -999,7 +1053,7 @@ async function handleSubmit(e) {
             submittedAt: new Date().toISOString()
         }));
         
-        // 6. Show success and redirect
+        // 7. Show success and redirect
         console.log('Application submitted successfully!');
         window.location.href = 'application-success.html';
         
