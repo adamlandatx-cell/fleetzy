@@ -1004,7 +1004,7 @@
                 const { data: customers } = await db.from('customers').select('*');
                 const { data: rentals } = await db.from('rentals').select('*, customers(*), vehicles(*)');
                 const { data: payments } = await db.from('payments').select('*, customers(*)');
-                const { data: applications } = await db.from('applications').select('*');
+                const { data: applications } = await db.from('customers').select('*').in('status', ['pending_verification', 'pending', 'Pending', 'new']);
                 
                 // Update metrics
                 updateMetrics(vehicles || [], customers || [], rentals || [], payments || []);
