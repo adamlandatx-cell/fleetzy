@@ -254,6 +254,12 @@
             z-index: 11;
             text-align: center;
         }
+        
+        /* Prefilled field indicator */
+        .prefilled {
+            background-color: #f0fdf4 !important;
+            border-color: #059669 !important;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -857,10 +863,8 @@
         </div>
     </footer>
 
-    <!-- Translation Scripts -->
-
     <!-- Application JavaScript -->
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="application.js"></script>
+    <script src="application.js"></script>
 
     <!-- Company Section Toggle -->
     <script>
@@ -912,41 +916,62 @@
             }
         };
     </script>
-    // Prefill form fields from URL parameters (ManyChat integration)
-document.addEventListener('DOMContentLoaded', function() {
-    const params = new URLSearchParams(window.location.search);
-    
-    // Only run if coming from messenger
-    if (params.get('source') === 'messenger') {
+
+    <!-- ManyChat Messenger Prefill Script -->
+    <script>
+    // Prefill form fields from URL parameters (ManyChat Messenger integration)
+    document.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
         
-        // Get values from URL
-        const fullName = params.get('name');
-        const email = params.get('email');
-        const phone = params.get('phone');
-        
-        // Split full name into first and last
-        if (fullName) {
-            const nameParts = fullName.trim().split(' ');
-            const firstName = nameParts[0] || '';
-            const lastName = nameParts.slice(1).join(' ') || '';
+        // Only run if coming from Messenger
+        if (params.get('source') === 'messenger') {
             
-            document.getElementById('firstName').value = firstName;
-            document.getElementById('lastName').value = lastName;
+            // Get values from URL
+            const fullName = params.get('name');
+            const email = params.get('email');
+            const phone = params.get('phone');
+            
+            // Prefill name fields (split full name into first/last)
+            if (fullName) {
+                const nameParts = decodeURIComponent(fullName).trim().split(' ');
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+                
+                const firstNameField = document.getElementById('firstName');
+                const lastNameField = document.getElementById('lastName');
+                
+                if (firstNameField && firstName) {
+                    firstNameField.value = firstName;
+                    firstNameField.classList.add('prefilled');
+                }
+                if (lastNameField && lastName) {
+                    lastNameField.value = lastName;
+                    lastNameField.classList.add('prefilled');
+                }
+            }
+            
+            // Prefill email
+            if (email) {
+                const emailField = document.getElementById('email');
+                if (emailField) {
+                    emailField.value = decodeURIComponent(email);
+                    emailField.classList.add('prefilled');
+                }
+            }
+            
+            // Prefill phone
+            if (phone) {
+                const phoneField = document.getElementById('phone');
+                if (phoneField) {
+                    phoneField.value = decodeURIComponent(phone);
+                    phoneField.classList.add('prefilled');
+                }
+            }
+            
+            // Log for debugging
+            console.log('✅ Form prefilled from Messenger:', { fullName, email, phone });
         }
-        
-        // Prefill email
-        if (email) {
-            document.getElementById('email').value = email;
-        }
-        
-        // Prefill phone
-        if (phone) {
-            document.getElementById('phone').value = phone;
-        }
-        
-        console.log('Form prefilled from Messenger:', { fullName, email, phone });
-    }
-});
-</script>
+    });
+    </script>
 </body>
 </html>
