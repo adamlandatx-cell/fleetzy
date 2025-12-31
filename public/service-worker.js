@@ -1,7 +1,7 @@
 // Fleetzy Service Worker - PWA + Capacitor Ready
-// Version 1.0.0
+// Version 1.0.1
 
-const CACHE_NAME = 'fleetzy-v1.0.0';
+const CACHE_NAME = 'fleetzy-v1.0.1';
 const OFFLINE_CACHE = 'fleetzy-offline-v1';
 
 // Files to cache immediately on install
