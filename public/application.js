@@ -95,15 +95,18 @@ function prefillFromQualifier() {
         if (urlQualified) qualifierData.qualified = urlQualified === 'true';
     }
     
-    // If no qualifier data, redirect to qualifier
-    if (!qualifierData || !qualifierData.qualified) {
-        console.log('No qualifier data - redirecting to qualifier');
-        window.location.href = 'qualify.html';
-        return;
+    // Allow direct access to application (no qualifier required)
+    // Users can come directly from "Apply Now" buttons
+    const cameFromQualifier = qualifierData && qualifierData.qualified;
+    if (!qualifierData) {
+        qualifierData = { qualified: true }; // No type - let them choose
+        console.log('No qualifier data - allowing direct access');
     }
     
-    // Hide rental type selector since they already chose in qualifier
-    hideRentalTypeSelector(qualifierData.type);
+    // Only hide rental type selector if they came from qualifier
+    if (cameFromQualifier && qualifierData.type) {
+        hideRentalTypeSelector(qualifierData.type);
+    }
     
     // Pre-fill name (split if full name)
     if (qualifierData.name) {
