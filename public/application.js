@@ -351,8 +351,7 @@ function renderVehicles() {
         const statusBadge = getStatusBadge(vehicle.status);
         const imageUrl = vehicle.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80';
         const displayName = vehicle.friendly_name || `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
-        const monthlyRate = vehicle.monthly_payment || 400;
-        const weeklyRate = Math.round(monthlyRate * 12 / 52); // Convert monthly to weekly
+        const weeklyRate = vehicle.monthly_payment || 400; // monthly_payment stores weekly rate
         
         return `
             <div class="vehicle-card bg-white rounded-xl overflow-hidden shadow-md ${!isAvailable ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:shadow-lg'}"
@@ -457,7 +456,7 @@ function selectVehicle(vehicleId) {
     
     // Update summary with selected vehicle rate
     if (selectedVehicle) {
-        const weeklyRate = Math.round((selectedVehicle.monthly_payment || 400) * 12 / 52);
+        const weeklyRate = selectedVehicle.monthly_payment || 400; // monthly_payment stores weekly rate
         const summaryRate = document.getElementById('summaryRate');
         const summaryTotal = document.getElementById('summaryTotal');
         if (summaryRate) summaryRate.textContent = `$${weeklyRate}/week`;
@@ -1271,8 +1270,7 @@ async function createCustomer(formData, uploads) {
 }
 
 async function createRentalApplication(customerId, formData) {
-    const weeklyRate = selectedVehicle?.monthly_payment ? 
-        Math.round(selectedVehicle.monthly_payment * 12 / 52) : 400;
+    const weeklyRate = selectedVehicle?.monthly_payment || 400; // monthly_payment stores weekly rate
     
     // Generate rental ID (e.g., R-20251216-001)
     const today = new Date();
