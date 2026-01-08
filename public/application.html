@@ -173,7 +173,7 @@
             display: none;
         }
         
-        #videoElement {
+        #selfieVideo {
             width: 100%;
             max-width: 500px;
             border-radius: 12px;
@@ -593,10 +593,11 @@
                             <div id="cameraContainer" class="relative bg-black rounded-lg overflow-hidden mb-4">
                                 <div id="cameraInstructions">Position your face in the circle</div>
                                 <div id="cameraOverlay"></div>
-                                <video id="videoElement" autoplay playsinline class="w-full"></video>
+                                <video id="selfieVideo" autoplay playsinline class="w-full"></video>
+                                <canvas id="selfieCanvas" style="display:none;"></canvas>
                             </div>
                             <div class="flex gap-4">
-                                <button type="button" onclick="captureSelfie()" class="flex-1 bg-fleetzy-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition">
+                                <button type="button" onclick="capturePhoto()" class="flex-1 bg-fleetzy-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition">
                                     <i class="fas fa-camera mr-2"></i>
                                     <span>Capture Photo</span>
                                 </button>
