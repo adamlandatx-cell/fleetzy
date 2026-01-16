@@ -43,10 +43,16 @@ const Reports = {
         const container = document.getElementById('section-reports');
         if (!container) return;
         
+        // Show loading state
+        container.innerHTML = `
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading reports data...</p>
+            </div>
+        `;
+        
         try {
-            Utils.showLoading(container, 'Loading reports data...');
             await this.fetchAllData();
-            Utils.hideLoading(container);
             
             this.render();
             this.updateStats();
@@ -54,6 +60,8 @@ const Reports = {
             this.renderMethodsChart();
             this.renderTopCustomers();
             this.renderFleetMetrics();
+            this.renderVehicleRevenue();
+            this.renderTransactionsTable();
             
             // Animate elements
             setTimeout(() => {
@@ -64,6 +72,16 @@ const Reports = {
             console.log('✅ Reports loaded successfully');
         } catch (error) {
             console.error('❌ Reports load error:', error);
+            container.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Failed to Load Reports</h3>
+                    <p>There was an error loading the reports data.</p>
+                    <button class="btn btn-primary" onclick="Reports.load()">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            `;
             Utils.toastError('Failed to load reports data');
         }
     },
