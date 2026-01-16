@@ -53,10 +53,12 @@
             <div class="nav-item" data-section="rentals">
                 <i class="fas fa-file-contract"></i>
                 <span>Rentals</span>
+                <span class="badge" id="rentals-badge" style="display: none;">0</span>
             </div>
             <div class="nav-item" data-section="payments">
                 <i class="fas fa-credit-card"></i>
                 <span>Payments</span>
+                <span class="badge" id="payments-badge" style="display: none;">0</span>
             </div>
             
             <div class="nav-divider"></div>
@@ -1599,17 +1601,295 @@
         </div>
 
         <!-- ============================================
-             PAYMENTS SECTION (Placeholder)
+             PAYMENTS SECTION
         ============================================ -->
         <section id="section-payments" class="content-section" style="display: none;">
+            
+            <!-- Payments Header -->
+            <div class="section-header">
+                <div class="section-header-left">
+                    <h2>Payment Management</h2>
+                    <p>Track and approve customer payments</p>
+                </div>
+                <div class="section-header-right">
+                    <button class="btn-export" onclick="Payments.exportToCSV()">
+                        <i class="fas fa-download"></i>
+                        Export
+                    </button>
+                    <button class="btn btn-secondary" onclick="Payments.refresh()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="Payments.openNewPaymentModal()">
+                        <i class="fas fa-plus"></i>
+                        Record Payment
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Payments Stats -->
+            <div class="mini-stats-grid">
+                <div class="mini-stat">
+                    <div class="mini-stat-icon green">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="payments-stat-thismonth">$0</div>
+                        <div class="mini-stat-label">This Month</div>
+                    </div>
+                </div>
+                <div class="mini-stat highlight">
+                    <div class="mini-stat-icon amber">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="payments-stat-pending">0</div>
+                        <div class="mini-stat-label">Pending Approval</div>
+                    </div>
+                </div>
+                <div class="mini-stat overdue">
+                    <div class="mini-stat-icon red">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="payments-stat-overdue">$0</div>
+                        <div class="mini-stat-label">Overdue Fees</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon blue">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="payments-stat-count">0</div>
+                        <div class="mini-stat-label">Payments Made</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payments Table Card -->
             <div class="card">
-                <div class="card-body" style="padding: 60px; text-align: center;">
-                    <i class="fas fa-credit-card" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
-                    <h3 style="margin-bottom: 8px;">Payments Tab</h3>
-                    <p style="color: var(--text-secondary);">Full payment management coming in next module.</p>
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-list"></i>
+                        All Payments
+                    </h2>
+                    <div class="card-filters">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="payments-search" placeholder="Search payments..." oninput="Payments.filter()">
+                        </div>
+                        <select id="payments-status-filter" class="filter-select" onchange="Payments.filter()">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="failed">Failed</option>
+                        </select>
+                        <select id="payments-method-filter" class="filter-select" onchange="Payments.filter()">
+                            <option value="">All Methods</option>
+                            <option value="zelle">Zelle</option>
+                            <option value="cashapp">CashApp</option>
+                            <option value="venmo">Venmo</option>
+                            <option value="paypal">PayPal</option>
+                            <option value="stripe">Stripe</option>
+                            <option value="cash">Cash</option>
+                            <option value="check">Check</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body no-padding">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Rental</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payments-table-body">
+                                <tr>
+                                    <td colspan="7" class="loading-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p>Loading payments...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
+
+        <!-- ============================================
+             VIEW PAYMENT MODAL
+        ============================================ -->
+        <div class="modal" id="modal-view-payment">
+            <div class="modal-backdrop" onclick="Payments.closeViewModal()"></div>
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h3><i class="fas fa-receipt"></i> Payment Details</h3>
+                    <button class="modal-close" onclick="Payments.closeViewModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="view-payment-content">
+                    <!-- Content populated by JS -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Payments.closeViewModal()">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             NEW PAYMENT MODAL
+        ============================================ -->
+        <div class="modal" id="modal-new-payment">
+            <div class="modal-backdrop" onclick="Payments.closeNewPaymentModal()"></div>
+            <div class="modal-content modal-md">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus-circle"></i> Record Payment</h3>
+                    <button class="modal-close" onclick="Payments.closeNewPaymentModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-new-payment" onsubmit="event.preventDefault(); Payments.createPayment();">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-payment-id">Payment ID</label>
+                                <input type="text" id="new-payment-id" readonly class="input-readonly">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-payment-rental">Rental <span class="required">*</span></label>
+                                <select id="new-payment-rental" required onchange="Payments.onRentalSelect()">
+                                    <option value="">Select rental...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Selected rental summary -->
+                        <div class="payment-summary">
+                            <div class="payment-summary-row">
+                                <span class="payment-summary-label">Customer</span>
+                                <span class="payment-summary-value" id="new-payment-customer-display">—</span>
+                            </div>
+                            <div class="payment-summary-row">
+                                <span class="payment-summary-label">Outstanding Balance</span>
+                                <span class="payment-summary-value" id="new-payment-balance-display">—</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label for="new-payment-amount">Amount ($) <span class="required">*</span></label>
+                                <input type="number" id="new-payment-amount" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-payment-date">Payment Date <span class="required">*</span></label>
+                                <input type="date" id="new-payment-date" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-payment-method">Payment Method <span class="required">*</span></label>
+                                <select id="new-payment-method" required>
+                                    <option value="">Select method...</option>
+                                    <option value="Zelle">Zelle</option>
+                                    <option value="CashApp">CashApp</option>
+                                    <option value="Venmo">Venmo</option>
+                                    <option value="PayPal">PayPal</option>
+                                    <option value="Stripe">Stripe (Card)</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Check">Check</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-payment-screenshot">Payment Screenshot</label>
+                                <input type="file" id="new-payment-screenshot" accept="image/*" 
+                                       onchange="Payments.onScreenshotSelect(this)">
+                                <div id="new-payment-screenshot-preview"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-payment-notes">Notes</label>
+                                <textarea id="new-payment-notes" rows="2" 
+                                          placeholder="Optional notes about this payment..."></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Payments.closeNewPaymentModal()">Cancel</button>
+                    <button class="btn btn-success" onclick="Payments.createPayment()">
+                        <i class="fas fa-check"></i> Record Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             REJECT PAYMENT MODAL
+        ============================================ -->
+        <div class="modal" id="modal-reject-payment">
+            <div class="modal-backdrop" onclick="Payments.closeRejectModal()"></div>
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <h3><i class="fas fa-times-circle"></i> Reject Payment</h3>
+                    <button class="modal-close" onclick="Payments.closeRejectModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-message">
+                        You are about to reject the payment of <strong id="reject-payment-amount">$0</strong> 
+                        from <strong id="reject-payment-customer">Customer</strong>.
+                    </p>
+                    
+                    <div class="form-group">
+                        <label for="reject-payment-reason">Rejection Reason</label>
+                        <textarea id="reject-payment-reason" rows="3" 
+                                  placeholder="Optional: Enter reason for rejection..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Payments.closeRejectModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="Payments.confirmReject()">
+                        <i class="fas fa-times"></i> Reject Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             SCREENSHOT FULLSCREEN MODAL
+        ============================================ -->
+        <div class="modal" id="modal-screenshot">
+            <div class="modal-backdrop" onclick="Payments.closeScreenshotModal()"></div>
+            <div class="modal-content">
+                <button class="modal-close" onclick="Payments.closeScreenshotModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="modal-body">
+                    <img id="screenshot-fullscreen-img" src="" alt="Payment Screenshot">
+                </div>
+            </div>
+        </div>
 
         <!-- ============================================
              REPORTS SECTION (Placeholder)
@@ -1663,6 +1943,7 @@
     <script src="js/vehicles.js"></script>
     <script src="js/customers.js"></script>
     <script src="js/rentals.js"></script>
+    <script src="js/payments.js"></script>
     
     <!-- Initialize App -->
     <script>
