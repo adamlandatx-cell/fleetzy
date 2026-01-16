@@ -1153,17 +1153,450 @@
         </div>
 
         <!-- ============================================
-             RENTALS SECTION (Placeholder)
+             RENTALS SECTION
         ============================================ -->
         <section id="section-rentals" class="content-section" style="display: none;">
+            
+            <!-- Rentals Header -->
+            <div class="section-header">
+                <div class="section-header-left">
+                    <h2>Rental Management</h2>
+                    <p>Track rentals, approvals, and contracts</p>
+                </div>
+                <div class="section-header-right">
+                    <button class="btn btn-secondary" onclick="Rentals.refresh()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="Rentals.openNewRentalModal()">
+                        <i class="fas fa-plus"></i>
+                        New Rental
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Rentals Stats -->
+            <div class="mini-stats-grid">
+                <div class="mini-stat highlight">
+                    <div class="mini-stat-icon amber">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="rentals-stat-pending">0</div>
+                        <div class="mini-stat-label">Pending Approval</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon purple">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="rentals-stat-awaiting">0</div>
+                        <div class="mini-stat-label">Awaiting Pickup</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon blue">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="rentals-stat-active">0</div>
+                        <div class="mini-stat-label">Active Rentals</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon green">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="rentals-stat-revenue">$0</div>
+                        <div class="mini-stat-label">This Month</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rentals Table Card -->
             <div class="card">
-                <div class="card-body" style="padding: 60px; text-align: center;">
-                    <i class="fas fa-file-contract" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
-                    <h3 style="margin-bottom: 8px;">Rentals Tab</h3>
-                    <p style="color: var(--text-secondary);">Full rental management coming in next module.</p>
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-list"></i>
+                        All Rentals
+                    </h2>
+                    <div class="card-filters">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="rentals-search" placeholder="Search rentals..." oninput="Rentals.filter()">
+                        </div>
+                        <select id="rentals-status-filter" class="filter-select" onchange="Rentals.filter()">
+                            <option value="">All Statuses</option>
+                            <option value="pending_approval">Pending Approval</option>
+                            <option value="pending_rental">Awaiting Pickup</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body no-padding">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Vehicle</th>
+                                    <th>Status</th>
+                                    <th>Dates</th>
+                                    <th>Rate</th>
+                                    <th>Next Payment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rentals-table-body">
+                                <tr>
+                                    <td colspan="7" class="loading-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p>Loading rentals...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
+
+        <!-- ============================================
+             VIEW RENTAL MODAL
+        ============================================ -->
+        <div class="modal" id="modal-view-rental">
+            <div class="modal-backdrop" onclick="Rentals.closeViewModal()"></div>
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h3><i class="fas fa-file-contract"></i> Rental Details</h3>
+                    <button class="modal-close" onclick="Rentals.closeViewModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="view-rental-content">
+                    <!-- Content populated by JS -->
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Rentals.closeViewModal()">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             NEW RENTAL MODAL
+        ============================================ -->
+        <div class="modal" id="modal-new-rental">
+            <div class="modal-backdrop" onclick="Rentals.closeNewRentalModal()"></div>
+            <div class="modal-content modal-md">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus-circle"></i> Create New Rental</h3>
+                    <button class="modal-close" onclick="Rentals.closeNewRentalModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-new-rental" onsubmit="event.preventDefault(); Rentals.createRental();">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-rental-id">Rental ID</label>
+                                <input type="text" id="new-rental-id" readonly class="input-readonly">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-rental-customer">Customer <span class="required">*</span></label>
+                                <select id="new-rental-customer" required>
+                                    <option value="">Select a customer...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-rental-vehicle">Vehicle <span class="required">*</span></label>
+                                <select id="new-rental-vehicle" required onchange="Rentals.onVehicleSelect()">
+                                    <option value="">Select a vehicle...</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label for="new-rental-start-date">Start Date <span class="required">*</span></label>
+                                <input type="date" id="new-rental-start-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-rental-weeks">Weeks Contracted</label>
+                                <input type="number" id="new-rental-weeks" min="1" value="4" oninput="Rentals.calculateNewRentalTotal()">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label for="new-rental-weekly-rate">Weekly Rate ($)</label>
+                                <input type="number" id="new-rental-weekly-rate" min="0" step="0.01" value="400" oninput="Rentals.calculateNewRentalTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-rental-deposit">Deposit ($)</label>
+                                <input type="number" id="new-rental-deposit" min="0" step="0.01" value="500" oninput="Rentals.calculateNewRentalTotal()">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Total Amount Due</label>
+                                <div class="calculated-value" id="new-rental-total">$0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-rental-notes">Notes</label>
+                                <textarea id="new-rental-notes" rows="2" placeholder="Optional notes..."></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Rentals.closeNewRentalModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="Rentals.createRental()">
+                        <i class="fas fa-check"></i> Create Rental
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             REJECT RENTAL MODAL
+        ============================================ -->
+        <div class="modal" id="modal-reject-rental">
+            <div class="modal-backdrop" onclick="Rentals.closeRejectModal()"></div>
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <h3><i class="fas fa-times-circle"></i> Reject Rental</h3>
+                    <button class="modal-close" onclick="Rentals.closeRejectModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="reject-rental-id">
+                    <p class="modal-message">
+                        Are you sure you want to reject the rental for <strong id="reject-rental-customer-name"></strong>?
+                    </p>
+                    <div class="form-group">
+                        <label for="reject-rental-reason">Rejection Reason (optional)</label>
+                        <textarea id="reject-rental-reason" rows="3" placeholder="Enter reason for rejection..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Rentals.closeRejectModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="Rentals.submitRejection()">
+                        <i class="fas fa-times"></i> Reject Rental
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             START RENTAL MODAL
+        ============================================ -->
+        <div class="modal" id="modal-start-rental">
+            <div class="modal-backdrop" onclick="Rentals.closeStartRentalModal()"></div>
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <h3><i class="fas fa-play-circle"></i> Start Rental</h3>
+                    <button class="modal-close" onclick="Rentals.closeStartRentalModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="start-rental-id">
+                    
+                    <div class="info-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Customer</span>
+                            <span class="summary-value" id="start-rental-customer-name">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Vehicle</span>
+                            <span class="summary-value" id="start-rental-vehicle-name">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="start-rental-date">Start Date <span class="required">*</span></label>
+                        <input type="date" id="start-rental-date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="start-rental-mileage">Starting Mileage</label>
+                        <input type="number" id="start-rental-mileage" placeholder="Enter current odometer reading">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Rentals.closeStartRentalModal()">Cancel</button>
+                    <button class="btn btn-success" onclick="Rentals.submitStartRental()">
+                        <i class="fas fa-play"></i> Start Rental
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             RECORD PAYMENT MODAL
+        ============================================ -->
+        <div class="modal" id="modal-record-payment">
+            <div class="modal-backdrop" onclick="Rentals.closeRecordPaymentModal()"></div>
+            <div class="modal-content modal-md">
+                <div class="modal-header">
+                    <h3><i class="fas fa-dollar-sign"></i> Record Payment</h3>
+                    <button class="modal-close" onclick="Rentals.closeRecordPaymentModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="payment-rental-id">
+                    <input type="hidden" id="payment-customer-id">
+                    
+                    <div class="info-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Customer</span>
+                            <span class="summary-value" id="payment-customer-name">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Weekly Rate</span>
+                            <span class="summary-value" id="payment-rental-rate">$0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Outstanding Balance</span>
+                            <span class="summary-value highlight" id="payment-balance">$0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label for="payment-amount">Payment Amount ($) <span class="required">*</span></label>
+                            <input type="number" id="payment-amount" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment-date">Payment Date <span class="required">*</span></label>
+                            <input type="date" id="payment-date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payment-method">Payment Method <span class="required">*</span></label>
+                        <select id="payment-method" required>
+                            <option value="Zelle">Zelle</option>
+                            <option value="CashApp">Cash App</option>
+                            <option value="Venmo">Venmo</option>
+                            <option value="PayPal">PayPal</option>
+                            <option value="Stripe">Credit/Debit Card (Stripe)</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Check">Check</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payment-screenshot">Payment Screenshot</label>
+                        <input type="file" id="payment-screenshot" accept="image/*" onchange="Rentals.previewPaymentScreenshot()">
+                        <div id="payment-screenshot-preview" class="image-preview"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payment-notes">Notes</label>
+                        <textarea id="payment-notes" rows="2" placeholder="Optional payment notes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Rentals.closeRecordPaymentModal()">Cancel</button>
+                    <button class="btn btn-success" onclick="Rentals.submitPayment()">
+                        <i class="fas fa-check"></i> Record Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             END RENTAL MODAL
+        ============================================ -->
+        <div class="modal" id="modal-end-rental">
+            <div class="modal-backdrop" onclick="Rentals.closeEndRentalModal()"></div>
+            <div class="modal-content modal-md">
+                <div class="modal-header">
+                    <h3><i class="fas fa-stop-circle"></i> End Rental</h3>
+                    <button class="modal-close" onclick="Rentals.closeEndRentalModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="end-rental-id">
+                    
+                    <div class="info-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Customer</span>
+                            <span class="summary-value" id="end-rental-customer-name">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Vehicle</span>
+                            <span class="summary-value" id="end-rental-vehicle-name">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Start Mileage</span>
+                            <span class="summary-value" id="end-rental-start-mileage">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row two-col">
+                        <div class="form-group">
+                            <label for="end-rental-date">End Date <span class="required">*</span></label>
+                            <input type="date" id="end-rental-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end-rental-mileage">Final Mileage</label>
+                            <input type="number" id="end-rental-mileage" placeholder="Current odometer reading">
+                        </div>
+                    </div>
+                    
+                    <div class="deposit-summary">
+                        <h4><i class="fas fa-calculator"></i> Deposit Calculation</h4>
+                        <div class="deposit-row">
+                            <span>Original Deposit</span>
+                            <span id="end-rental-deposit">$0</span>
+                        </div>
+                        <div class="deposit-row">
+                            <span>Outstanding Balance</span>
+                            <span class="text-red" id="end-rental-balance">$0</span>
+                        </div>
+                        <div class="deposit-row">
+                            <label for="end-rental-deductions">Additional Deductions</label>
+                            <input type="number" id="end-rental-deductions" min="0" step="0.01" value="0" oninput="Rentals.calculateDepositReturn()">
+                        </div>
+                        <div class="deposit-row total">
+                            <span>Deposit to Return</span>
+                            <span class="text-green" id="end-rental-return-amount">$0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end-rental-deduction-reason">Deduction Reason</label>
+                        <textarea id="end-rental-deduction-reason" rows="2" placeholder="Reason for any deductions (damage, cleaning, etc.)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Rentals.closeEndRentalModal()">Cancel</button>
+                    <button class="btn btn-warning" onclick="Rentals.submitEndRental()">
+                        <i class="fas fa-stop"></i> End Rental
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- ============================================
              PAYMENTS SECTION (Placeholder)
@@ -1229,6 +1662,7 @@
     <script src="js/dashboard.js"></script>
     <script src="js/vehicles.js"></script>
     <script src="js/customers.js"></script>
+    <script src="js/rentals.js"></script>
     
     <!-- Initialize App -->
     <script>
