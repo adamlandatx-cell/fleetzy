@@ -19,12 +19,15 @@
             theme: {
                 extend: {
                     colors: {
-                        'fleetzy-green': '#059669',
+                        'fleetzy-green': '#10b981',
+                        'fleetzy-emerald': '#059669',
+                        'fleetzy-navy': '#0d1321',
                         'fleetzy-blue': '#475569',
                         'fleetzy-gray': '#6B7280'
                     },
                     fontFamily: {
-                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                        'sans': ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace']
                     }
                 }
             },
@@ -32,103 +35,190 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+        /* Core animations */
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-slide-in {
-            animation: slideIn 0.5s ease-out;
+            animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
+
         @keyframes slideInRight {
             from { opacity: 0; transform: translateX(100px); }
             to { opacity: 1; transform: translateX(0); }
         }
         .animate-slide-in-right {
-            animation: slideInRight 0.4s ease-out;
+            animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.5); }
+        }
+
+        /* Glass morphism card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Premium card styling */
+        .premium-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .dark .premium-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(30, 41, 59, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .premium-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15);
+        }
+
+        .dark .premium-card:hover {
+            box-shadow: 0 12px 48px rgba(16, 185, 129, 0.25);
+        }
+
+        /* Emerald gradient button */
+        .emerald-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .emerald-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+        }
+
         .status-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .profile-pic {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             object-fit: cover;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: rgba(241, 241, 241, 0.5);
         }
         ::-webkit-scrollbar-thumb {
-            background: #059669;
-            border-radius: 4px;
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #047857;
+            background: linear-gradient(180deg, #059669 0%, #047857 100%);
+            border: 2px solid transparent;
+            background-clip: padding-box;
         }
         .dark ::-webkit-scrollbar-track {
-            background: #1f2937;
+            background: rgba(13, 19, 33, 0.8);
         }
         .dark ::-webkit-scrollbar-thumb {
-            background: #059669;
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
         }
-        
+
         /* Smooth transitions */
         * {
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                        color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                        border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
+
         /* Toast Notification */
         .toast {
             position: fixed;
             top: 80px;
             right: 20px;
-            min-width: 300px;
+            min-width: 320px;
             max-width: 500px;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            padding: 18px 24px;
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
             z-index: 9999;
-            animation: slideInRight 0.4s ease-out;
+            animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
         .toast.hiding {
-            animation: slideInRight 0.4s ease-out reverse;
+            animation: slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) reverse;
         }
-        
+
         /* Hover Preview Card */
         .hover-preview {
             position: absolute;
             z-index: 1000;
-            min-width: 280px;
-            max-width: 350px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            padding: 16px;
+            min-width: 300px;
+            max-width: 380px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            padding: 20px;
             pointer-events: none;
             opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform: translateY(10px) scale(0.95);
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(16, 185, 129, 0.1);
         }
         .dark .hover-preview {
-            background: #1f2937;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
         .hover-preview.show {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
         }
         
         /* Fleetzy Logo Styles */
@@ -136,12 +226,44 @@
             height: 40px;
             width: auto;
         }
+
+        /* Premium dark background */
+        body.dark {
+            background: linear-gradient(135deg, #0d1321 0%, #1a1f35 100%);
+            background-attachment: fixed;
+        }
+
+        /* Enhanced nav bar */
+        nav {
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+        }
+
+        .dark nav {
+            background: rgba(13, 19, 33, 0.8) !important;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        /* Icon hover effects */
+        .icon-hover {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .icon-hover:hover {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        /* Monospace numbers */
+        .mono-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<body class="bg-gray-50 dark:bg-fleetzy-navy text-gray-900 dark:text-gray-100">
 
     <!-- Top Navigation Bar -->
-    <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
+    <nav class="bg-white/80 dark:bg-fleetzy-navy/80 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-lg backdrop-blur-xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -149,38 +271,38 @@
                         <!-- Fleetzy Logo - PLACEHOLDER: Replace 'fleetzy-logo.png' with your actual logo file -->
                         <img src="fleetzy-logo.png" alt="Fleetzy" class="fleetzy-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <!-- Fallback if logo not found -->
-                        <div class="flex items-center space-x-2" style="display: none;">
-                            <div class="w-10 h-10 bg-fleetzy-green rounded-lg flex items-center justify-center shadow-lg">
+                        <div class="flex items-center space-x-3" style="display: none;">
+                            <div class="w-11 h-11 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-xl shadow-emerald-500/30">
                                 <i class="fas fa-road text-white text-lg"></i>
                             </div>
                             <div>
-                                <span class="text-2xl font-bold text-gray-900 dark:text-white">Fleetzy</span>
-                                <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">Admin</span>
+                                <span class="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent">Fleetzy</span>
+                                <span class="ml-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Admin</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="flex items-center space-x-4">
+
+                <div class="flex items-center space-x-3">
                     <!-- Dark Mode Toggle -->
-                    <button onclick="toggleDarkMode()" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
-                        <i class="fas fa-moon dark:hidden text-xl"></i>
-                        <i class="fas fa-sun hidden dark:inline text-xl"></i>
+                    <button onclick="toggleDarkMode()" class="icon-hover p-2.5 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-all">
+                        <i class="fas fa-moon dark:hidden text-lg"></i>
+                        <i class="fas fa-sun hidden dark:inline text-lg text-emerald-400"></i>
                     </button>
-                    
+
                     <!-- Notifications -->
-                    <button class="relative p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
-                        <i class="fas fa-bell text-xl"></i>
-                        <span id="notification-badge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <button class="icon-hover relative p-2.5 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl transition-all">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span id="notification-badge" class="absolute top-1.5 right-1.5 w-2 h-2 bg-gradient-to-br from-red-400 to-red-600 rounded-full animate-pulse shadow-lg shadow-red-500/50"></span>
                     </button>
-                    
+
                     <!-- Profile -->
-                    <div class="flex items-center space-x-3 pl-4 border-l border-gray-200 dark:border-gray-700">
-                        <img src="https://ui-avatars.com/api/?name=Adam&background=059669&color=fff" 
+                    <div class="flex items-center space-x-3 pl-4 border-l border-gray-200 dark:border-gray-700/50">
+                        <img src="https://ui-avatars.com/api/?name=Adam&background=10b981&color=fff"
                              class="profile-pic" alt="Profile">
                         <div class="hidden md:block">
-                            <div class="text-sm font-medium">Adam</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">Owner</div>
+                            <div class="text-sm font-semibold text-gray-900 dark:text-white">Adam</div>
+                            <div class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Owner</div>
                         </div>
                     </div>
                 </div>
@@ -192,80 +314,80 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <!-- Header Section -->
-        <div class="mb-8 flex items-center justify-between">
+        <div class="mb-10 flex items-center justify-between animate-slide-in">
             <div>
-                <h1 class="text-3xl font-bold">Dashboard</h1>
-                <p class="text-gray-500 dark:text-gray-400 mt-1">Welcome back! Here's what's happening with your fleet.</p>
+                <h1 class="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 bg-clip-text text-transparent">Dashboard</h1>
+                <p class="text-gray-600 dark:text-gray-300 mt-2 text-lg font-medium">Welcome back! Here's what's happening with your fleet.</p>
             </div>
-            <div class="text-right">
-                <p class="text-sm text-gray-500 dark:text-gray-400">Last updated</p>
-                <p class="text-sm font-semibold" id="last-updated">Just now <i class="fas fa-sync-alt text-xs ml-1"></i></p>
+            <div class="text-right glass-card px-6 py-4 rounded-2xl">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last updated</p>
+                <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-1 mono-num" id="last-updated">Just now <i class="fas fa-sync-alt text-xs ml-1"></i></p>
             </div>
         </div>
 
         <!-- Key Metrics Cards - 4 IN A ROW -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-slide-in">
-            
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 animate-slide-in">
+
             <!-- Total Vehicles -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer">
+            <div class="premium-card rounded-2xl shadow-xl p-7 cursor-pointer group">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Vehicles</p>
-                        <p class="text-3xl font-bold mt-2" id="total-vehicles">0</p>
-                        <p class="text-sm text-green-600 dark:text-green-400 mt-2">
-                            <i class="fas fa-arrow-up mr-1"></i><span id="vehicles-growth">+0 this month</span>
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Total Vehicles</p>
+                        <p class="text-4xl font-black text-gray-900 dark:text-white mono-num mb-3" id="total-vehicles">0</p>
+                        <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400 flex items-center">
+                            <i class="fas fa-arrow-up mr-2 text-xs"></i><span id="vehicles-growth">+0 this month</span>
                         </p>
                     </div>
-                    <div class="bg-green-100 dark:bg-green-900/30 p-4 rounded-full">
-                        <i class="fas fa-car text-fleetzy-green text-2xl"></i>
+                    <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 p-5 rounded-2xl shadow-xl shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-car text-white text-3xl"></i>
                     </div>
                 </div>
             </div>
 
             <!-- Active Rentals -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer">
+            <div class="premium-card rounded-2xl shadow-xl p-7 cursor-pointer group">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active Rentals</p>
-                        <p class="text-3xl font-bold mt-2" id="active-rentals">0</p>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                            <span id="utilization-rate">0%</span> utilization
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Active Rentals</p>
+                        <p class="text-4xl font-black text-gray-900 dark:text-white mono-num mb-3" id="active-rentals">0</p>
+                        <p class="text-sm font-semibold text-gray-600 dark:text-gray-300 flex items-center mono-num">
+                            <span id="utilization-rate">0%</span><span class="ml-1">utilization</span>
                         </p>
                     </div>
-                    <div class="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full">
-                        <i class="fas fa-key text-blue-600 dark:text-blue-400 text-2xl"></i>
+                    <div class="bg-gradient-to-br from-blue-400 to-blue-600 p-5 rounded-2xl shadow-xl shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-key text-white text-3xl"></i>
                     </div>
                 </div>
             </div>
 
             <!-- Monthly Revenue -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer">
+            <div class="premium-card rounded-2xl shadow-xl p-7 cursor-pointer group">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Revenue</p>
-                        <p class="text-3xl font-bold mt-2" id="monthly-revenue">$0</p>
-                        <p class="text-sm text-green-600 dark:text-green-400 mt-2">
-                            <i class="fas fa-arrow-up mr-1"></i><span id="revenue-growth">+0% vs last month</span>
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Monthly Revenue</p>
+                        <p class="text-4xl font-black text-gray-900 dark:text-white mono-num mb-3" id="monthly-revenue">$0</p>
+                        <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400 flex items-center">
+                            <i class="fas fa-arrow-up mr-2 text-xs"></i><span id="revenue-growth">+0% vs last month</span>
                         </p>
                     </div>
-                    <div class="bg-green-100 dark:bg-green-900/30 p-4 rounded-full">
-                        <i class="fas fa-dollar-sign text-green-600 dark:text-green-400 text-2xl"></i>
+                    <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 p-5 rounded-2xl shadow-xl shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-dollar-sign text-white text-3xl"></i>
                     </div>
                 </div>
             </div>
 
             <!-- Outstanding Payments -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow cursor-pointer">
+            <div class="premium-card rounded-2xl shadow-xl p-7 cursor-pointer group">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Outstanding</p>
-                        <p class="text-3xl font-bold mt-2" id="outstanding-amount">$0</p>
-                        <p class="text-sm text-orange-600 dark:text-orange-400 mt-2">
-                            <i class="fas fa-clock mr-1"></i><span id="overdue-count">0</span> overdue
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Outstanding</p>
+                        <p class="text-4xl font-black text-gray-900 dark:text-white mono-num mb-3" id="outstanding-amount">$0</p>
+                        <p class="text-sm font-semibold text-orange-600 dark:text-orange-400 flex items-center">
+                            <i class="fas fa-clock mr-2 text-xs"></i><span id="overdue-count" class="mono-num">0</span><span class="ml-1">overdue</span>
                         </p>
                     </div>
-                    <div class="bg-orange-100 dark:bg-orange-900/30 p-4 rounded-full">
-                        <i class="fas fa-exclamation-triangle text-orange-600 dark:text-orange-400 text-2xl"></i>
+                    <div class="bg-gradient-to-br from-orange-400 to-orange-600 p-5 rounded-2xl shadow-xl shadow-orange-500/30 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-exclamation-triangle text-white text-3xl"></i>
                     </div>
                 </div>
             </div>
@@ -278,59 +400,69 @@
             <div class="lg:col-span-2 space-y-8">
                 
                 <!-- PENDING APPLICATIONS -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                <div class="premium-card rounded-2xl shadow-xl overflow-hidden">
+                    <div class="p-7 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent">
                         <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-bold">
-                                <i class="fas fa-user-clock text-fleetzy-green mr-2"></i>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/30">
+                                    <i class="fas fa-user-clock text-white text-lg"></i>
+                                </div>
                                 Pending Applications
                             </h2>
-                            <span id="pending-apps-badge" class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-3 py-1 rounded-full text-sm font-semibold">0 New</span>
+                            <span id="pending-apps-badge" class="status-badge bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30 mono-num">0 New</span>
                         </div>
                     </div>
-                    <div id="pending-applications-list" class="divide-y divide-gray-100 dark:divide-gray-700">
-                        <div class="p-8 text-center text-gray-500">
-                            <i class="fas fa-inbox text-4xl mb-2"></i>
-                            <p>No pending applications</p>
+                    <div id="pending-applications-list" class="divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                        <div class="p-12 text-center text-gray-500 dark:text-gray-400">
+                            <div class="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-inbox text-5xl text-gray-400 dark:text-gray-600"></i>
+                            </div>
+                            <p class="text-lg font-semibold">No pending applications</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- FLEET OVERVIEW -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                <div class="premium-card rounded-2xl shadow-xl overflow-hidden">
+                    <div class="p-7 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent">
                         <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-bold flex items-center">
-                                <i class="fas fa-car-side text-fleetzy-green text-2xl mr-3"></i>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/30">
+                                    <i class="fas fa-car-side text-white text-lg"></i>
+                                </div>
                                 Fleet Overview
                             </h2>
-                            <button onclick="openModal('add-vehicle')" class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <button onclick="openModal('add-vehicle')" class="emerald-gradient text-white px-6 py-3 rounded-xl font-bold transition-all hover:scale-105">
                                 <i class="fas fa-plus mr-2"></i>Add Vehicle
                             </button>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6" id="fleet-overview-grid">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-7" id="fleet-overview-grid">
                         <!-- Fleet cards will be populated here -->
-                        <div class="col-span-2 py-8 text-center text-gray-500">
-                            <i class="fas fa-car text-4xl mb-2"></i>
-                            <p>No vehicles in fleet yet</p>
+                        <div class="col-span-2 py-12 text-center text-gray-500 dark:text-gray-400">
+                            <div class="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-car text-6xl text-gray-400 dark:text-gray-600"></i>
+                            </div>
+                            <p class="text-lg font-semibold">No vehicles in fleet yet</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- ACTIVE RENTALS TABLE -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                <div class="premium-card rounded-2xl shadow-xl overflow-hidden">
+                    <div class="p-7 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent">
                         <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-bold">
-                                <i class="fas fa-list text-fleetzy-green mr-2"></i>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/30">
+                                    <i class="fas fa-list text-white text-lg"></i>
+                                </div>
                                 Active Rentals
                             </h2>
-                            <div class="flex items-center space-x-2">
-                                <input type="text" placeholder="Search customer..." 
-                                       class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700">
-                                <button class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                            <div class="flex items-center space-x-3">
+                                <input type="text" placeholder="Search customer..."
+                                       class="px-5 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm font-medium focus:border-emerald-500 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all">
+                                <button class="emerald-gradient text-white px-5 py-2.5 rounded-xl font-bold transition-all hover:scale-105 text-sm">
                                     <i class="fas fa-filter"></i>
                                 </button>
                             </div>
@@ -338,21 +470,23 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full">
-                            <thead class="bg-gray-50 dark:bg-gray-700/50">
+                            <thead class="bg-gradient-to-r from-gray-50/50 via-emerald-50/30 to-gray-50/50 dark:from-gray-800/50 dark:via-emerald-900/20 dark:to-gray-800/50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vehicle</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rate</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Next Payment</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Customer</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Vehicle</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Rate</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Next Payment</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="active-rentals-body" class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody id="active-rentals-body" class="divide-y divide-gray-200/50 dark:divide-gray-700/50">
                                 <tr>
-                                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                                        <i class="fas fa-inbox text-4xl mb-2"></i>
-                                        <p>No active rentals</p>
+                                    <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                        <div class="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <i class="fas fa-inbox text-5xl text-gray-400 dark:text-gray-600"></i>
+                                        </div>
+                                        <p class="text-lg font-semibold">No active rentals</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -361,130 +495,132 @@
                 </div>
 
                 <!-- REPORTS & ANALYTICS -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <div class="p-6 border-b border-gray-100 dark:border-gray-700">
+                <div class="premium-card rounded-2xl shadow-xl overflow-hidden">
+                    <div class="p-7 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent">
                         <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-bold">
-                                <i class="fas fa-chart-bar text-fleetzy-green mr-2"></i>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/30">
+                                    <i class="fas fa-chart-bar text-white text-lg"></i>
+                                </div>
                                 Reports & Analytics
                             </h2>
-                            <button class="text-sm text-fleetzy-green font-medium hover:text-green-700">
-                                <i class="fas fa-external-link-alt mr-1"></i>Full Reports
+                            <button class="text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+                                <i class="fas fa-external-link-alt mr-2"></i>Full Reports
                             </button>
                         </div>
                     </div>
                     
                     <!-- Report Cards Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
-                        
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-7">
+
                         <!-- Financial Report Card -->
-                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
-                                    <i class="fas fa-dollar-sign text-green-600 dark:text-green-400 text-xl"></i>
+                        <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-all cursor-pointer group">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 p-4 rounded-xl shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-dollar-sign text-white text-2xl"></i>
                                 </div>
-                                <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                    <i class="fas fa-download"></i>
+                                <button class="text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                                    <i class="fas fa-download text-lg"></i>
                                 </button>
                             </div>
-                            <h3 class="font-semibold text-sm mb-1">Financial Report</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Revenue, expenses, profit/loss</p>
-                            <div class="space-y-2 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">This Month:</span>
-                                    <span class="font-semibold text-green-600 dark:text-green-400" id="report-revenue">$0</span>
+                            <h3 class="font-bold text-base mb-2 text-gray-900 dark:text-white">Financial Report</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 font-medium">Revenue, expenses, profit/loss</p>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">This Month:</span>
+                                    <span class="font-bold text-emerald-600 dark:text-emerald-400 mono-num" id="report-revenue">$0</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Expenses:</span>
-                                    <span class="font-semibold text-red-600 dark:text-red-400" id="report-expenses">$0</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Expenses:</span>
+                                    <span class="font-bold text-red-600 dark:text-red-400 mono-num" id="report-expenses">$0</span>
                                 </div>
-                                <div class="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2">
-                                    <span class="text-gray-500 dark:text-gray-400">Net Profit:</span>
-                                    <span class="font-bold text-fleetzy-green" id="report-profit">$0</span>
+                                <div class="flex justify-between items-center border-t-2 border-gray-200/50 dark:border-gray-700/50 pt-3 mt-3">
+                                    <span class="text-gray-600 dark:text-gray-400 font-bold">Net Profit:</span>
+                                    <span class="font-black text-emerald-600 dark:text-emerald-400 mono-num" id="report-profit">$0</span>
                                 </div>
                             </div>
-                            <button class="w-full mt-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                                <i class="fas fa-chart-line mr-1"></i>View Details
+                            <button class="w-full mt-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all">
+                                <i class="fas fa-chart-line mr-2"></i>View Details
                             </button>
                         </div>
 
                         <!-- Fleet Performance Report Card -->
-                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
-                                    <i class="fas fa-tachometer-alt text-blue-600 dark:text-blue-400 text-xl"></i>
+                        <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-all cursor-pointer group">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="bg-gradient-to-br from-blue-400 to-blue-600 p-4 rounded-xl shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-tachometer-alt text-white text-2xl"></i>
                                 </div>
-                                <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                    <i class="fas fa-download"></i>
+                                <button class="text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                    <i class="fas fa-download text-lg"></i>
                                 </button>
                             </div>
-                            <h3 class="font-semibold text-sm mb-1">Fleet Performance</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Utilization, profitability</p>
-                            <div class="space-y-2 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Utilization:</span>
-                                    <span class="font-semibold" id="report-utilization">0%</span>
+                            <h3 class="font-bold text-base mb-2 text-gray-900 dark:text-white">Fleet Performance</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 font-medium">Utilization, profitability</p>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Utilization:</span>
+                                    <span class="font-bold text-gray-900 dark:text-white mono-num" id="report-utilization">0%</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Avg/Vehicle:</span>
-                                    <span class="font-semibold" id="report-avg-per-vehicle">$0/mo</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Avg/Vehicle:</span>
+                                    <span class="font-bold text-gray-900 dark:text-white mono-num" id="report-avg-per-vehicle">$0/mo</span>
                                 </div>
-                                <div class="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2">
-                                    <span class="text-gray-500 dark:text-gray-400">Top Earner:</span>
-                                    <span class="font-bold text-blue-600 dark:text-blue-400" id="report-top-earner">-</span>
+                                <div class="flex justify-between items-center border-t-2 border-gray-200/50 dark:border-gray-700/50 pt-3 mt-3">
+                                    <span class="text-gray-600 dark:text-gray-400 font-bold">Top Earner:</span>
+                                    <span class="font-black text-blue-600 dark:text-blue-400 mono-num" id="report-top-earner">-</span>
                                 </div>
                             </div>
-                            <button class="w-full mt-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                                <i class="fas fa-chart-line mr-1"></i>View Details
+                            <button class="w-full mt-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all">
+                                <i class="fas fa-chart-line mr-2"></i>View Details
                             </button>
                         </div>
 
                         <!-- Customer Insights Report Card -->
-                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-lg">
-                                    <i class="fas fa-users text-purple-600 dark:text-purple-400 text-xl"></i>
+                        <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-all cursor-pointer group">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="bg-gradient-to-br from-purple-400 to-purple-600 p-4 rounded-xl shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-users text-white text-2xl"></i>
                                 </div>
-                                <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                    <i class="fas fa-download"></i>
+                                <button class="text-gray-400 dark:text-gray-500 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                                    <i class="fas fa-download text-lg"></i>
                                 </button>
                             </div>
-                            <h3 class="font-semibold text-sm mb-1">Customer Insights</h3>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Retention, satisfaction scores</p>
-                            <div class="space-y-2 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Total Customers:</span>
-                                    <span class="font-semibold" id="report-total-customers">0</span>
+                            <h3 class="font-bold text-base mb-2 text-gray-900 dark:text-white">Customer Insights</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4 font-medium">Retention, satisfaction scores</p>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Total Customers:</span>
+                                    <span class="font-bold text-gray-900 dark:text-white mono-num" id="report-total-customers">0</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Active Now:</span>
-                                    <span class="font-semibold" id="report-active-customers">0</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 dark:text-gray-400 font-medium">Active Now:</span>
+                                    <span class="font-bold text-gray-900 dark:text-white mono-num" id="report-active-customers">0</span>
                                 </div>
-                                <div class="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-2">
-                                    <span class="text-gray-500 dark:text-gray-400">Avg Score:</span>
-                                    <span class="font-bold text-purple-600 dark:text-purple-400" id="report-avg-score">-</span>
+                                <div class="flex justify-between items-center border-t-2 border-gray-200/50 dark:border-gray-700/50 pt-3 mt-3">
+                                    <span class="text-gray-600 dark:text-gray-400 font-bold">Avg Score:</span>
+                                    <span class="font-black text-purple-600 dark:text-purple-400 mono-num" id="report-avg-score">-</span>
                                 </div>
                             </div>
-                            <button class="w-full mt-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                                <i class="fas fa-chart-line mr-1"></i>View Details
+                            <button class="w-full mt-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-600 dark:hover:text-purple-400 transition-all">
+                                <i class="fas fa-chart-line mr-2"></i>View Details
                             </button>
                         </div>
 
                     </div>
 
                     <!-- Time Range Selector -->
-                    <div class="p-6 border-t border-gray-100 dark:border-gray-700">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <button class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
+                    <div class="p-7 border-t border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <button class="glass-card text-gray-700 dark:text-gray-300 px-5 py-3 rounded-xl hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all text-sm font-bold hover:scale-105">
                                 <i class="fas fa-calendar-alt mr-2"></i>This Month
                             </button>
-                            <button class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
+                            <button class="glass-card text-gray-700 dark:text-gray-300 px-5 py-3 rounded-xl hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all text-sm font-bold hover:scale-105">
                                 <i class="fas fa-calendar-week mr-2"></i>This Week
                             </button>
-                            <button class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm">
+                            <button class="glass-card text-gray-700 dark:text-gray-300 px-5 py-3 rounded-xl hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all text-sm font-bold hover:scale-105">
                                 <i class="fas fa-calendar-day mr-2"></i>Today
                             </button>
-                            <button class="bg-fleetzy-green text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                            <button class="emerald-gradient text-white px-5 py-3 rounded-xl transition-all text-sm font-bold hover:scale-105">
                                 <i class="fas fa-sliders-h mr-2"></i>Custom
                             </button>
                         </div>
@@ -497,61 +633,74 @@
             <div class="space-y-6">
                 
                 <!-- Quick Actions -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-                    <h3 class="font-semibold mb-4">
-                        <i class="fas fa-bolt text-fleetzy-green mr-2"></i>Quick Actions
+                <div class="premium-card rounded-2xl shadow-xl p-7">
+                    <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-5 flex items-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/30">
+                            <i class="fas fa-bolt text-white text-sm"></i>
+                        </div>
+                        Quick Actions
                     </h3>
                     <div class="space-y-3">
-                        <button onclick="openModal('add-vehicle')" class="w-full bg-fleetzy-green text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors text-left">
-                            <i class="fas fa-plus mr-2"></i>Add New Vehicle
+                        <button onclick="openModal('add-vehicle')" class="w-full emerald-gradient text-white px-5 py-3.5 rounded-xl hover:scale-105 transition-all text-left font-bold shadow-lg">
+                            <i class="fas fa-plus mr-3"></i>Add New Vehicle
                         </button>
-                        <button onclick="openModal('add-customer')" class="w-full bg-fleetzy-blue text-white px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors text-left">
-                            <i class="fas fa-user-plus mr-2"></i>Add Customer
+                        <button onclick="openModal('add-customer')" class="w-full bg-gradient-to-br from-slate-500 to-slate-700 text-white px-5 py-3.5 rounded-xl hover:scale-105 transition-all text-left font-bold shadow-lg shadow-slate-500/30">
+                            <i class="fas fa-user-plus mr-3"></i>Add Customer
                         </button>
-                        <button onclick="showToast('Record Payment feature coming soon!', 'info')" class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-left">
-                            <i class="fas fa-dollar-sign mr-2"></i>Record Payment
+                        <button onclick="showToast('Record Payment feature coming soon!', 'info')" class="w-full glass-card text-gray-700 dark:text-gray-300 px-5 py-3.5 rounded-xl hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all text-left font-bold">
+                            <i class="fas fa-dollar-sign mr-3"></i>Record Payment
                         </button>
-                        <button onclick="showToast('View Reports feature coming soon!', 'info')" class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-left">
-                            <i class="fas fa-file-invoice mr-2"></i>View Reports
+                        <button onclick="showToast('View Reports feature coming soon!', 'info')" class="w-full glass-card text-gray-700 dark:text-gray-300 px-5 py-3.5 rounded-xl hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all text-left font-bold">
+                            <i class="fas fa-file-invoice mr-3"></i>View Reports
                         </button>
-                        <button onclick="showToast('Inspections feature coming soon!', 'info')" class="w-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-4 py-3 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors text-left">
-                            <i class="fas fa-clipboard-check mr-2"></i>Inspections
+                        <button onclick="showToast('Inspections feature coming soon!', 'info')" class="w-full bg-gradient-to-br from-purple-400 to-purple-600 text-white px-5 py-3.5 rounded-xl hover:scale-105 transition-all text-left font-bold shadow-lg shadow-purple-500/30">
+                            <i class="fas fa-clipboard-check mr-3"></i>Inspections
                         </button>
                     </div>
                 </div>
 
                 <!-- Recent Activity -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-                    <h3 class="font-semibold mb-4">
-                        <i class="fas fa-history text-fleetzy-green mr-2"></i>Recent Activity
+                <div class="premium-card rounded-2xl shadow-xl p-7">
+                    <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-5 flex items-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-blue-500/30">
+                            <i class="fas fa-history text-white text-sm"></i>
+                        </div>
+                        Recent Activity
                     </h3>
                     <div id="recent-activity" class="space-y-4">
-                        <p class="text-sm text-gray-500 text-center py-4">No recent activity</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-6 font-medium">No recent activity</p>
                     </div>
                 </div>
 
                 <!-- Upcoming Maintenance -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-                    <h3 class="font-semibold mb-4">
-                        <i class="fas fa-calendar-check text-fleetzy-green mr-2"></i>Upcoming Maintenance
+                <div class="premium-card rounded-2xl shadow-xl p-7">
+                    <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-5 flex items-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-orange-500/30">
+                            <i class="fas fa-calendar-check text-white text-sm"></i>
+                        </div>
+                        Upcoming Maintenance
                     </h3>
                     <div id="upcoming-maintenance" class="space-y-3">
-                        <p class="text-sm text-gray-500 text-center py-4">No maintenance scheduled</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-6 font-medium">No maintenance scheduled</p>
                     </div>
                 </div>
 
                 <!-- Mechanic Portal -->
-                <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl shadow-sm p-6 text-white">
-                    <h3 class="font-semibold mb-2">
-                        <i class="fas fa-tools mr-2"></i>Mechanic Portal
-                    </h3>
-                    <p class="text-sm text-purple-100 mb-4">Share this link with Triple 7 Roadside</p>
-                    <div class="flex items-center space-x-2 bg-white/20 rounded-lg p-3 mb-3">
-                        <input type="text" value="getfleetzy.com/mechanic" readonly 
-                               class="flex-1 bg-transparent text-white text-sm outline-none">
-                        <button onclick="copyMechanicLink()" class="bg-white text-purple-700 px-3 py-1 rounded text-sm font-medium hover:bg-purple-100 transition-colors">
-                            Copy
-                        </button>
+                <div class="bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 rounded-2xl shadow-2xl shadow-purple-500/30 p-7 text-white overflow-hidden relative">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12"></div>
+                    <div class="relative z-10">
+                        <h3 class="font-bold text-lg mb-2 flex items-center">
+                            <i class="fas fa-tools mr-3 text-xl"></i>Mechanic Portal
+                        </h3>
+                        <p class="text-sm text-purple-100 mb-5 font-medium">Share this link with Triple 7 Roadside</p>
+                        <div class="flex items-center space-x-3 bg-white/20 backdrop-blur-sm rounded-xl p-4 mb-3 border border-white/30">
+                            <input type="text" value="getfleetzy.com/mechanic" readonly
+                                   class="flex-1 bg-transparent text-white text-sm outline-none font-mono font-semibold">
+                            <button onclick="copyMechanicLink()" class="bg-white text-purple-700 px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-50 transition-all hover:scale-105 shadow-lg">
+                                Copy
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1003,18 +1152,20 @@
      ======================================== -->
 
 <!-- Modal Backdrop -->
-<div id="modal-add-vehicle" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+<div id="modal-add-vehicle" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <!-- Modal Container -->
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        
+    <div class="premium-card rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-in">
+
         <!-- Modal Header -->
-        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                <i class="fas fa-car text-fleetzy-green mr-3"></i>
+        <div class="flex items-center justify-between p-7 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent">
+            <h2 class="text-3xl font-black text-gray-900 dark:text-white flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mr-4 shadow-lg shadow-emerald-500/30">
+                    <i class="fas fa-car text-white text-xl"></i>
+                </div>
                 Add New Vehicle
             </h2>
-            <button onclick="closeModal('add-vehicle')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                <i class="fas fa-times text-xl"></i>
+            <button onclick="closeModal('add-vehicle')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all hover:rotate-90 p-2">
+                <i class="fas fa-times text-2xl"></i>
             </button>
         </div>
         
@@ -1023,12 +1174,14 @@
             <form id="form-add-vehicle" class="space-y-6">
                 
                 <!-- SECTION: Vehicle Photo -->
-                <div class="border-b border-gray-200 dark:border-gray-700 pb-4">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center mb-4">
-                        <i class="fas fa-camera text-fleetzy-green mr-2"></i>
+                <div class="border-b border-gray-200/50 dark:border-gray-700/50 pb-6">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center mb-5">
+                        <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/30">
+                            <i class="fas fa-camera text-white text-sm"></i>
+                        </div>
                         Vehicle Photo
                     </h3>
-                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-fleetzy-green transition-colors">
+                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 text-center hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 transition-all">
                         <input type="file" 
                                id="vehicle-photo-input" 
                                accept="image/*" 
@@ -1060,9 +1213,11 @@
 
                 <!-- SECTION: Basic Details -->
                 <div>
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                            <i class="fas fa-info-circle text-fleetzy-green mr-2"></i>
+                    <div class="border-b border-gray-200/50 dark:border-gray-700/50 pb-3 mb-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/30">
+                                <i class="fas fa-info-circle text-white text-sm"></i>
+                            </div>
                             Basic Details
                         </h3>
                     </div>
@@ -1070,59 +1225,59 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Friendly Name (REQUIRED) -->
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                                 Vehicle Name *
-                                <span class="text-xs text-gray-500 ml-2">(e.g., "Silver Camry" or "Red Civic")</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 font-medium">(e.g., "Silver Camry" or "Red Civic")</span>
                             </label>
-                            <input type="text" 
-                                   name="friendly_name" 
+                            <input type="text"
+                                   name="friendly_name"
                                    required
                                    placeholder="e.g., Silver Camry"
-                                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
+                                   class="w-full px-5 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium">
                         </div>
 
                         <!-- Year -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                                 Year *
                             </label>
                             <select name="year" required
-                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
+                                    class="w-full px-5 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium">
                                 <option value="">Select Year...</option>
                             </select>
                         </div>
 
                         <!-- Make -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                                 Make *
                             </label>
-                            <input type="text" 
-                                   name="make" 
+                            <input type="text"
+                                   name="make"
                                    required
                                    placeholder="e.g., Toyota"
-                                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
+                                   class="w-full px-5 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium">
                         </div>
 
                         <!-- Model -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                                 Model *
                             </label>
-                            <input type="text" 
-                                   name="model" 
+                            <input type="text"
+                                   name="model"
                                    required
                                    placeholder="e.g., Camry"
-                                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
+                                   class="w-full px-5 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium">
                         </div>
 
                         <!-- Color -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                                 Color
                             </label>
                             <select name="color"
-                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
+                                    class="w-full px-5 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium">
                                 <option value="">Select Color...</option>
                                 <option value="White">White</option>
                                 <option value="Black">Black</option>
@@ -1137,18 +1292,18 @@
 
                         <!-- VIN -->
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                                 VIN *
-                                <span class="text-xs text-gray-500 ml-2">(17 characters, unique)</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 ml-2 font-medium">(17 characters, unique)</span>
                             </label>
-                            <input type="text" 
-                                   name="vin" 
+                            <input type="text"
+                                   name="vin"
                                    required
                                    maxlength="17"
                                    minlength="17"
                                    placeholder="e.g., 1HGCM82633A123456"
                                    oninput="validateVIN(this)"
-                                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-fleetzy-green focus:border-transparent uppercase">
+                                   class="w-full px-5 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-mono font-semibold uppercase">
                             <p id="vin-error" class="hidden text-sm text-red-600 dark:text-red-400 mt-1">
                                 <i class="fas fa-exclamation-circle mr-1"></i>VIN must be exactly 17 characters
                             </p>
@@ -1159,22 +1314,22 @@
 
                         <!-- License Plate -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                                 License Plate
                             </label>
-                            <input type="text" 
+                            <input type="text"
                                    name="license_plate"
                                    placeholder="e.g., ABC-1234"
-                                   class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-fleetzy-green focus:border-transparent uppercase">
+                                   class="w-full px-5 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-mono font-semibold uppercase">
                         </div>
 
                         <!-- Condition -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                                 Condition
                             </label>
                             <select name="condition"
-                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-fleetzy-green focus:border-transparent">
+                                    class="w-full px-5 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-medium">
                                 <option value="">Select Condition...</option>
                                 <option value="Excellent">Excellent</option>
                                 <option value="Good" selected>Good</option>
@@ -1186,9 +1341,11 @@
 
                 <!-- SECTION: Mileage Info -->
                 <div>
-                    <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                            <i class="fas fa-tachometer-alt text-fleetzy-green mr-2"></i>
+                    <div class="border-b border-gray-200/50 dark:border-gray-700/50 pb-3 mb-6">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/30">
+                                <i class="fas fa-tachometer-alt text-white text-sm"></i>
+                            </div>
                             Mileage Info
                         </h3>
                     </div>
