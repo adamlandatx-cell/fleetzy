@@ -2543,3 +2543,320 @@ img {
         grid-column: span 1;
     }
 }
+
+/* ============================================
+   PAYMENTS MODULE STYLES
+   ============================================ */
+
+/* Payment status badges */
+.status-payment-pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--accent-amber);
+}
+
+.status-payment-confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green);
+}
+
+.status-payment-failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+}
+
+/* Payment method badges */
+.method-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.method-zelle {
+    background: rgba(130, 71, 229, 0.15);
+    color: #8247e5;
+}
+
+.method-cashapp {
+    background: rgba(0, 200, 83, 0.15);
+    color: #00c853;
+}
+
+.method-venmo {
+    background: rgba(0, 140, 211, 0.15);
+    color: #008cd3;
+}
+
+.method-paypal {
+    background: rgba(0, 48, 135, 0.15);
+    color: #003087;
+}
+
+.light .method-paypal {
+    background: rgba(0, 48, 135, 0.1);
+    color: #003087;
+}
+
+.method-stripe {
+    background: rgba(99, 91, 255, 0.15);
+    color: #635bff;
+}
+
+.method-cash {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green);
+}
+
+.method-check {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+}
+
+.method-card {
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--accent-purple);
+}
+
+.method-other,
+.method-unknown {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--text-secondary);
+}
+
+/* Amount cell with late indicator */
+.amount-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.amount-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.late-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+    font-size: 10px;
+}
+
+/* Rental reference badge */
+.rental-ref {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+/* Screenshot preview in modal */
+.screenshot-preview {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+}
+
+.screenshot-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: transform var(--transition-fast);
+}
+
+.screenshot-preview img:hover {
+    transform: scale(1.02);
+}
+
+.screenshot-hint {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 8px;
+}
+
+/* Late alert section */
+.late-alert {
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.late-alert h4 {
+    color: var(--accent-red);
+}
+
+.late-alert h4 i {
+    color: var(--accent-red) !important;
+}
+
+.text-warning {
+    color: var(--accent-amber) !important;
+}
+
+/* Screenshot fullscreen modal */
+#modal-screenshot .modal-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    background: transparent;
+    box-shadow: none;
+}
+
+#modal-screenshot .modal-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+}
+
+#screenshot-fullscreen-img {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+}
+
+#modal-screenshot .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-card-solid);
+    color: var(--text-primary);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: 10;
+    transition: all var(--transition-fast);
+}
+
+#modal-screenshot .modal-close:hover {
+    background: var(--accent-red);
+    color: white;
+}
+
+/* New payment form */
+.payment-summary {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.payment-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.payment-summary-row:last-child {
+    border-bottom: none;
+}
+
+.payment-summary-label {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.payment-summary-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Screenshot upload preview */
+#new-payment-screenshot-preview {
+    margin-top: 12px;
+    display: none;
+}
+
+#new-payment-screenshot-preview img {
+    max-width: 100%;
+    max-height: 150px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+}
+
+/* Danger icon button */
+.btn-icon.danger {
+    color: var(--accent-red);
+}
+
+.btn-icon.danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+/* Export button */
+.btn-export {
+    background: transparent;
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all var(--transition-fast);
+}
+
+.btn-export:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+}
+
+/* Mini stat overdue highlight */
+.mini-stat.overdue {
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.mini-stat.overdue .mini-stat-icon {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+}
+
+/* Responsive payment table */
+@media (max-width: 1024px) {
+    .method-badge span {
+        display: none;
+    }
+    
+    .method-badge {
+        padding: 6px;
+    }
+}
+
+@media (max-width: 768px) {
+    .amount-cell {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
