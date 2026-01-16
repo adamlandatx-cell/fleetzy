@@ -1895,11 +1895,11 @@
              REPORTS SECTION (Placeholder)
         ============================================ -->
         <section id="section-reports" class="content-section" style="display: none;">
-            <div class="card">
-                <div class="card-body" style="padding: 60px; text-align: center;">
-                    <i class="fas fa-chart-line" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
-                    <h3 style="margin-bottom: 8px;">Reports Tab</h3>
-                    <p style="color: var(--text-secondary);">Analytics and reporting coming in next module.</p>
+            <!-- Reports content dynamically loaded by reports.js -->
+            <div class="reports-loading" style="display: flex; align-items: center; justify-content: center; min-height: 400px;">
+                <div style="text-align: center;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: var(--accent-green); margin-bottom: 16px;"></i>
+                    <p style="color: var(--text-secondary);">Loading reports...</p>
                 </div>
             </div>
         </section>
@@ -1944,6 +1944,7 @@
     <script src="js/customers.js"></script>
     <script src="js/rentals.js"></script>
     <script src="js/payments.js"></script>
+    <script src="js/reports.js"></script>
     
     <!-- Initialize App -->
     <script>
