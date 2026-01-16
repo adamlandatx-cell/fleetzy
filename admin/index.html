@@ -744,17 +744,413 @@
         </div>
 
         <!-- ============================================
-             CUSTOMERS SECTION (Placeholder)
+             CUSTOMERS SECTION
         ============================================ -->
         <section id="section-customers" class="content-section" style="display: none;">
+            
+            <!-- Customers Header -->
+            <div class="section-header">
+                <div class="section-header-left">
+                    <h2>Customer Management</h2>
+                    <p>Review applications, manage customer profiles</p>
+                </div>
+                <div class="section-header-right">
+                    <button class="btn btn-secondary" onclick="Customers.refresh()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Customers Stats -->
+            <div class="mini-stats-grid">
+                <div class="mini-stat">
+                    <div class="mini-stat-icon blue">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="customers-stat-total">0</div>
+                        <div class="mini-stat-label">Total Customers</div>
+                    </div>
+                </div>
+                <div class="mini-stat highlight">
+                    <div class="mini-stat-icon amber">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="customers-stat-pending">0</div>
+                        <div class="mini-stat-label">Pending Review</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="customers-stat-approved">0</div>
+                        <div class="mini-stat-label">Approved</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon purple">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="customers-stat-active">0</div>
+                        <div class="mini-stat-label">Active Renters</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Customers Table Card -->
             <div class="card">
-                <div class="card-body" style="padding: 60px; text-align: center;">
-                    <i class="fas fa-users" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
-                    <h3 style="margin-bottom: 8px;">Customers Tab</h3>
-                    <p style="color: var(--text-secondary);">Full customer management coming in next module.</p>
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-list"></i>
+                        All Customers
+                    </h2>
+                    <div class="card-filters">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="customers-search" placeholder="Search customers..." oninput="Customers.filter()">
+                        </div>
+                        <select id="customers-status-filter" class="filter-select" onchange="Customers.filter()">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body no-padding">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Contact</th>
+                                    <th>Status</th>
+                                    <th>Driver's License</th>
+                                    <th>Applied</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customers-table-body">
+                                <tr>
+                                    <td colspan="6" class="loading-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p>Loading customers...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
+
+        <!-- ============================================
+             REVIEW CUSTOMER MODAL
+        ============================================ -->
+        <div class="modal" id="modal-review-customer">
+            <div class="modal-backdrop" onclick="Customers.closeReviewModal()"></div>
+            <div class="modal-content modal-xl">
+                <div class="modal-header">
+                    <h3><i class="fas fa-clipboard-check"></i> Review Application</h3>
+                    <button class="modal-close" onclick="Customers.closeReviewModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="review-grid">
+                        <!-- Left Column: Info -->
+                        <div class="review-info">
+                            <div class="review-section">
+                                <h4><i class="fas fa-user"></i> Personal Information</h4>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <span class="info-label">Name</span>
+                                        <span class="info-value" id="review-customer-name">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Customer ID</span>
+                                        <span class="info-value" id="review-customer-id">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Phone</span>
+                                        <span class="info-value" id="review-customer-phone">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Email</span>
+                                        <span class="info-value" id="review-customer-email">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Date of Birth</span>
+                                        <span class="info-value" id="review-customer-dob">-</span>
+                                    </div>
+                                    <div class="info-item full-width">
+                                        <span class="info-label">Address</span>
+                                        <span class="info-value" id="review-customer-address">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="review-section">
+                                <h4><i class="fas fa-id-card"></i> Driver's License</h4>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <span class="info-label">License Number</span>
+                                        <span class="info-value" id="review-dl-number">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">State</span>
+                                        <span class="info-value" id="review-dl-state">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Expiration</span>
+                                        <span class="info-value" id="review-dl-expiry">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Background Check</span>
+                                        <span class="status-badge status-unknown" id="review-bg-status">Not Started</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="review-section" id="review-corporate-section" style="display: none;">
+                                <h4><i class="fas fa-building"></i> Corporate Information</h4>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <span class="info-label">Company</span>
+                                        <span class="info-value" id="review-company-name">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">HR Representative</span>
+                                        <span class="info-value" id="review-company-rep">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Company Phone</span>
+                                        <span class="info-value" id="review-company-phone">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Documents -->
+                        <div class="review-documents">
+                            <h4><i class="fas fa-file-image"></i> Uploaded Documents</h4>
+                            
+                            <div class="doc-grid">
+                                <div class="doc-item">
+                                    <span class="doc-label">Driver's License (Front)</span>
+                                    <div class="doc-preview" id="review-dl-front">
+                                        <div class="doc-placeholder">
+                                            <i class="fas fa-image"></i>
+                                            <span>Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="doc-item">
+                                    <span class="doc-label">Driver's License (Back)</span>
+                                    <div class="doc-preview" id="review-dl-back">
+                                        <div class="doc-placeholder">
+                                            <i class="fas fa-image"></i>
+                                            <span>Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="doc-item">
+                                    <span class="doc-label">Selfie Photo</span>
+                                    <div class="doc-preview" id="review-selfie">
+                                        <div class="doc-placeholder">
+                                            <i class="fas fa-image"></i>
+                                            <span>Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="doc-item" id="review-income-section">
+                                    <span class="doc-label">Income Proof</span>
+                                    <div class="doc-preview" id="review-income-proof">
+                                        <div class="doc-placeholder">
+                                            <i class="fas fa-image"></i>
+                                            <span>Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="review-actions">
+                    <button type="button" class="btn btn-secondary" onclick="Customers.closeReviewModal()">Close</button>
+                    <button type="button" class="btn btn-danger" onclick="Customers.openRejectModal(document.getElementById('modal-review-customer').dataset.customerId)">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="Customers.approve(document.getElementById('modal-review-customer').dataset.customerId, true)">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             REJECT CUSTOMER MODAL
+        ============================================ -->
+        <div class="modal" id="modal-reject-customer">
+            <div class="modal-backdrop" onclick="Customers.closeRejectModal()"></div>
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <h3><i class="fas fa-times-circle"></i> Reject Application</h3>
+                    <button class="modal-close" onclick="Customers.closeRejectModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-secondary" style="margin-bottom: 16px;">
+                        Are you sure you want to reject <strong id="reject-customer-name"></strong>'s application?
+                    </p>
+                    <div class="form-group">
+                        <label for="reject-reason">Reason for Rejection (optional)</label>
+                        <textarea id="reject-reason" rows="3" placeholder="Enter reason..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="Customers.closeRejectModal()">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="Customers.confirmReject()">
+                        <i class="fas fa-times"></i> Reject Application
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             EDIT CUSTOMER MODAL
+        ============================================ -->
+        <div class="modal" id="modal-edit-customer">
+            <div class="modal-backdrop" onclick="Customers.closeEditModal()"></div>
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h3><i class="fas fa-user-edit"></i> Edit Customer</h3>
+                    <button class="modal-close" onclick="Customers.closeEditModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="form-edit-customer" onsubmit="event.preventDefault(); Customers.update();">
+                    <input type="hidden" id="edit-customer-id">
+                    <div class="modal-body">
+                        <div class="form-grid">
+                            <!-- Customer ID -->
+                            <div class="form-group">
+                                <label for="edit-customer-display-id">Customer ID</label>
+                                <input type="text" id="edit-customer-display-id" readonly class="readonly">
+                            </div>
+                            
+                            <!-- First Name -->
+                            <div class="form-group">
+                                <label for="edit-customer-first-name">First Name <span class="required">*</span></label>
+                                <input type="text" id="edit-customer-first-name" required>
+                            </div>
+                            
+                            <!-- Last Name -->
+                            <div class="form-group">
+                                <label for="edit-customer-last-name">Last Name <span class="required">*</span></label>
+                                <input type="text" id="edit-customer-last-name" required>
+                            </div>
+                            
+                            <!-- Phone -->
+                            <div class="form-group">
+                                <label for="edit-customer-phone">Phone <span class="required">*</span></label>
+                                <input type="tel" id="edit-customer-phone" required>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="form-group">
+                                <label for="edit-customer-email">Email</label>
+                                <input type="email" id="edit-customer-email">
+                            </div>
+                            
+                            <!-- Date of Birth -->
+                            <div class="form-group">
+                                <label for="edit-customer-dob">Date of Birth</label>
+                                <input type="date" id="edit-customer-dob">
+                            </div>
+                            
+                            <!-- Address -->
+                            <div class="form-group full-width">
+                                <label for="edit-customer-address">Street Address</label>
+                                <input type="text" id="edit-customer-address">
+                            </div>
+                            
+                            <!-- City -->
+                            <div class="form-group">
+                                <label for="edit-customer-city">City</label>
+                                <input type="text" id="edit-customer-city">
+                            </div>
+                            
+                            <!-- State -->
+                            <div class="form-group">
+                                <label for="edit-customer-state">State</label>
+                                <input type="text" id="edit-customer-state" maxlength="2" placeholder="TX">
+                            </div>
+                            
+                            <!-- Zip -->
+                            <div class="form-group">
+                                <label for="edit-customer-zip">ZIP Code</label>
+                                <input type="text" id="edit-customer-zip" maxlength="10">
+                            </div>
+                            
+                            <!-- DL Number -->
+                            <div class="form-group">
+                                <label for="edit-customer-dl-number">Driver's License Number</label>
+                                <input type="text" id="edit-customer-dl-number">
+                            </div>
+                            
+                            <!-- DL State -->
+                            <div class="form-group">
+                                <label for="edit-customer-dl-state">DL State</label>
+                                <input type="text" id="edit-customer-dl-state" maxlength="2" placeholder="TX">
+                            </div>
+                            
+                            <!-- DL Expiry -->
+                            <div class="form-group">
+                                <label for="edit-customer-dl-expiry">DL Expiration</label>
+                                <input type="date" id="edit-customer-dl-expiry">
+                            </div>
+                            
+                            <!-- Notes -->
+                            <div class="form-group full-width">
+                                <label for="edit-customer-notes">Notes</label>
+                                <textarea id="edit-customer-notes" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="Customers.closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Customer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================
+             IMAGE VIEWER MODAL
+        ============================================ -->
+        <div class="modal" id="modal-image-viewer">
+            <div class="modal-backdrop" onclick="Customers.closeImageModal()"></div>
+            <div class="modal-content modal-image-viewer">
+                <button class="modal-close" onclick="Customers.closeImageModal()" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="image-viewer-content">
+                    <img src="" alt="Document Preview">
+                </div>
+            </div>
+        </div>
 
         <!-- ============================================
              RENTALS SECTION (Placeholder)
@@ -832,6 +1228,7 @@
     <script src="js/sidebar.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/vehicles.js"></script>
+    <script src="js/customers.js"></script>
     
     <!-- Initialize App -->
     <script>
