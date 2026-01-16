@@ -2403,3 +2403,143 @@ img {
 .text-secondary {
     color: var(--text-secondary);
 }
+1px solid var(--border-subtle);
+}
+
+.detail-section.full-width {
+    grid-column: span 2;
+}
+
+.detail-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-section h4 i {
+    color: var(--accent-green);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.detail-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    text-align: right;
+}
+
+.notes-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+/* Success button */
+.btn-success {
+    background: var(--accent-green);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-success:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+/* Warning button */
+.btn-warning {
+    background: var(--accent-amber);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+}
+
+/* Icon button variations */
+.btn-icon.success {
+    color: var(--accent-green);
+}
+
+.btn-icon.success:hover {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.btn-icon.warning {
+    color: var(--accent-amber);
+}
+
+.btn-icon.warning:hover {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+/* Modal message */
+.modal-message {
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+
+.modal-message strong {
+    color: var(--text-primary);
+}
+
+/* Required field indicator */
+.required {
+    color: var(--accent-red);
+}
+
+/* Input readonly styling */
+.input-readonly {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-secondary) !important;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments for detail grid */
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-section.full-width {
+        grid-column: span 1;
+    }
+}
