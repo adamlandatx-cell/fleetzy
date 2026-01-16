@@ -1,1 +1,882 @@
-temp
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleetzy Admin</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Dashboard Styles -->
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <!-- Ambient Background Glow -->
+    <div class="ambient-glow"></div>
+
+    <!-- ============================================
+         FLOATING SIDEBAR
+    ============================================ -->
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <i class="fas fa-road"></i>
+            </div>
+            <span class="logo-text">Fleetzy</span>
+        </div>
+        
+        <div class="sidebar-nav">
+            <div class="nav-item active" data-section="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" data-section="vehicles">
+                <i class="fas fa-car"></i>
+                <span>Vehicles</span>
+            </div>
+            <div class="nav-item" data-section="customers">
+                <i class="fas fa-users"></i>
+                <span>Customers</span>
+                <span class="badge" style="display: none;">0</span>
+            </div>
+            <div class="nav-item" data-section="rentals">
+                <i class="fas fa-file-contract"></i>
+                <span>Rentals</span>
+            </div>
+            <div class="nav-item" data-section="payments">
+                <i class="fas fa-credit-card"></i>
+                <span>Payments</span>
+            </div>
+            
+            <div class="nav-divider"></div>
+            
+            <div class="nav-item" data-section="reports">
+                <i class="fas fa-chart-line"></i>
+                <span>Reports</span>
+            </div>
+            <div class="nav-item" data-section="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================================
+         MAIN CONTENT
+    ============================================ -->
+    <main class="main-content">
+        
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Welcome back, Adam. Here's what's happening today.</p>
+            </div>
+            
+            <div class="top-actions">
+                <!-- Search -->
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search anything..." id="global-search">
+                    <kbd>⌘K</kbd>
+                </div>
+                
+                <!-- Theme Toggle -->
+                <button class="icon-btn" onclick="Theme.toggle()" title="Toggle theme">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+                
+                <!-- Notifications -->
+                <button class="icon-btn" onclick="toggleNotifications()" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge"></span>
+                </button>
+                
+                <!-- Profile -->
+                <div class="profile-btn" onclick="toggleProfileMenu()">
+                    <img src="https://ui-avatars.com/api/?name=Adam&background=10b981&color=fff&size=64" alt="Adam">
+                    <div class="profile-info">
+                        <div class="profile-name">Adam</div>
+                        <div class="profile-role">Owner</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ============================================
+             DASHBOARD SECTION
+        ============================================ -->
+        <section id="section-dashboard" class="content-section active">
+            
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card" style="opacity: 0;">
+                    <div class="stat-header">
+                        <span class="stat-label">Monthly Revenue</span>
+                        <div class="stat-icon green">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value gradient" id="stat-revenue">$0</div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        vs last month
+                    </span>
+                </div>
+                
+                <div class="stat-card" style="opacity: 0;">
+                    <div class="stat-header">
+                        <span class="stat-label">Active Rentals</span>
+                        <div class="stat-icon blue">
+                            <i class="fas fa-key"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="stat-rentals">0</div>
+                    <span class="stat-change neutral">
+                        <i class="fas fa-minus"></i>
+                        Current
+                    </span>
+                </div>
+                
+                <div class="stat-card" style="opacity: 0;">
+                    <div class="stat-header">
+                        <span class="stat-label">Fleet Utilization</span>
+                        <div class="stat-icon amber">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="stat-utilization">0%</div>
+                    <span class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        Target: 80%
+                    </span>
+                </div>
+                
+                <div class="stat-card" style="opacity: 0;">
+                    <div class="stat-header">
+                        <span class="stat-label">Pending Actions</span>
+                        <div class="stat-icon purple">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="stat-pending">0</div>
+                    <span class="stat-change negative" id="pending-change">
+                        <i class="fas fa-exclamation"></i>
+                        Need attention
+                    </span>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                
+                <!-- Left Column -->
+                <div class="dashboard-column">
+                    
+                    <!-- Revenue Chart -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-chart-area"></i>
+                                Revenue Overview
+                            </h2>
+                            <div class="card-actions">
+                                <button class="btn btn-ghost">Week</button>
+                                <button class="btn btn-ghost active">Month</button>
+                                <button class="btn btn-ghost">Year</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <div class="chart-bars" id="revenue-chart">
+                                    <!-- Chart bars populated by JS or static for now -->
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 45%;" data-height="45%" data-value="$2,400"></div>
+                                        <span class="chart-label">Jan</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 60%;" data-height="60%" data-value="$3,200"></div>
+                                        <span class="chart-label">Feb</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 55%;" data-height="55%" data-value="$2,900"></div>
+                                        <span class="chart-label">Mar</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 70%;" data-height="70%" data-value="$3,800"></div>
+                                        <span class="chart-label">Apr</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 80%;" data-height="80%" data-value="$4,200"></div>
+                                        <span class="chart-label">May</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 65%;" data-height="65%" data-value="$3,500"></div>
+                                        <span class="chart-label">Jun</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 90%;" data-height="90%" data-value="$4,800"></div>
+                                        <span class="chart-label">Jul</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 85%;" data-height="85%" data-value="$4,500"></div>
+                                        <span class="chart-label">Aug</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 75%;" data-height="75%" data-value="$4,000"></div>
+                                        <span class="chart-label">Sep</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 95%;" data-height="95%" data-value="$5,100"></div>
+                                        <span class="chart-label">Oct</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 88%;" data-height="88%" data-value="$4,700"></div>
+                                        <span class="chart-label">Nov</span>
+                                    </div>
+                                    <div class="chart-bar-wrapper">
+                                        <div class="chart-bar" style="height: 100%;" data-height="100%" data-value="$5,400"></div>
+                                        <span class="chart-label">Dec</span>
+                                    </div>
+                                </div>
+                                <div class="chart-legend">
+                                    <div class="legend-item">
+                                        <span class="legend-dot" style="background: var(--accent-green);"></span>
+                                        Revenue
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-dot" style="background: var(--accent-blue);"></span>
+                                        Expenses
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fleet Overview -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-car-side"></i>
+                                Fleet Status
+                            </h2>
+                            <div class="card-actions">
+                                <button class="btn btn-primary" onclick="openAddVehicleModal()">
+                                    <i class="fas fa-plus"></i>
+                                    Add Vehicle
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="fleet-grid" id="fleet-grid">
+                                <!-- Populated by JavaScript -->
+                                <div style="grid-column: span 2; text-align: center; padding: 40px; color: var(--text-tertiary);">
+                                    <i class="fas fa-spinner fa-spin" style="font-size: 24px;"></i>
+                                    <p style="margin-top: 12px;">Loading fleet...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="dashboard-column">
+                    
+                    <!-- AI Insights -->
+                    <div class="card ai-insights">
+                        <div class="card-header">
+                            <div class="ai-header">
+                                <h2 class="card-title" style="margin: 0;">
+                                    <i class="fas fa-brain"></i>
+                                    AI Insights
+                                </h2>
+                                <span class="ai-badge">
+                                    <i class="fas fa-sparkles"></i>
+                                    SMART
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="insight-list" id="ai-insights-list">
+                                <!-- Populated by JavaScript -->
+                                <div class="insight-item">
+                                    <div class="insight-icon warning">
+                                        <i class="fas fa-wrench"></i>
+                                    </div>
+                                    <div class="insight-content">
+                                        <div class="insight-title">Maintenance Predicted</div>
+                                        <div class="insight-desc">Vehicle service predictions based on mileage and driving patterns.</div>
+                                        <div class="insight-action">
+                                            Schedule now <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="insight-item">
+                                    <div class="insight-icon success">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="insight-content">
+                                        <div class="insight-title">Revenue Forecast</div>
+                                        <div class="insight-desc">Projected monthly revenue based on current bookings.</div>
+                                        <div class="insight-action">
+                                            View details <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="insight-item">
+                                    <div class="insight-icon info">
+                                        <i class="fas fa-lightbulb"></i>
+                                    </div>
+                                    <div class="insight-content">
+                                        <div class="insight-title">Optimization Tip</div>
+                                        <div class="insight-desc">Fleet utilization insights and growth recommendations.</div>
+                                        <div class="insight-action">
+                                            Learn more <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-stream"></i>
+                                Recent Activity
+                            </h2>
+                            <button class="btn btn-ghost">View All</button>
+                        </div>
+                        <div class="card-body" style="padding: 16px 24px;">
+                            <div class="activity-list" id="activity-feed">
+                                <!-- Populated by JavaScript -->
+                                <div class="activity-item">
+                                    <div class="activity-icon payment">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-text">
+                                            Loading recent activity...
+                                        </div>
+                                        <div class="activity-time">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             VEHICLES SECTION
+        ============================================ -->
+        <section id="section-vehicles" class="content-section" style="display: none;">
+            
+            <!-- Vehicles Header -->
+            <div class="section-header">
+                <div class="section-header-left">
+                    <h2>Fleet Management</h2>
+                    <p>Manage your vehicle inventory</p>
+                </div>
+                <div class="section-header-right">
+                    <button class="btn btn-secondary" onclick="Vehicles.refresh()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="Vehicles.openAddModal()">
+                        <i class="fas fa-plus"></i>
+                        Add Vehicle
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Vehicles Stats -->
+            <div class="mini-stats-grid">
+                <div class="mini-stat">
+                    <div class="mini-stat-icon blue">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="vehicles-stat-total">0</div>
+                        <div class="mini-stat-label">Total Vehicles</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="vehicles-stat-available">0</div>
+                        <div class="mini-stat-label">Available</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon amber">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="vehicles-stat-rented">0</div>
+                        <div class="mini-stat-label">Rented</div>
+                    </div>
+                </div>
+                <div class="mini-stat">
+                    <div class="mini-stat-icon red">
+                        <i class="fas fa-wrench"></i>
+                    </div>
+                    <div class="mini-stat-content">
+                        <div class="mini-stat-value" id="vehicles-stat-maintenance">0</div>
+                        <div class="mini-stat-label">In Service</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vehicles Table Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-list"></i>
+                        All Vehicles
+                    </h2>
+                    <div class="card-filters">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="vehicles-search" placeholder="Search vehicles..." oninput="Vehicles.filter()">
+                        </div>
+                        <select id="vehicles-status-filter" class="filter-select" onchange="Vehicles.filter()">
+                            <option value="">All Statuses</option>
+                            <option value="Available">Available</option>
+                            <option value="Rented">Rented</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Reserved">Reserved</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body no-padding">
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Vehicle</th>
+                                    <th>Plate</th>
+                                    <th>Status</th>
+                                    <th>Mileage</th>
+                                    <th>Rate</th>
+                                    <th>VIN</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicles-table-body">
+                                <tr>
+                                    <td colspan="7" class="loading-state">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        <p>Loading vehicles...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             ADD VEHICLE MODAL
+        ============================================ -->
+        <div class="modal" id="modal-add-vehicle">
+            <div class="modal-backdrop" onclick="Vehicles.closeAddModal()"></div>
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h3><i class="fas fa-car"></i> Add New Vehicle</h3>
+                    <button class="modal-close" onclick="Vehicles.closeAddModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="form-add-vehicle" onsubmit="event.preventDefault(); Vehicles.save();">
+                    <div class="modal-body">
+                        <div class="form-grid">
+                            <!-- Vehicle ID -->
+                            <div class="form-group">
+                                <label for="add-vehicle-id">Vehicle ID</label>
+                                <input type="text" id="add-vehicle-id" name="vehicle_id" readonly class="readonly">
+                            </div>
+                            
+                            <!-- Make -->
+                            <div class="form-group">
+                                <label for="add-vehicle-make">Make <span class="required">*</span></label>
+                                <input type="text" id="add-vehicle-make" name="make" required placeholder="e.g., Toyota">
+                            </div>
+                            
+                            <!-- Model -->
+                            <div class="form-group">
+                                <label for="add-vehicle-model">Model <span class="required">*</span></label>
+                                <input type="text" id="add-vehicle-model" name="model" required placeholder="e.g., Camry">
+                            </div>
+                            
+                            <!-- Year -->
+                            <div class="form-group">
+                                <label for="add-vehicle-year">Year</label>
+                                <input type="number" id="add-vehicle-year" name="year" min="2000" max="2030" placeholder="e.g., 2020">
+                            </div>
+                            
+                            <!-- VIN -->
+                            <div class="form-group">
+                                <label for="add-vehicle-vin">VIN</label>
+                                <input type="text" id="add-vehicle-vin" name="vin" maxlength="17" placeholder="17-character VIN">
+                            </div>
+                            
+                            <!-- License Plate -->
+                            <div class="form-group">
+                                <label for="add-vehicle-license-plate">License Plate</label>
+                                <input type="text" id="add-vehicle-license-plate" name="license_plate" placeholder="e.g., ABC-1234">
+                            </div>
+                            
+                            <!-- Color -->
+                            <div class="form-group">
+                                <label for="add-vehicle-color">Color</label>
+                                <input type="text" id="add-vehicle-color" name="color" placeholder="e.g., Silver">
+                            </div>
+                            
+                            <!-- Status -->
+                            <div class="form-group">
+                                <label for="add-vehicle-status">Status</label>
+                                <select id="add-vehicle-status" name="vehicle_status">
+                                    <option value="Available" selected>Available</option>
+                                    <option value="Rented">Rented</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Reserved">Reserved</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Weekly Rate -->
+                            <div class="form-group">
+                                <label for="add-vehicle-weekly-rate">Weekly Rate ($)</label>
+                                <input type="number" id="add-vehicle-weekly-rate" name="weekly_rate" value="400" min="0" step="25">
+                            </div>
+                            
+                            <!-- Current Mileage -->
+                            <div class="form-group">
+                                <label for="add-vehicle-mileage">Current Mileage</label>
+                                <input type="number" id="add-vehicle-mileage" name="current_mileage" value="0" min="0">
+                            </div>
+                            
+                            <!-- Purchase Price -->
+                            <div class="form-group">
+                                <label for="add-vehicle-purchase-price">Purchase Price ($)</label>
+                                <input type="number" id="add-vehicle-purchase-price" name="purchase_price" min="0" step="100" placeholder="e.g., 15000">
+                            </div>
+                            
+                            <!-- Monthly Payment -->
+                            <div class="form-group">
+                                <label for="add-vehicle-monthly-payment">Monthly Payment ($)</label>
+                                <input type="number" id="add-vehicle-monthly-payment" name="monthly_payment" min="0" step="10" placeholder="e.g., 350">
+                            </div>
+                            
+                            <!-- Insurance Cost -->
+                            <div class="form-group">
+                                <label for="add-vehicle-insurance">Insurance Cost ($/mo)</label>
+                                <input type="number" id="add-vehicle-insurance" name="insurance_cost" min="0" step="10" placeholder="e.g., 150">
+                            </div>
+                            
+                            <!-- GPS Device ID -->
+                            <div class="form-group">
+                                <label for="add-vehicle-gps">GPS Device ID</label>
+                                <input type="text" id="add-vehicle-gps" name="gps_device_id" placeholder="Spy Spot device ID">
+                            </div>
+                            
+                            <!-- Vehicle Image -->
+                            <div class="form-group full-width">
+                                <label for="add-vehicle-image">Vehicle Photo</label>
+                                <input type="file" id="add-vehicle-image" name="image" accept="image/*">
+                            </div>
+                            
+                            <!-- Notes -->
+                            <div class="form-group full-width">
+                                <label for="add-vehicle-notes">Notes</label>
+                                <textarea id="add-vehicle-notes" name="notes" rows="3" placeholder="Any additional notes..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="Vehicles.closeAddModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Vehicle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================
+             EDIT VEHICLE MODAL
+        ============================================ -->
+        <div class="modal" id="modal-edit-vehicle">
+            <div class="modal-backdrop" onclick="Vehicles.closeEditModal()"></div>
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h3><i class="fas fa-edit"></i> Edit Vehicle</h3>
+                    <button class="modal-close" onclick="Vehicles.closeEditModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="form-edit-vehicle" onsubmit="event.preventDefault(); Vehicles.update();">
+                    <input type="hidden" id="edit-vehicle-id">
+                    <div class="modal-body">
+                        <div class="form-grid">
+                            <!-- Vehicle ID (readonly) -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-display-id">Vehicle ID</label>
+                                <input type="text" id="edit-vehicle-display-id" readonly class="readonly">
+                            </div>
+                            
+                            <!-- Make -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-make">Make <span class="required">*</span></label>
+                                <input type="text" id="edit-vehicle-make" required>
+                            </div>
+                            
+                            <!-- Model -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-model">Model <span class="required">*</span></label>
+                                <input type="text" id="edit-vehicle-model" required>
+                            </div>
+                            
+                            <!-- Year -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-year">Year</label>
+                                <input type="number" id="edit-vehicle-year" min="2000" max="2030">
+                            </div>
+                            
+                            <!-- VIN -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-vin">VIN</label>
+                                <input type="text" id="edit-vehicle-vin" maxlength="17">
+                            </div>
+                            
+                            <!-- License Plate -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-license-plate">License Plate</label>
+                                <input type="text" id="edit-vehicle-license-plate">
+                            </div>
+                            
+                            <!-- Color -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-color">Color</label>
+                                <input type="text" id="edit-vehicle-color">
+                            </div>
+                            
+                            <!-- Status -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-status">Status</label>
+                                <select id="edit-vehicle-status">
+                                    <option value="Available">Available</option>
+                                    <option value="Rented">Rented</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Reserved">Reserved</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Weekly Rate -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-weekly-rate">Weekly Rate ($)</label>
+                                <input type="number" id="edit-vehicle-weekly-rate" min="0" step="25">
+                            </div>
+                            
+                            <!-- Current Mileage -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-mileage">Current Mileage</label>
+                                <input type="number" id="edit-vehicle-mileage" min="0">
+                            </div>
+                            
+                            <!-- Purchase Price -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-purchase-price">Purchase Price ($)</label>
+                                <input type="number" id="edit-vehicle-purchase-price" min="0" step="100">
+                            </div>
+                            
+                            <!-- Monthly Payment -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-monthly-payment">Monthly Payment ($)</label>
+                                <input type="number" id="edit-vehicle-monthly-payment" min="0" step="10">
+                            </div>
+                            
+                            <!-- Insurance Cost -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-insurance">Insurance Cost ($/mo)</label>
+                                <input type="number" id="edit-vehicle-insurance" min="0" step="10">
+                            </div>
+                            
+                            <!-- GPS Device ID -->
+                            <div class="form-group">
+                                <label for="edit-vehicle-gps">GPS Device ID</label>
+                                <input type="text" id="edit-vehicle-gps">
+                            </div>
+                            
+                            <!-- Notes -->
+                            <div class="form-group full-width">
+                                <label for="edit-vehicle-notes">Notes</label>
+                                <textarea id="edit-vehicle-notes" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="Vehicles.closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Vehicle
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================
+             CUSTOMERS SECTION (Placeholder)
+        ============================================ -->
+        <section id="section-customers" class="content-section" style="display: none;">
+            <div class="card">
+                <div class="card-body" style="padding: 60px; text-align: center;">
+                    <i class="fas fa-users" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
+                    <h3 style="margin-bottom: 8px;">Customers Tab</h3>
+                    <p style="color: var(--text-secondary);">Full customer management coming in next module.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             RENTALS SECTION (Placeholder)
+        ============================================ -->
+        <section id="section-rentals" class="content-section" style="display: none;">
+            <div class="card">
+                <div class="card-body" style="padding: 60px; text-align: center;">
+                    <i class="fas fa-file-contract" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
+                    <h3 style="margin-bottom: 8px;">Rentals Tab</h3>
+                    <p style="color: var(--text-secondary);">Full rental management coming in next module.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             PAYMENTS SECTION (Placeholder)
+        ============================================ -->
+        <section id="section-payments" class="content-section" style="display: none;">
+            <div class="card">
+                <div class="card-body" style="padding: 60px; text-align: center;">
+                    <i class="fas fa-credit-card" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
+                    <h3 style="margin-bottom: 8px;">Payments Tab</h3>
+                    <p style="color: var(--text-secondary);">Full payment management coming in next module.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             REPORTS SECTION (Placeholder)
+        ============================================ -->
+        <section id="section-reports" class="content-section" style="display: none;">
+            <div class="card">
+                <div class="card-body" style="padding: 60px; text-align: center;">
+                    <i class="fas fa-chart-line" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
+                    <h3 style="margin-bottom: 8px;">Reports Tab</h3>
+                    <p style="color: var(--text-secondary);">Analytics and reporting coming in next module.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SETTINGS SECTION (Placeholder)
+        ============================================ -->
+        <section id="section-settings" class="content-section" style="display: none;">
+            <div class="card">
+                <div class="card-body" style="padding: 60px; text-align: center;">
+                    <i class="fas fa-cog" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
+                    <h3 style="margin-bottom: 8px;">Settings Tab</h3>
+                    <p style="color: var(--text-secondary);">Account settings coming in next module.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================
+         FLOATING ACTION BUTTON
+    ============================================ -->
+    <button class="fab" onclick="openQuickActions()" title="Quick Actions">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- ============================================
+         TOAST CONTAINER
+    ============================================ -->
+    <div class="toast-container"></div>
+
+    <!-- ============================================
+         SCRIPTS (Load Order Matters!)
+    ============================================ -->
+    <script src="js/config.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/vehicles.js"></script>
+    
+    <!-- Initialize App -->
+    <script>
+        // App initialization
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚗 Fleetzy Admin v2.0 Loading...');
+            
+            // Load dashboard data
+            try {
+                await Dashboard.load();
+                console.log('✅ Dashboard loaded successfully');
+            } catch (error) {
+                console.error('❌ Dashboard load error:', error);
+                Utils.toastError('Failed to load dashboard. Please refresh.');
+            }
+        });
+
+        // Quick actions menu (placeholder)
+        function openQuickActions() {
+            Utils.toastInfo('Quick actions menu coming soon!', 'Quick Actions');
+        }
+
+        // Notifications panel (placeholder)
+        function toggleNotifications() {
+            Utils.toastInfo('Notifications panel coming soon!', 'Notifications');
+        }
+
+        // Profile menu (placeholder)
+        function toggleProfileMenu() {
+            Utils.toastInfo('Profile menu coming soon!', 'Profile');
+        }
+
+        // Add vehicle modal (placeholder)
+        function openAddVehicleModal() {
+            Utils.toastInfo('Add vehicle modal coming soon!', 'Add Vehicle');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Cmd/Ctrl + K for search
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('global-search')?.focus();
+            }
+        });
+    </script>
+</body>
+</html>
