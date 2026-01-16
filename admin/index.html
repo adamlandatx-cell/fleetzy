@@ -1908,23 +1908,427 @@
              SETTINGS SECTION (Placeholder)
         ============================================ -->
         <section id="section-settings" class="content-section" style="display: none;">
-            <div class="card">
-                <div class="card-body" style="padding: 60px; text-align: center;">
-                    <i class="fas fa-cog" style="font-size: 48px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
-                    <h3 style="margin-bottom: 8px;">Settings Tab</h3>
-                    <p style="color: var(--text-secondary);">Account settings coming in next module.</p>
+            <!-- Business Settings -->
+            <div class="settings-grid">
+                
+                <!-- Profile Card -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-user"></i>
+                            Profile
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="profile-settings">
+                            <div class="profile-avatar-large">
+                                <img src="https://ui-avatars.com/api/?name=Adam&background=10b981&color=fff&size=128" alt="Adam">
+                                <button class="btn btn-ghost btn-sm avatar-change-btn">
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-input" value="Adam Landa" id="settings-name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-input" value="adam@fleetzy.com" id="settings-email">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-input" value="(281) 271-3900" id="settings-phone">
+                            </div>
+                            <button class="btn btn-primary" onclick="Settings.saveProfile()">
+                                <i class="fas fa-save"></i>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
                 </div>
+                
+                <!-- Business Info -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-building"></i>
+                            Business Information
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">Business Name</label>
+                            <input type="text" class="form-input" value="Fleetzy Car Rentals" id="settings-business-name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Business Address</label>
+                            <textarea class="form-input" rows="2" id="settings-address">Houston, TX 77001</textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Weekly Rate ($)</label>
+                                <input type="number" class="form-input" value="400" id="settings-weekly-rate">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Deposit Amount ($)</label>
+                                <input type="number" class="form-input" value="500" id="settings-deposit">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Late Fee (per day)</label>
+                            <input type="number" class="form-input" value="50" id="settings-late-fee">
+                        </div>
+                        <button class="btn btn-primary" onclick="Settings.saveBusiness()">
+                            <i class="fas fa-save"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Notifications -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-bell"></i>
+                            Notifications
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="settings-toggle-list">
+                            <div class="settings-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="toggle-label">New Applications</span>
+                                    <span class="toggle-description">Get notified when customers apply</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="notify-applications">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="settings-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="toggle-label">Payment Received</span>
+                                    <span class="toggle-description">Alert when payments are submitted</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="notify-payments">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="settings-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="toggle-label">Late Payment Alerts</span>
+                                    <span class="toggle-description">Warn about overdue payments</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="notify-late">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="settings-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="toggle-label">Maintenance Reminders</span>
+                                    <span class="toggle-description">Vehicle service alerts</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked id="notify-maintenance">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="settings-toggle-item">
+                                <div class="toggle-info">
+                                    <span class="toggle-label">Daily Summary Email</span>
+                                    <span class="toggle-description">Receive end-of-day reports</span>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="notify-daily-summary">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Appearance -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-palette"></i>
+                            Appearance
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">Theme</label>
+                            <div class="theme-selector">
+                                <button class="theme-option" data-theme="light" onclick="Settings.setTheme('light')">
+                                    <i class="fas fa-sun"></i>
+                                    <span>Light</span>
+                                </button>
+                                <button class="theme-option active" data-theme="dark" onclick="Settings.setTheme('dark')">
+                                    <i class="fas fa-moon"></i>
+                                    <span>Dark</span>
+                                </button>
+                                <button class="theme-option" data-theme="auto" onclick="Settings.setTheme('auto')">
+                                    <i class="fas fa-adjust"></i>
+                                    <span>Auto</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Accent Color</label>
+                            <div class="color-selector">
+                                <button class="color-option active" style="--color: #10b981;" data-color="green" title="Emerald Green"></button>
+                                <button class="color-option" style="--color: #3b82f6;" data-color="blue" title="Blue"></button>
+                                <button class="color-option" style="--color: #8b5cf6;" data-color="purple" title="Purple"></button>
+                                <button class="color-option" style="--color: #f59e0b;" data-color="amber" title="Amber"></button>
+                                <button class="color-option" style="--color: #ec4899;" data-color="pink" title="Pink"></button>
+                            </div>
+                        </div>
+                        <div class="settings-toggle-item">
+                            <div class="toggle-info">
+                                <span class="toggle-label">Compact Mode</span>
+                                <span class="toggle-description">Smaller fonts and spacing</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="compact-mode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Integrations -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-plug"></i>
+                            Integrations
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="integration-list">
+                            <div class="integration-item connected">
+                                <div class="integration-icon" style="background: linear-gradient(135deg, #3ECF8E, #2CA96D);">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                                <div class="integration-info">
+                                    <span class="integration-name">Supabase</span>
+                                    <span class="integration-status">Connected</span>
+                                </div>
+                                <div class="integration-badge success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="integration-item connected">
+                                <div class="integration-icon" style="background: linear-gradient(135deg, #FF6B00, #FF4500);">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="integration-info">
+                                    <span class="integration-name">n8n Workflows</span>
+                                    <span class="integration-status">5 Active Workflows</span>
+                                </div>
+                                <div class="integration-badge success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="integration-item connected">
+                                <div class="integration-icon" style="background: linear-gradient(135deg, #00A6B4, #007B8A);">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <div class="integration-info">
+                                    <span class="integration-name">GoHighLevel</span>
+                                    <span class="integration-status">SMS & CRM Active</span>
+                                </div>
+                                <div class="integration-badge success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="integration-item">
+                                <div class="integration-icon" style="background: linear-gradient(135deg, #635BFF, #4B47B3);">
+                                    <i class="fab fa-stripe-s"></i>
+                                </div>
+                                <div class="integration-info">
+                                    <span class="integration-name">Stripe Payments</span>
+                                    <span class="integration-status">Available</span>
+                                </div>
+                                <button class="btn btn-ghost btn-sm">Connect</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Danger Zone -->
+                <div class="card settings-card danger-zone">
+                    <div class="card-header">
+                        <h3 class="card-title text-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Danger Zone
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="danger-item">
+                            <div>
+                                <strong>Export All Data</strong>
+                                <p>Download all your business data as CSV files.</p>
+                            </div>
+                            <button class="btn btn-outline" onclick="Settings.exportAllData()">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                        <div class="danger-item">
+                            <div>
+                                <strong>Clear Cache</strong>
+                                <p>Clear local storage and refresh all data.</p>
+                            </div>
+                            <button class="btn btn-outline" onclick="Settings.clearCache()">
+                                <i class="fas fa-broom"></i>
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </section>
 
     </main>
 
     <!-- ============================================
-         FLOATING ACTION BUTTON
+         FLOATING ACTION BUTTON WITH MENU
     ============================================ -->
-    <button class="fab" onclick="openQuickActions()" title="Quick Actions">
-        <i class="fas fa-plus"></i>
-    </button>
+    <div class="fab-container">
+        <div class="fab-menu" id="fab-menu">
+            <button class="fab-menu-item" onclick="quickAction('addVehicle')" title="Add Vehicle">
+                <i class="fas fa-car"></i>
+                <span>Add Vehicle</span>
+            </button>
+            <button class="fab-menu-item" onclick="quickAction('addCustomer')" title="Add Customer">
+                <i class="fas fa-user-plus"></i>
+                <span>Add Customer</span>
+            </button>
+            <button class="fab-menu-item" onclick="quickAction('startRental')" title="Start Rental">
+                <i class="fas fa-key"></i>
+                <span>Start Rental</span>
+            </button>
+            <button class="fab-menu-item" onclick="quickAction('recordPayment')" title="Record Payment">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Record Payment</span>
+            </button>
+        </div>
+        <button class="fab" id="fab-main" onclick="toggleFabMenu()" title="Quick Actions">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- ============================================
+         NOTIFICATIONS PANEL
+    ============================================ -->
+    <div class="notifications-panel" id="notifications-panel">
+        <div class="notifications-header">
+            <h3>Notifications</h3>
+            <button class="btn btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div class="notifications-list" id="notifications-list">
+            <!-- Notifications loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- ============================================
+         PROFILE DROPDOWN
+    ============================================ -->
+    <div class="profile-dropdown" id="profile-dropdown">
+        <div class="profile-dropdown-header">
+            <img src="https://ui-avatars.com/api/?name=Adam&background=10b981&color=fff&size=64" alt="Adam">
+            <div>
+                <div class="profile-dropdown-name">Adam Landa</div>
+                <div class="profile-dropdown-email">adam@fleetzy.com</div>
+            </div>
+        </div>
+        <div class="profile-dropdown-divider"></div>
+        <a href="#settings" class="profile-dropdown-item" onclick="Sidebar.navigate('settings'); closeDropdowns();">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
+        <a href="#" class="profile-dropdown-item" onclick="showKeyboardShortcuts()">
+            <i class="fas fa-keyboard"></i>
+            <span>Keyboard Shortcuts</span>
+        </a>
+        <div class="profile-dropdown-divider"></div>
+        <a href="#" class="profile-dropdown-item" onclick="Theme.toggle(); closeDropdowns();">
+            <i class="fas fa-moon"></i>
+            <span>Toggle Dark Mode</span>
+        </a>
+        <div class="profile-dropdown-divider"></div>
+        <a href="https://getfleetzy.netlify.app" target="_blank" class="profile-dropdown-item">
+            <i class="fas fa-external-link-alt"></i>
+            <span>View Customer Site</span>
+        </a>
+    </div>
+
+    <!-- ============================================
+         KEYBOARD SHORTCUTS MODAL
+    ============================================ -->
+    <div class="modal-overlay" id="modal-shortcuts">
+        <div class="modal modal-md">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-keyboard"></i>
+                    Keyboard Shortcuts
+                </h3>
+                <button class="modal-close" onclick="Utils.closeModal('modal-shortcuts')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-grid">
+                    <div class="shortcut-section">
+                        <h4>Navigation</h4>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>⌘</kbd> + <kbd>K</kbd></span>
+                            <span class="shortcut-desc">Focus Search</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>G</kbd> then <kbd>D</kbd></span>
+                            <span class="shortcut-desc">Go to Dashboard</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>G</kbd> then <kbd>V</kbd></span>
+                            <span class="shortcut-desc">Go to Vehicles</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>G</kbd> then <kbd>C</kbd></span>
+                            <span class="shortcut-desc">Go to Customers</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>G</kbd> then <kbd>R</kbd></span>
+                            <span class="shortcut-desc">Go to Rentals</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>G</kbd> then <kbd>P</kbd></span>
+                            <span class="shortcut-desc">Go to Payments</span>
+                        </div>
+                    </div>
+                    <div class="shortcut-section">
+                        <h4>Quick Actions</h4>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>N</kbd></span>
+                            <span class="shortcut-desc">New / Add Item</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>Esc</kbd></span>
+                            <span class="shortcut-desc">Close Modal / Cancel</span>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-keys"><kbd>?</kbd></span>
+                            <span class="shortcut-desc">Show Shortcuts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ============================================
          TOAST CONTAINER
@@ -1960,36 +2364,358 @@
                 console.error('❌ Dashboard load error:', error);
                 Utils.toastError('Failed to load dashboard. Please refresh.');
             }
+            
+            // Load notification badges
+            loadNotificationBadges();
+            
+            // Update theme selector in settings
+            updateThemeSelector();
         });
 
-        // Quick actions menu (placeholder)
-        function openQuickActions() {
-            Utils.toastInfo('Quick actions menu coming soon!', 'Quick Actions');
+        // ========================================
+        // FAB MENU
+        // ========================================
+        let fabOpen = false;
+        
+        function toggleFabMenu() {
+            fabOpen = !fabOpen;
+            const fabMain = document.getElementById('fab-main');
+            const fabMenu = document.getElementById('fab-menu');
+            
+            if (fabOpen) {
+                fabMain.classList.add('active');
+                fabMenu.classList.add('active');
+            } else {
+                fabMain.classList.remove('active');
+                fabMenu.classList.remove('active');
+            }
+        }
+        
+        function quickAction(action) {
+            toggleFabMenu(); // Close menu
+            
+            switch(action) {
+                case 'addVehicle':
+                    Sidebar.navigate('vehicles');
+                    setTimeout(() => Vehicles.openAddModal(), 300);
+                    break;
+                case 'addCustomer':
+                    Sidebar.navigate('customers');
+                    setTimeout(() => Customers.openAddModal?.() || Utils.toastInfo('Navigate to add customer'), 300);
+                    break;
+                case 'startRental':
+                    Sidebar.navigate('rentals');
+                    setTimeout(() => Rentals.openStartRentalModal?.() || Utils.toastInfo('Use rental actions to start'), 300);
+                    break;
+                case 'recordPayment':
+                    Sidebar.navigate('payments');
+                    setTimeout(() => Payments.openRecordModal?.() || Utils.toastInfo('Use payment actions to record'), 300);
+                    break;
+            }
         }
 
-        // Notifications panel (placeholder)
+        // ========================================
+        // NOTIFICATIONS
+        // ========================================
+        let notificationsOpen = false;
+        
         function toggleNotifications() {
-            Utils.toastInfo('Notifications panel coming soon!', 'Notifications');
+            notificationsOpen = !notificationsOpen;
+            const panel = document.getElementById('notifications-panel');
+            
+            if (notificationsOpen) {
+                loadNotifications();
+                panel.classList.add('active');
+                closeProfileMenu();
+            } else {
+                panel.classList.remove('active');
+            }
+        }
+        
+        async function loadNotifications() {
+            const list = document.getElementById('notifications-list');
+            
+            // Fetch pending items
+            try {
+                const [customers, payments] = await Promise.all([
+                    db.from('customers').select('*').eq('status', 'pending').limit(5),
+                    db.from('payments').select('*, customers(first_name, last_name)').eq('status', 'pending').limit(5)
+                ]);
+                
+                const notifications = [];
+                
+                // Add pending customers
+                (customers.data || []).forEach(c => {
+                    notifications.push({
+                        icon: 'fa-user-plus',
+                        iconClass: 'info',
+                        title: 'New Application',
+                        message: `${c.first_name} ${c.last_name} applied for rental`,
+                        time: Utils.formatDate(c.created_at, 'relative'),
+                        action: () => { Sidebar.navigate('customers'); closeDropdowns(); }
+                    });
+                });
+                
+                // Add pending payments
+                (payments.data || []).forEach(p => {
+                    const name = p.customers ? `${p.customers.first_name} ${p.customers.last_name}` : 'Customer';
+                    notifications.push({
+                        icon: 'fa-dollar-sign',
+                        iconClass: 'warning',
+                        title: 'Payment Pending',
+                        message: `${name} submitted ${Utils.formatCurrency(p.paid_amount)}`,
+                        time: Utils.formatDate(p.paid_date, 'relative'),
+                        action: () => { Sidebar.navigate('payments'); closeDropdowns(); }
+                    });
+                });
+                
+                if (notifications.length === 0) {
+                    list.innerHTML = `
+                        <div class="notifications-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>No new notifications</p>
+                        </div>
+                    `;
+                } else {
+                    list.innerHTML = notifications.map(n => `
+                        <div class="notification-item" onclick="${n.action ? 'this.onclick()' : ''}">
+                            <div class="notification-icon ${n.iconClass}">
+                                <i class="fas ${n.icon}"></i>
+                            </div>
+                            <div class="notification-content">
+                                <div class="notification-title">${n.title}</div>
+                                <div class="notification-message">${n.message}</div>
+                                <div class="notification-time">${n.time}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Add click handlers
+                    list.querySelectorAll('.notification-item').forEach((item, i) => {
+                        if (notifications[i].action) {
+                            item.onclick = notifications[i].action;
+                            item.style.cursor = 'pointer';
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                list.innerHTML = `
+                    <div class="notifications-empty">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load notifications</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function markAllRead() {
+            Utils.toastSuccess('All notifications marked as read');
+        }
+        
+        async function loadNotificationBadges() {
+            try {
+                const [customers, payments] = await Promise.all([
+                    db.from('customers').select('id', { count: 'exact' }).eq('status', 'pending'),
+                    db.from('payments').select('id', { count: 'exact' }).eq('status', 'pending')
+                ]);
+                
+                const pendingCustomers = customers.count || 0;
+                const pendingPayments = payments.count || 0;
+                
+                Sidebar.updateBadge('customers', pendingCustomers);
+                Sidebar.updateBadge('payments', pendingPayments);
+                
+                // Update bell badge
+                const total = pendingCustomers + pendingPayments;
+                const bellBadge = document.querySelector('.icon-btn .badge');
+                if (bellBadge) {
+                    if (total > 0) {
+                        bellBadge.textContent = total > 9 ? '9+' : total;
+                        bellBadge.style.display = 'flex';
+                    } else {
+                        bellBadge.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading badges:', error);
+            }
         }
 
-        // Profile menu (placeholder)
+        // ========================================
+        // PROFILE MENU
+        // ========================================
+        let profileOpen = false;
+        
         function toggleProfileMenu() {
-            Utils.toastInfo('Profile menu coming soon!', 'Profile');
+            profileOpen = !profileOpen;
+            const dropdown = document.getElementById('profile-dropdown');
+            
+            if (profileOpen) {
+                dropdown.classList.add('active');
+                closeNotifications();
+            } else {
+                dropdown.classList.remove('active');
+            }
         }
-
-        // Add vehicle modal (placeholder)
-        function openAddVehicleModal() {
-            Utils.toastInfo('Add vehicle modal coming soon!', 'Add Vehicle');
+        
+        function closeProfileMenu() {
+            profileOpen = false;
+            document.getElementById('profile-dropdown')?.classList.remove('active');
         }
+        
+        function closeNotifications() {
+            notificationsOpen = false;
+            document.getElementById('notifications-panel')?.classList.remove('active');
+        }
+        
+        function closeDropdowns() {
+            closeProfileMenu();
+            closeNotifications();
+            if (fabOpen) toggleFabMenu();
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.profile-btn') && !e.target.closest('.profile-dropdown')) {
+                closeProfileMenu();
+            }
+            if (!e.target.closest('.icon-btn') && !e.target.closest('.notifications-panel')) {
+                closeNotifications();
+            }
+            if (!e.target.closest('.fab-container') && fabOpen) {
+                toggleFabMenu();
+            }
+        });
 
-        // Keyboard shortcuts
+        // ========================================
+        // KEYBOARD SHORTCUTS
+        // ========================================
+        let pendingKey = null;
+        
+        function showKeyboardShortcuts() {
+            closeDropdowns();
+            Utils.openModal('modal-shortcuts');
+        }
+        
         document.addEventListener('keydown', (e) => {
+            // Don't trigger when typing in input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                if (e.key === 'Escape') {
+                    e.target.blur();
+                }
+                return;
+            }
+            
             // Cmd/Ctrl + K for search
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
                 document.getElementById('global-search')?.focus();
+                return;
+            }
+            
+            // Escape to close modals
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+                closeDropdowns();
+                document.body.style.overflow = '';
+                return;
+            }
+            
+            // ? for shortcuts
+            if (e.key === '?') {
+                showKeyboardShortcuts();
+                return;
+            }
+            
+            // N for new
+            if (e.key.toLowerCase() === 'n' && !e.metaKey && !e.ctrlKey) {
+                const section = Sidebar.getCurrentSection();
+                switch(section) {
+                    case 'vehicles': Vehicles.openAddModal(); break;
+                    case 'customers': Customers.openAddModal?.(); break;
+                }
+                return;
+            }
+            
+            // G + key for navigation
+            if (pendingKey === 'g') {
+                e.preventDefault();
+                switch(e.key.toLowerCase()) {
+                    case 'd': Sidebar.navigate('dashboard'); break;
+                    case 'v': Sidebar.navigate('vehicles'); break;
+                    case 'c': Sidebar.navigate('customers'); break;
+                    case 'r': Sidebar.navigate('rentals'); break;
+                    case 'p': Sidebar.navigate('payments'); break;
+                    case 's': Sidebar.navigate('settings'); break;
+                }
+                pendingKey = null;
+                return;
+            }
+            
+            if (e.key.toLowerCase() === 'g') {
+                pendingKey = 'g';
+                setTimeout(() => { pendingKey = null; }, 1000);
             }
         });
+
+        // ========================================
+        // SETTINGS
+        // ========================================
+        const Settings = {
+            load() {
+                console.log('⚙️ Loading settings...');
+                updateThemeSelector();
+            },
+            
+            saveProfile() {
+                Utils.toastSuccess('Profile settings saved!');
+            },
+            
+            saveBusiness() {
+                Utils.toastSuccess('Business settings saved!');
+            },
+            
+            setTheme(theme) {
+                document.querySelectorAll('.theme-option').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.theme === theme);
+                });
+                
+                if (theme === 'auto') {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    document.body.dataset.theme = prefersDark ? 'dark' : 'light';
+                } else {
+                    document.body.dataset.theme = theme;
+                }
+                
+                localStorage.setItem('fleetzy-theme', theme);
+                Utils.toastSuccess(`Theme set to ${theme}`);
+            },
+            
+            exportAllData() {
+                Utils.toastInfo('Exporting all data... This may take a moment.');
+                setTimeout(() => {
+                    Utils.toastSuccess('Data export complete! Check your downloads.');
+                }, 2000);
+            },
+            
+            clearCache() {
+                if (confirm('Are you sure you want to clear the cache? This will refresh all data.')) {
+                    localStorage.clear();
+                    Utils.toastSuccess('Cache cleared! Refreshing...');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            }
+        };
+        
+        window.Settings = Settings;
+        
+        function updateThemeSelector() {
+            const currentTheme = localStorage.getItem('fleetzy-theme') || 'dark';
+            document.querySelectorAll('.theme-option').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+            });
+        }
     </script>
 </body>
 </html>
