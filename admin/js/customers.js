@@ -225,11 +225,19 @@ const Customers = {
      */
     getActionButtons(customer, status) {
         let buttons = [];
+        const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
         
         // View button (always available)
         buttons.push(`
             <button class="btn-icon" onclick="Customers.view('${customer.id}')" title="View Details">
                 <i class="fas fa-eye"></i>
+            </button>
+        `);
+        
+        // Documents button (always available) - NEW!
+        buttons.push(`
+            <button class="btn-icon docs" onclick="Documents.openModal('${customer.id}', '${fullName.replace(/'/g, "\\'")}')" title="Manage Documents">
+                <i class="fas fa-folder-open"></i>
             </button>
         `);
         
