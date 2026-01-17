@@ -933,6 +933,16 @@ img {
 .insight-icon.warning { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
 .insight-icon.success { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
 .insight-icon.info { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+.insight-icon.danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+.insight-item.urgent {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+    margin: calc(-1 * var(--space-sm));
+    margin-bottom: var(--space-sm);
+}
 
 .insight-content { flex: 1; }
 
