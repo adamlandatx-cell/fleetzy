@@ -336,19 +336,60 @@ const Vehicles = {
             return;
         }
         
-        // For now, show in alert - will build proper modal later
-        const details = `
-Vehicle: ${vehicle.year} ${vehicle.make} ${vehicle.model}
-ID: ${vehicle.vehicle_id}
-License Plate: ${vehicle.license_plate || 'N/A'}
-VIN: ${vehicle.vin || 'N/A'}
-Status: ${vehicle.vehicle_status}
-Mileage: ${(vehicle.current_mileage || 0).toLocaleString()} miles
-Weekly Rate: $${vehicle.weekly_rate || 400}
-Color: ${vehicle.color || 'N/A'}
-        `.trim();
+        const modal = document.getElementById('modal-view-vehicle');
+        if (!modal) {
+            Utils.toastError('View modal not found');
+            return;
+        }
         
-        alert(details);
+        // Populate the modal with vehicle data
+        const imageContainer = document.getElementById('view-vehicle-image');
+        const status = vehicle.vehicle_status || 'Available';
+        const statusClass = status.toLowerCase().replace(' ', '-');
+        
+        if (vehicle.image_url) {
+            imageContainer.innerHTML = `
+                <img src="${vehicle.image_url}" alt="${vehicle.make} ${vehicle.model}">
+                <span class="vehicle-detail-status ${statusClass}">${status}</span>
+            `;
+        } else {
+            imageContainer.innerHTML = `
+                <div class="no-image">
+                    <i class="fas fa-car"></i>
+                    <span>No image available</span>
+                </div>
+                <span class="vehicle-detail-status ${statusClass}">${status}</span>
+            `;
+        }
+        
+        document.getElementById('view-vehicle-title').textContent = 
+            `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+        document.getElementById('view-vehicle-id').textContent = vehicle.vehicle_id || 'N/A';
+        document.getElementById('view-vehicle-color').textContent = vehicle.color || 'N/A';
+        document.getElementById('view-vehicle-plate').textContent = vehicle.license_plate || 'N/A';
+        document.getElementById('view-vehicle-vin').textContent = vehicle.vin || 'N/A';
+        document.getElementById('view-vehicle-mileage').textContent = 
+            `${(vehicle.current_mileage || 0).toLocaleString()} mi`;
+        document.getElementById('view-vehicle-rate').textContent = 
+            `$${vehicle.weekly_rate || 400}/wk`;
+        document.getElementById('view-vehicle-status').textContent = status;
+        document.getElementById('view-vehicle-service').textContent = 
+            vehicle.last_service_date 
+                ? new Date(vehicle.last_service_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : 'Not recorded';
+        document.getElementById('view-vehicle-uuid').value = vehicle.id;
+        
+        // Show modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    },
+    
+    closeViewModal() {
+        const modal = document.getElementById('modal-view-vehicle');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
     },
     
     /**
