@@ -631,6 +631,66 @@
         </div>
 
         <!-- ============================================
+             VIEW VEHICLE MODAL
+        ============================================ -->
+        <div class="modal vehicle-detail-modal" id="modal-view-vehicle">
+            <div class="modal-backdrop" onclick="Vehicles.closeViewModal()"></div>
+            <div class="modal-content">
+                <button class="modal-close" onclick="Vehicles.closeViewModal()" style="position: absolute; top: 16px; right: 16px; z-index: 10; background: rgba(0,0,0,0.5); color: white;">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="modal-body" style="padding: var(--space-lg);">
+                    <div class="vehicle-detail-header" id="view-vehicle-image">
+                        <!-- Image or placeholder populated by JS -->
+                    </div>
+                    
+                    <h2 class="vehicle-detail-title" id="view-vehicle-title">2024 Toyota Camry</h2>
+                    <div class="vehicle-detail-subtitle">
+                        <span><i class="fas fa-hashtag"></i> <span id="view-vehicle-id">V-001</span></span>
+                        <span><i class="fas fa-palette"></i> <span id="view-vehicle-color">Silver</span></span>
+                    </div>
+                    
+                    <div class="vehicle-detail-grid">
+                        <div class="vehicle-detail-item">
+                            <label>License Plate</label>
+                            <div class="value mono" id="view-vehicle-plate">ABC1234</div>
+                        </div>
+                        <div class="vehicle-detail-item">
+                            <label>VIN</label>
+                            <div class="value mono" id="view-vehicle-vin" style="font-size: 12px;">1HGBH41JXMN109186</div>
+                        </div>
+                        <div class="vehicle-detail-item">
+                            <label>Current Mileage</label>
+                            <div class="value" id="view-vehicle-mileage">45,230 mi</div>
+                        </div>
+                        <div class="vehicle-detail-item">
+                            <label>Weekly Rate</label>
+                            <div class="value highlight" id="view-vehicle-rate">$400/wk</div>
+                        </div>
+                        <div class="vehicle-detail-item">
+                            <label>Status</label>
+                            <div class="value" id="view-vehicle-status">Available</div>
+                        </div>
+                        <div class="vehicle-detail-item">
+                            <label>Last Service</label>
+                            <div class="value" id="view-vehicle-service">Oct 15, 2024</div>
+                        </div>
+                    </div>
+                    
+                    <div class="vehicle-detail-actions">
+                        <button type="button" class="btn btn-secondary" onclick="Vehicles.closeViewModal()">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="Vehicles.closeViewModal(); Vehicles.edit(document.getElementById('view-vehicle-uuid').value);">
+                            <i class="fas fa-edit"></i> Edit Vehicle
+                        </button>
+                    </div>
+                    <input type="hidden" id="view-vehicle-uuid">
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
              EDIT VEHICLE MODAL
         ============================================ -->
         <div class="modal" id="modal-edit-vehicle">
