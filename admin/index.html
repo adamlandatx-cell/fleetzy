@@ -2820,6 +2820,84 @@
                 }
             });
         });
-    </script>
+<!-- ============================================
+     FLEETZY DOCUMENTS MODALS
+     Add this HTML to admin/index.html BEFORE the </body> tag
+     (right before the closing </body></html>)
+============================================ -->
+
+<!-- MANAGE DOCUMENTS MODAL -->
+<div class="modal" id="modal-manage-documents">
+    <div class="modal-backdrop" onclick="Documents.closeModal()"></div>
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3><i class="fas fa-folder-open"></i> Manage Documents</h3>
+            <button class="modal-close" onclick="Documents.closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <!-- Customer Info -->
+            <div class="docs-customer-header">
+                <div class="docs-customer-info">
+                    <span class="docs-customer-name" id="docs-customer-name">Customer Name</span>
+                    <span class="docs-customer-id-label">ID: <span id="docs-customer-id">-</span></span>
+                </div>
+            </div>
+            
+            <!-- Upload Section -->
+            <div class="docs-upload-section">
+                <h4><i class="fas fa-cloud-upload-alt"></i> Upload New Document</h4>
+                <div class="docs-upload-form">
+                    <div class="form-group">
+                        <label for="doc-upload-name">Document Name *</label>
+                        <input type="text" id="doc-upload-name" placeholder="e.g., Insurance Card, Payment Receipt">
+                    </div>
+                    <div class="form-group">
+                        <label>File</label>
+                        <div class="doc-upload-dropzone" id="doc-upload-preview" onclick="document.getElementById('doc-upload-file').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Click to select file or drag & drop</span>
+                            <span class="file-types">Images, PDFs, Documents</span>
+                        </div>
+                        <input type="file" id="doc-upload-file" style="display: none;" 
+                               accept="image/*,.pdf,.doc,.docx,.txt" 
+                               onchange="Documents.handleFileSelect(this)">
+                    </div>
+                    <button type="button" class="btn btn-primary" id="doc-upload-btn" onclick="Documents.upload()">
+                        <i class="fas fa-upload"></i> Upload Document
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Documents List -->
+            <div class="docs-list-section">
+                <div id="docs-list-container">
+                    <div class="docs-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span>Loading documents...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="Documents.closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- DOCUMENT VIEWER MODAL (Lightbox) -->
+<div class="modal" id="modal-document-viewer">
+    <div class="modal-backdrop" onclick="Documents.closeViewer()"></div>
+    <div class="modal-content modal-viewer">
+        <button class="viewer-close" onclick="Documents.closeViewer()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="viewer-body" id="document-viewer-content">
+            <!-- Content injected by JS -->
+        </div>
+    </div>
+</div>
+                                   
 </body>
 </html>
