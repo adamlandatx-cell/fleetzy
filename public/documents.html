@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Documents - Fleetzy</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#09090b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fleetzy">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Portal Styles -->
+    <link rel="stylesheet" href="css/portal.css">
+    
+    <style>
+        .document-card {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        
+        .document-card:hover {
+            border-color: var(--accent-green);
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+        
+        .document-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .document-icon.contract { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .document-icon.receipt { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+        .document-icon.inspection { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+        .document-icon.license { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
+        .document-icon.fleetzy { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2)); color: var(--accent-green); }
+        
+        .document-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .document-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .document-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .document-action {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        
+        .document-card:hover .document-action {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-lg);
+            margin-top: var(--space-xl);
+        }
+        
+        .section-header:first-of-type {
+            margin-top: 0;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .section-title i {
+            color: var(--accent-green);
+        }
+        
+        .section-title.fleetzy-docs i {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .section-count {
+            font-size: 12px;
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: var(--space-2xl);
+            color: var(--text-tertiary);
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: var(--space-md);
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+        }
+        
+        .main-content {
+            padding-bottom: calc(64px + var(--space-2xl));
+        }
+        
+        /* ======================================
+           LIGHTBOX VIEWER (In-Portal)
+        ====================================== */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-lg);
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .lightbox-overlay.active {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .lightbox-close {
+            position: absolute;
+            top: var(--space-lg);
+            right: var(--space-lg);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            z-index: 10;
+        }
+        
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .lightbox-content {
+            max-width: 100%;
+            max-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .lightbox-image {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .lightbox-pdf {
+            width: 90vw;
+            height: 80vh;
+            border-radius: var(--radius-lg);
+            background: white;
+            border: none;
+        }
+        
+        .lightbox-info {
+            position: absolute;
+            bottom: var(--space-lg);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: var(--space-sm) var(--space-lg);
+            border-radius: var(--radius-full);
+            color: white;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .lightbox-download {
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+        }
+        
+        .lightbox-download:hover {
+            background: var(--accent-green-hover);
+        }
+        
+        .lightbox-unsupported {
+            background: var(--bg-card);
+            padding: var(--space-2xl);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            color: var(--text-primary);
+        }
+        
+        .lightbox-unsupported i {
+            font-size: 48px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-md);
+        }
+        
+        .lightbox-unsupported p {
+            color: var(--text-secondary);
+            margin-bottom: var(--space-lg);
+        }
+        
+        /* Gallery navigation for multi-photo */
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+        
+        .lightbox-nav:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .lightbox-nav.prev {
+            left: var(--space-lg);
+        }
+        
+        .lightbox-nav.next {
+            right: var(--space-lg);
+        }
+        
+        .lightbox-counter {
+            position: absolute;
+            top: var(--space-lg);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: var(--space-xs) var(--space-md);
+            border-radius: var(--radius-full);
+            color: white;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Ambient Background Glow -->
+    <div class="ambient-glow"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-logo">
+            <img src="assets/fleetzy-logo.png" alt="Fleetzy">
+        </div>
+        <div class="header-actions">
+            <div class="header-user" onclick="toggleProfileMenu()">
+                <img id="user-avatar" src="https://ui-avatars.com/api/?name=Driver&background=10b981&color=fff&size=64" alt="User">
+                <div class="header-user-info">
+                    <div class="header-user-name" id="user-name">Driver</div>
+                    <div class="header-user-role">Customer</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Page Title -->
+        <div class="mb-xl">
+            <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 4px;">
+                My Documents
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 14px;">View your rental documents and files.</p>
+        </div>
+
+        <!-- Documents from Fleetzy Section (Admin Uploaded) -->
+        <div class="section-header">
+            <h2 class="section-title fleetzy-docs">
+                <i class="fas fa-building"></i>
+                From Fleetzy
+            </h2>
+            <span class="section-count" id="fleetzy-docs-count">0</span>
+        </div>
+        
+        <div id="fleetzy-docs-list">
+            <div class="empty-state">
+                <i class="fas fa-folder"></i>
+                <p>No documents from Fleetzy yet</p>
+            </div>
+        </div>
+
+        <!-- Rental Contract Section -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-file-signature"></i>
+                Rental Contract
+            </h2>
+            <span class="section-count" id="contract-count">0</span>
+        </div>
+        
+        <div id="contracts-list">
+            <div class="empty-state">
+                <i class="fas fa-file-contract"></i>
+                <p>No contracts found</p>
+            </div>
+        </div>
+
+        <!-- Payment Receipts Section -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-receipt"></i>
+                Payment Receipts
+            </h2>
+            <span class="section-count" id="receipts-count">0</span>
+        </div>
+        
+        <div id="receipts-list">
+            <div class="empty-state">
+                <i class="fas fa-receipt"></i>
+                <p>No payment receipts yet</p>
+            </div>
+        </div>
+
+        <!-- Inspection Reports Section -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-clipboard-check"></i>
+                Inspection Reports
+            </h2>
+            <span class="section-count" id="inspections-count">0</span>
+        </div>
+        
+        <div id="inspections-list">
+            <div class="empty-state">
+                <i class="fas fa-clipboard-check"></i>
+                <p>No inspection reports found</p>
+            </div>
+        </div>
+
+        <!-- My Uploaded Documents Section -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-id-card"></i>
+                My Uploaded Documents
+            </h2>
+            <span class="section-count" id="uploads-count">0</span>
+        </div>
+        
+        <div id="uploads-list">
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <p>No uploaded documents</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Lightbox Viewer -->
+    <div class="lightbox-overlay" id="lightbox">
+        <button class="lightbox-close" onclick="closeLightbox()">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <!-- Counter for galleries -->
+        <div class="lightbox-counter" id="lightbox-counter" style="display: none;">
+            <span id="lightbox-current">1</span> / <span id="lightbox-total">1</span>
+        </div>
+        
+        <!-- Navigation for galleries -->
+        <button class="lightbox-nav prev" id="lightbox-prev" onclick="navigateLightbox(-1)" style="display: none;">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="lightbox-nav next" id="lightbox-next" onclick="navigateLightbox(1)" style="display: none;">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <!-- Content -->
+        <div class="lightbox-content" id="lightbox-content">
+            <!-- Injected by JS -->
+        </div>
+        
+        <!-- Info bar -->
+        <div class="lightbox-info" id="lightbox-info">
+            <span id="lightbox-title">Document</span>
+            <a href="#" class="lightbox-download" id="lightbox-download" download>
+                <i class="fas fa-download"></i> Download
+            </a>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="bottom-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="payment.html" class="bottom-nav-item">
+            <i class="fas fa-credit-card"></i>
+            <span>Pay</span>
+        </a>
+        <a href="documents.html" class="bottom-nav-item active">
+            <i class="fas fa-folder"></i>
+            <span>Documents</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // ========================================
+        // CONFIGURATION
+        // ========================================
+        const supabaseUrl = 'https://xmixxqtcgaydasejshwn.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let customerId = null;
+        
+        // Lightbox state for galleries
+        let galleryImages = [];
+        let galleryIndex = 0;
+
+        // ========================================
+        // TOAST NOTIFICATIONS
+        // ========================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <i class="fas ${icons[type] || icons.info}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ========================================
+        // LIGHTBOX VIEWER
+        // ========================================
+        function openLightbox(url, title = 'Document', isGallery = false, images = [], startIndex = 0) {
+            const lightbox = document.getElementById('lightbox');
+            const content = document.getElementById('lightbox-content');
+            const titleEl = document.getElementById('lightbox-title');
+            const downloadBtn = document.getElementById('lightbox-download');
+            const counter = document.getElementById('lightbox-counter');
+            const prevBtn = document.getElementById('lightbox-prev');
+            const nextBtn = document.getElementById('lightbox-next');
+            
+            titleEl.textContent = title;
+            downloadBtn.href = url;
+            
+            // Handle gallery mode
+            if (isGallery && images.length > 1) {
+                galleryImages = images;
+                galleryIndex = startIndex;
+                counter.style.display = 'block';
+                prevBtn.style.display = 'flex';
+                nextBtn.style.display = 'flex';
+                document.getElementById('lightbox-total').textContent = images.length;
+                updateGalleryDisplay();
+            } else {
+                // Single image/document mode
+                galleryImages = [];
+                galleryIndex = 0;
+                counter.style.display = 'none';
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                renderLightboxContent(url);
+            }
+            
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', handleLightboxKeyboard);
+        }
+        
+        function renderLightboxContent(url) {
+            const content = document.getElementById('lightbox-content');
+            const downloadBtn = document.getElementById('lightbox-download');
+            
+            downloadBtn.href = url;
+            
+            const isImage = isImageUrl(url);
+            const isPdf = url.toLowerCase().includes('.pdf');
+            
+            if (isImage) {
+                content.innerHTML = `<img src="${url}" alt="Document" class="lightbox-image">`;
+            } else if (isPdf) {
+                content.innerHTML = `<iframe src="${url}" class="lightbox-pdf"></iframe>`;
+            } else {
+                content.innerHTML = `
+                    <div class="lightbox-unsupported">
+                        <i class="fas fa-file-download"></i>
+                        <p>This file type cannot be previewed</p>
+                        <a href="${url}" download class="lightbox-download">
+                            <i class="fas fa-download"></i> Download File
+                        </a>
+                    </div>
+                `;
+            }
+        }
+        
+        function updateGalleryDisplay() {
+            const url = galleryImages[galleryIndex];
+            document.getElementById('lightbox-current').textContent = galleryIndex + 1;
+            renderLightboxContent(url);
+        }
+        
+        function navigateLightbox(direction) {
+            if (galleryImages.length <= 1) return;
+            
+            galleryIndex += direction;
+            if (galleryIndex < 0) galleryIndex = galleryImages.length - 1;
+            if (galleryIndex >= galleryImages.length) galleryIndex = 0;
+            
+            updateGalleryDisplay();
+        }
+        
+        function handleLightboxKeyboard(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowLeft') {
+                navigateLightbox(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigateLightbox(1);
+            }
+        }
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', handleLightboxKeyboard);
+            
+            // Clear content to stop any loading
+            document.getElementById('lightbox-content').innerHTML = '';
+            galleryImages = [];
+            galleryIndex = 0;
+        }
+        
+        function isImageUrl(url) {
+            if (!url) return false;
+            const imageExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+            const lower = url.toLowerCase();
+            return imageExts.some(ext => lower.includes(ext));
+        }
+
+        // ========================================
+        // INITIALIZE
+        // ========================================
+        async function init() {
+            // Get customer from session
+            const phone = localStorage.getItem('fleetzy_phone') || sessionStorage.getItem('fleetzy_phone');
+            
+            if (!phone) {
+                showToast('Please log in to view documents', 'error');
+                setTimeout(() => window.location.href = 'login.html', 1500);
+                return;
+            }
+            
+            try {
+                // Get customer by phone
+                const { data: customer, error } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .eq('phone', phone)
+                    .single();
+                
+                if (error || !customer) {
+                    throw new Error('Customer not found');
+                }
+                
+                customerId = customer.id;
+                
+                // Update header
+                const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Driver';
+                document.getElementById('user-name').textContent = fullName;
+                
+                if (customer.selfie_url) {
+                    document.getElementById('user-avatar').src = customer.selfie_url;
+                }
+                
+                // Load all document sections
+                await Promise.all([
+                    loadFleetzyDocuments(),
+                    loadContracts(),
+                    loadReceipts(),
+                    loadInspections()
+                ]);
+                
+                loadUploadedDocuments(customer);
+                
+            } catch (err) {
+                console.error('Init error:', err);
+                showToast('Error loading documents', 'error');
+            }
+        }
+
+        // ========================================
+        // LOAD FLEETZY DOCUMENTS (Admin Uploaded)
+        // ========================================
+        async function loadFleetzyDocuments() {
+            const container = document.getElementById('fleetzy-docs-list');
+            
+            try {
+                const { data: docs, error } = await supabase
+                    .from('documents')
+                    .select('*')
+                    .eq('customer_id', customerId)
+                    .order('uploaded_date', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (!docs || docs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-folder"></i>
+                            <p>No documents from Fleetzy yet</p>
+                        </div>
+                    `;
+                    document.getElementById('fleetzy-docs-count').textContent = '0';
+                    return;
+                }
+                
+                document.getElementById('fleetzy-docs-count').textContent = docs.length;
+                
+                container.innerHTML = docs.map(doc => {
+                    const isImage = isImageUrl(doc.document_url);
+                    const isPdf = doc.document_url?.toLowerCase().includes('.pdf');
+                    const icon = isPdf ? 'fa-file-pdf' : (isImage ? 'fa-image' : 'fa-file');
+                    
+                    const date = new Date(doc.uploaded_date).toLocaleDateString('en-US', { 
+                        month: 'short', day: 'numeric', year: 'numeric' 
+                    });
+                    
+                    return `
+                        <div class="document-card" onclick="openLightbox('${doc.document_url}', '${doc.document_name || 'Document'}')">
+                            <div class="document-icon fleetzy">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="document-info">
+                                <div class="document-name">${doc.document_name || doc.document_type || 'Document'}</div>
+                                <div class="document-meta">
+                                    <span><i class="fas fa-calendar"></i> ${date}</span>
+                                    <span>•</span>
+                                    <span>From Fleetzy</span>
+                                </div>
+                            </div>
+                            <div class="document-action">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (err) {
+                console.error('Error loading Fleetzy documents:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="color: var(--accent-red);"></i>
+                        <p>Error loading documents</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ========================================
+        // LOAD CONTRACTS
+        // ========================================
+        async function loadContracts() {
+            const container = document.getElementById('contracts-list');
+            
+            try {
+                const { data: rentals, error } = await supabase
+                    .from('rentals')
+                    .select(`
+                        *,
+                        vehicles:vehicle_id (make, model, year)
+                    `)
+                    .eq('customer_id', customerId)
+                    .not('contract_url', 'is', null);
+
+                if (error) throw error;
+
+                if (!rentals || rentals.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-file-contract"></i>
+                            <p>No contracts found</p>
+                        </div>
+                    `;
+                    document.getElementById('contract-count').textContent = '0';
+                    return;
+                }
+
+                document.getElementById('contract-count').textContent = rentals.length;
+                
+                container.innerHTML = rentals.map(rental => {
+                    const vehicle = rental.vehicles;
+                    const vehicleName = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Vehicle';
+                    const date = new Date(rental.start_date).toLocaleDateString('en-US', { 
+                        month: 'short', day: 'numeric', year: 'numeric' 
+                    });
+                    
+                    return `
+                        <div class="document-card" onclick="openLightbox('${rental.contract_url}', 'Rental Contract - ${vehicleName}')">
+                            <div class="document-icon contract">
+                                <i class="fas fa-file-signature"></i>
+                            </div>
+                            <div class="document-info">
+                                <div class="document-name">Rental Contract - ${vehicleName}</div>
+                                <div class="document-meta">
+                                    <span><i class="fas fa-calendar"></i> ${date}</span>
+                                    <span>•</span>
+                                    <span>PDF</span>
+                                </div>
+                            </div>
+                            <div class="document-action">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Error loading contracts:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="color: var(--accent-red);"></i>
+                        <p>Error loading contracts</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ========================================
+        // LOAD RECEIPTS
+        // ========================================
+        async function loadReceipts() {
+            const container = document.getElementById('receipts-list');
+            
+            try {
+                const { data: payments, error } = await supabase
+                    .from('payments')
+                    .select('*')
+                    .eq('customer_id', customerId)
+                    .eq('status', 'confirmed')
+                    .order('paid_date', { ascending: false });
+
+                if (error) throw error;
+
+                if (!payments || payments.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-receipt"></i>
+                            <p>No payment receipts yet</p>
+                        </div>
+                    `;
+                    document.getElementById('receipts-count').textContent = '0';
+                    return;
+                }
+
+                document.getElementById('receipts-count').textContent = payments.length;
+                
+                container.innerHTML = payments.map(payment => {
+                    const date = new Date(payment.paid_date).toLocaleDateString('en-US', { 
+                        month: 'short', day: 'numeric', year: 'numeric' 
+                    });
+                    const amount = payment.paid_amount ? `$${parseFloat(payment.paid_amount).toFixed(2)}` : 'N/A';
+                    const hasScreenshot = payment.screenshot_url;
+                    
+                    if (!hasScreenshot) {
+                        return `
+                            <div class="document-card" style="opacity: 0.7; cursor: default;">
+                                <div class="document-icon receipt">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="document-info">
+                                    <div class="document-name">Payment - ${amount}</div>
+                                    <div class="document-meta">
+                                        <span><i class="fas fa-calendar"></i> ${date}</span>
+                                        <span>•</span>
+                                        <span>${payment.payment_method || 'N/A'}</span>
+                                    </div>
+                                </div>
+                                <div class="document-action" style="opacity: 0.5;">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    return `
+                        <div class="document-card" onclick="openLightbox('${payment.screenshot_url}', 'Payment Receipt - ${amount}')">
+                            <div class="document-icon receipt">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <div class="document-info">
+                                <div class="document-name">Payment - ${amount}</div>
+                                <div class="document-meta">
+                                    <span><i class="fas fa-calendar"></i> ${date}</span>
+                                    <span>•</span>
+                                    <span>${payment.payment_method || 'N/A'}</span>
+                                </div>
+                            </div>
+                            <div class="document-action">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Error loading receipts:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="color: var(--accent-red);"></i>
+                        <p>Error loading receipts</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ========================================
+        // LOAD INSPECTIONS
+        // ========================================
+        async function loadInspections() {
+            const container = document.getElementById('inspections-list');
+            
+            try {
+                const { data: rentals, error } = await supabase
+                    .from('rentals')
+                    .select(`
+                        *,
+                        vehicles:vehicle_id (make, model, year)
+                    `)
+                    .eq('customer_id', customerId);
+
+                if (error) throw error;
+
+                // Filter rentals with inspection photos
+                const rentalsWithInspections = rentals?.filter(r => 
+                    (r.checkin_inspection_photos && r.checkin_inspection_photos.length > 0) ||
+                    (r.checkout_inspection_photos && r.checkout_inspection_photos.length > 0)
+                ) || [];
+
+                if (rentalsWithInspections.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-check"></i>
+                            <p>No inspection reports found</p>
+                        </div>
+                    `;
+                    document.getElementById('inspections-count').textContent = '0';
+                    return;
+                }
+
+                let inspectionItems = [];
+                
+                rentalsWithInspections.forEach(rental => {
+                    const vehicle = rental.vehicles;
+                    const vehicleName = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Vehicle';
+                    
+                    if (rental.checkin_inspection_photos && rental.checkin_inspection_photos.length > 0) {
+                        inspectionItems.push({
+                            type: 'Check-In',
+                            vehicle: vehicleName,
+                            date: rental.start_date,
+                            photos: rental.checkin_inspection_photos
+                        });
+                    }
+                    
+                    if (rental.checkout_inspection_photos && rental.checkout_inspection_photos.length > 0) {
+                        inspectionItems.push({
+                            type: 'Check-Out',
+                            vehicle: vehicleName,
+                            date: rental.end_date || new Date().toISOString(),
+                            photos: rental.checkout_inspection_photos
+                        });
+                    }
+                });
+
+                document.getElementById('inspections-count').textContent = inspectionItems.length;
+                
+                container.innerHTML = inspectionItems.map(item => {
+                    const date = new Date(item.date).toLocaleDateString('en-US', { 
+                        month: 'short', day: 'numeric', year: 'numeric' 
+                    });
+                    
+                    // Use data attribute to pass photos array
+                    const photosJson = JSON.stringify(item.photos).replace(/"/g, '&quot;');
+                    
+                    return `
+                        <div class="document-card" onclick='openInspectionGallery(${JSON.stringify(item.photos)}, "${item.type} Inspection - ${item.vehicle}")'>
+                            <div class="document-icon inspection">
+                                <i class="fas fa-clipboard-check"></i>
+                            </div>
+                            <div class="document-info">
+                                <div class="document-name">${item.type} Inspection - ${item.vehicle}</div>
+                                <div class="document-meta">
+                                    <span><i class="fas fa-calendar"></i> ${date}</span>
+                                    <span>•</span>
+                                    <span>${item.photos.length} photos</span>
+                                </div>
+                            </div>
+                            <div class="document-action">
+                                <i class="fas fa-images"></i>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Error loading inspections:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="color: var(--accent-red);"></i>
+                        <p>Error loading inspections</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function openInspectionGallery(photos, title) {
+            if (photos && photos.length > 0) {
+                openLightbox(photos[0], title, true, photos, 0);
+            } else {
+                showToast('No photos available', 'error');
+            }
+        }
+
+        // ========================================
+        // LOAD UPLOADED DOCUMENTS (from application)
+        // ========================================
+        function loadUploadedDocuments(customer) {
+            const container = document.getElementById('uploads-list');
+            let documents = [];
+            
+            if (customer.drivers_license_front_url) {
+                documents.push({
+                    name: "Driver's License (Front)",
+                    url: customer.drivers_license_front_url,
+                    type: 'license'
+                });
+            }
+            
+            if (customer.drivers_license_back_url) {
+                documents.push({
+                    name: "Driver's License (Back)",
+                    url: customer.drivers_license_back_url,
+                    type: 'license'
+                });
+            }
+            
+            if (customer.selfie_url) {
+                documents.push({
+                    name: "Profile Photo",
+                    url: customer.selfie_url,
+                    type: 'selfie'
+                });
+            }
+            
+            if (customer.income_proof_url) {
+                documents.push({
+                    name: "Income Verification",
+                    url: customer.income_proof_url,
+                    type: 'income'
+                });
+            }
+
+            if (documents.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No uploaded documents</p>
+                    </div>
+                `;
+                document.getElementById('uploads-count').textContent = '0';
+                return;
+            }
+
+            document.getElementById('uploads-count').textContent = documents.length;
+            
+            container.innerHTML = documents.map(doc => `
+                <div class="document-card" onclick="openLightbox('${doc.url}', '${doc.name}')">
+                    <div class="document-icon license">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <div class="document-info">
+                        <div class="document-name">${doc.name}</div>
+                        <div class="document-meta">
+                            <span>From application</span>
+                        </div>
+                    </div>
+                    <div class="document-action">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ========================================
+        // MISC
+        // ========================================
+        function toggleProfileMenu() {
+            window.location.href = 'profile.html';
+        }
+
+        // ========================================
+        // START
+        // ========================================
+        init();
+    </script>
+</body>
+</html>
