@@ -5026,3 +5026,313 @@ html {
 .vehicle-detail-actions .btn {
     flex: 1;
 }
+/* ============================================
+   DOCUMENTS MODAL STYLES
+   Add this CSS to the END of admin/css/dashboard.css
+============================================ */
+
+/* Documents Modal Header */
+.docs-customer-header {
+    background: var(--bg-tertiary);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.docs-customer-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.docs-customer-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.docs-customer-id-label {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    background: var(--bg-secondary);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+}
+
+/* Upload Section */
+.docs-upload-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.docs-upload-section h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.docs-upload-section h4 i {
+    color: var(--accent-green);
+}
+
+.docs-upload-form {
+    display: grid;
+    gap: var(--space-md);
+}
+
+.doc-upload-dropzone {
+    border: 2px dashed var(--border-medium);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    background: var(--bg-primary);
+}
+
+.doc-upload-dropzone:hover {
+    border-color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.doc-upload-dropzone.has-file {
+    border-style: solid;
+    border-color: var(--accent-green);
+}
+
+.doc-upload-dropzone i {
+    font-size: 32px;
+    color: var(--text-tertiary);
+}
+
+.doc-upload-dropzone span {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.doc-upload-dropzone .file-types {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.doc-upload-dropzone .file-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-top: var(--space-sm);
+}
+
+/* Documents List */
+.docs-list-section {
+    min-height: 200px;
+}
+
+.docs-section {
+    margin-bottom: var(--space-lg);
+}
+
+.docs-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.docs-section-title i {
+    color: var(--accent-green);
+}
+
+.docs-count {
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    margin-left: auto;
+}
+
+.docs-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+}
+
+.doc-item:hover {
+    border-color: var(--accent-green);
+    background: var(--bg-tertiary);
+}
+
+.doc-item.system {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.doc-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.doc-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.doc-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.doc-date {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.doc-actions {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.docs-loading,
+.docs-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl);
+    color: var(--text-tertiary);
+    gap: var(--space-sm);
+}
+
+.docs-loading i,
+.docs-empty i {
+    font-size: 32px;
+    opacity: 0.5;
+}
+
+.docs-empty-hint {
+    font-size: 12px;
+}
+
+/* Document Viewer Modal */
+.modal-viewer {
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    background: transparent;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.viewer-close {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.viewer-close:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.1);
+}
+
+.viewer-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 90vw;
+    max-height: 85vh;
+}
+
+.viewer-image {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.viewer-pdf {
+    width: 80vw;
+    height: 85vh;
+    border-radius: var(--radius-lg);
+    background: white;
+}
+
+.viewer-unsupported {
+    background: var(--bg-card);
+    padding: var(--space-2xl);
+    border-radius: var(--radius-xl);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.viewer-unsupported i {
+    font-size: 48px;
+    color: var(--text-tertiary);
+}
+
+.viewer-unsupported p {
+    color: var(--text-secondary);
+}
+
+/* Documents button in action row */
+.btn-icon.docs {
+    color: var(--accent-green);
+}
+
+.btn-icon.docs:hover {
+    background: rgba(16, 185, 129, 0.15);
+}
