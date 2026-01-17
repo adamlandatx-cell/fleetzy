@@ -1198,7 +1198,7 @@ img {
     visibility: visible;
 }
 
-.modal {
+.modal-overlay .modal-box {
     background: var(--bg-card-solid);
     border: 1px solid var(--border-medium);
     border-radius: var(--radius-xl);
@@ -1210,7 +1210,7 @@ img {
     transition: transform var(--transition-base);
 }
 
-.modal-overlay.active .modal {
+.modal-overlay.active .modal-box {
     transform: scale(1) translateY(0);
 }
 
@@ -1790,8 +1790,11 @@ img {
    ============================================ */
 .modal {
     position: fixed;
-    inset: 0;
-    z-index: 1000;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1799,6 +1802,7 @@ img {
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
+    margin: 0 !important; /* Override any inherited margin */
 }
 
 .modal.active {
