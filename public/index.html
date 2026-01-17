@@ -692,18 +692,45 @@
     const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
     
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Initialize Supabase client with error handling
+    let supabaseClient = null;
+    try {
+        if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('✅ Supabase client initialized successfully');
+        } else {
+            console.error('❌ Supabase library not loaded properly');
+        }
+    } catch (e) {
+        console.error('❌ Error initializing Supabase:', e);
+    }
 
     // Default vehicle image if none provided
     const DEFAULT_VEHICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgNDAwIDMwMCI+PHJlY3QgZmlsbD0iI2U1ZTdlYiIgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzljYTNhZiIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
 
     // Load vehicles from Supabase
     async function loadVehicles() {
+        console.log('🚗 loadVehicles() called');
+        
         const loadingEl = document.getElementById('vehicles-loading');
         const gridEl = document.getElementById('vehicles-grid');
         const emptyEl = document.getElementById('vehicles-empty');
         const errorEl = document.getElementById('vehicles-error');
         const countStatEl = document.getElementById('vehicle-count-stat');
+
+        // Check if elements exist
+        if (!loadingEl || !gridEl || !emptyEl || !errorEl) {
+            console.error('❌ Required DOM elements not found');
+            return;
+        }
+
+        // Check if Supabase client is available
+        if (!supabaseClient) {
+            console.error('❌ Supabase client not available');
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+            return;
+        }
 
         // Show loading, hide others
         loadingEl.classList.remove('hidden');
@@ -712,36 +739,51 @@
         errorEl.classList.add('hidden');
 
         try {
+            console.log('📡 Fetching vehicles from Supabase...');
+            
             // Fetch available vehicles from Supabase
-            const { data: vehicles, error } = await supabase
+            const { data: vehicles, error } = await supabaseClient
                 .from('vehicles')
                 .select('*')
                 .eq('status', 'Active')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            console.log('📦 Supabase response:', { vehicles, error });
+
+            if (error) {
+                console.error('❌ Supabase error:', error);
+                throw error;
+            }
 
             // Update stats
-            countStatEl.textContent = vehicles?.length || 0;
+            if (countStatEl) {
+                countStatEl.textContent = vehicles?.length || 0;
+            }
 
             // Hide loading
             loadingEl.classList.add('hidden');
 
             if (!vehicles || vehicles.length === 0) {
-                // Show empty state
+                console.log('📭 No vehicles found');
                 emptyEl.classList.remove('hidden');
                 return;
             }
 
+            console.log(`✅ Found ${vehicles.length} vehicles, rendering...`);
+            
             // Render vehicles
             gridEl.innerHTML = vehicles.map(vehicle => createVehicleCard(vehicle)).join('');
             gridEl.classList.remove('hidden');
+            
+            console.log('✅ Vehicles rendered successfully');
 
         } catch (error) {
-            console.error('Error loading vehicles:', error);
+            console.error('❌ Error loading vehicles:', error);
             loadingEl.classList.add('hidden');
             errorEl.classList.remove('hidden');
-            countStatEl.textContent = '-';
+            if (countStatEl) {
+                countStatEl.textContent = '-';
+            }
         }
     }
 
@@ -753,7 +795,7 @@
         const model = vehicle.model || '';
         const color = vehicle.color || '';
         const friendlyName = vehicle.friendly_name || `${year} ${make} ${model}`;
-        const weeklyRate = vehicle.weekly_rate || 400; // Default to $400 if not set
+        const weeklyRate = 400; // Fixed rate - weekly_rate column doesn't exist yet
         const mileage = vehicle.current_mileage ? vehicle.current_mileage.toLocaleString() : 'N/A';
 
         return `
@@ -796,21 +838,27 @@
 
     // Detect online/offline status
     window.addEventListener('online', () => {
-        document.getElementById('offline-indicator').style.display = 'none';
+        const offlineEl = document.getElementById('offline-indicator');
+        if (offlineEl) offlineEl.style.display = 'none';
         loadVehicles(); // Reload vehicles when back online
     });
 
     window.addEventListener('offline', () => {
-        document.getElementById('offline-indicator').style.display = 'block';
+        const offlineEl = document.getElementById('offline-indicator');
+        if (offlineEl) offlineEl.style.display = 'block';
     });
 
     // Check initial status
     if (!navigator.onLine) {
-        document.getElementById('offline-indicator').style.display = 'block';
+        const offlineEl = document.getElementById('offline-indicator');
+        if (offlineEl) offlineEl.style.display = 'block';
     }
 
     // Load vehicles when page loads
-    document.addEventListener('DOMContentLoaded', loadVehicles);
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📄 DOMContentLoaded fired');
+        loadVehicles();
+    });
     </script>
 
 </body>
