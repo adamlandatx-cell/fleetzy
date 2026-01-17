@@ -88,6 +88,26 @@
         html {
             scroll-behavior: smooth;
         }
+
+        /* Vehicle card hover effect */
+        .vehicle-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .vehicle-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        /* Loading skeleton animation */
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200px 100%;
+            animation: shimmer 1.5s infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -191,7 +211,7 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                 <div>
-                    <div class="text-4xl font-bold text-fleetzy-green mb-2">4</div>
+                    <div id="vehicle-count-stat" class="text-4xl font-bold text-fleetzy-green mb-2">-</div>
                     <div class="text-gray-600">Vehicles Available</div>
                 </div>
                 <div>
@@ -315,8 +335,77 @@
         </div>
     </section>
 
+    <!-- VEHICLES SECTION - NEW! -->
+    <section id="vehicles" class="py-20 px-4 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-bold text-gray-900 mb-4">Our Available Vehicles</h3>
+                <p class="text-xl text-gray-600">All vehicles are rideshare-approved and ready to earn</p>
+            </div>
+
+            <!-- Loading State -->
+            <div id="vehicles-loading" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Skeleton cards while loading -->
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div class="skeleton h-48 w-full"></div>
+                    <div class="p-6">
+                        <div class="skeleton h-6 w-3/4 mb-2 rounded"></div>
+                        <div class="skeleton h-4 w-1/2 mb-4 rounded"></div>
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div class="skeleton h-48 w-full"></div>
+                    <div class="p-6">
+                        <div class="skeleton h-6 w-3/4 mb-2 rounded"></div>
+                        <div class="skeleton h-4 w-1/2 mb-4 rounded"></div>
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div class="skeleton h-48 w-full"></div>
+                    <div class="p-6">
+                        <div class="skeleton h-6 w-3/4 mb-2 rounded"></div>
+                        <div class="skeleton h-4 w-1/2 mb-4 rounded"></div>
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicles Grid (populated by JS) -->
+            <div id="vehicles-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 hidden"></div>
+
+            <!-- No Vehicles State -->
+            <div id="vehicles-empty" class="text-center py-12 hidden">
+                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                <h4 class="text-xl font-semibold text-gray-600 mb-2">No Vehicles Available</h4>
+                <p class="text-gray-500">Check back soon! New vehicles are added regularly.</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="vehicles-error" class="text-center py-12 hidden">
+                <svg class="w-16 h-16 text-red-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h4 class="text-xl font-semibold text-gray-600 mb-2">Unable to Load Vehicles</h4>
+                <p class="text-gray-500 mb-4">Please try refreshing the page.</p>
+                <button onclick="loadVehicles()" class="bg-fleetzy-green text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition">
+                    Try Again
+                </button>
+            </div>
+
+            <div class="text-center mt-12">
+                <a href="application.html" class="inline-block bg-fleetzy-green text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-emerald-700 transition">
+                    Apply to Reserve Your Vehicle →
+                </a>
+            </div>
+        </div>
+    </section>
+
     <!-- Pricing Section -->
-    <section id="pricing" class="py-20 px-4 bg-white">
+    <section id="pricing" class="py-20 px-4 bg-gray-50">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
                 <h3 class="text-4xl font-bold text-gray-900 mb-4">Flexible Pricing Options</h3>
@@ -325,7 +414,7 @@
 
             <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 <!-- Individual Driver -->
-                <div class="bg-gray-50 rounded-2xl p-8 border-2 border-gray-200">
+                <div class="bg-white rounded-2xl p-8 border-2 border-gray-200">
                     <h4 class="text-2xl font-bold mb-4 text-gray-900">Individual Driver</h4>
                     <div class="mb-6">
                         <span class="text-5xl font-bold text-fleetzy-green">$400</span>
@@ -407,7 +496,7 @@
     </section>
 
     <!-- Benefits Section -->
-    <section class="py-20 px-4 bg-gray-50">
+    <section class="py-20 px-4 bg-white">
         <div class="max-w-7xl mx-auto">
             <div class="text-center mb-16">
                 <h3 class="text-4xl font-bold text-gray-900 mb-4">Why Choose Fleetzy?</h3>
@@ -415,7 +504,7 @@
             </div>
 
             <div class="grid md:grid-cols-3 gap-8">
-                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                <div class="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition">
                     <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
                         <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -425,7 +514,7 @@
                     <p class="text-gray-600">All vehicles pre-approved for rideshare platforms and delivery services. Ready for commercial use immediately.</p>
                 </div>
 
-                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                <div class="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition">
                     <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
                         <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -435,7 +524,7 @@
                     <p class="text-gray-600">Get approved in 24 hours or less. No lengthy paperwork or complicated processes.</p>
                 </div>
 
-                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                <div class="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition">
                     <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
                         <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
@@ -445,7 +534,7 @@
                     <p class="text-gray-600">Pay weekly with Zelle, CashApp, Venmo, PayPal, or card. Whatever works for you.</p>
                 </div>
 
-                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                <div class="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition">
                     <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
                         <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -455,7 +544,7 @@
                     <p class="text-gray-600">We handle all maintenance and repairs. You just drive and earn.</p>
                 </div>
 
-                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                <div class="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition">
                     <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
                         <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -465,7 +554,7 @@
                     <p class="text-gray-600">Roadside assistance and support whenever you need it. We've got your back.</p>
                 </div>
 
-                <div class="bg-white rounded-xl p-8 shadow-md hover:shadow-xl transition">
+                <div class="bg-gray-50 rounded-xl p-8 shadow-md hover:shadow-xl transition">
                     <div class="w-16 h-16 bg-fleetzy-green/10 rounded-full flex items-center justify-center mb-6">
                         <svg class="w-8 h-8 text-fleetzy-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -479,7 +568,7 @@
     </section>
 
     <!-- FAQ Section -->
-    <section id="faq" class="py-20 px-4 bg-white">
+    <section id="faq" class="py-20 px-4 bg-gray-50">
         <div class="max-w-4xl mx-auto">
             <div class="text-center mb-16">
                 <h3 class="text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h3>
@@ -549,6 +638,7 @@
                     <h6 class="font-bold mb-4">Quick Links</h6>
                     <ul class="space-y-2 text-sm">
                         <li><a href="#how-it-works" class="text-gray-300 hover:text-white transition">How It Works</a></li>
+                        <li><a href="#vehicles" class="text-gray-300 hover:text-white transition">Vehicles</a></li>
                         <li><a href="#pricing" class="text-gray-300 hover:text-white transition">Pricing</a></li>
                         <li><a href="#faq" class="text-gray-300 hover:text-white transition">FAQ</a></li>
                         <li><a href="application.html" class="text-gray-300 hover:text-white transition">Apply Now</a></li>
@@ -594,10 +684,119 @@
         <p class="text-sm">You're offline. Some features may be limited.</p>
     </div>
 
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE1MjcyMDMsImV4cCI6MjA0NzEwMzIwM30.S8CvvW6UWaOgWoStMuTm0U0KYhHhYPoQyptbcZRBDCU';
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Default vehicle image if none provided
+    const DEFAULT_VEHICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiB2aWV3Qm94PSIwIDAgNDAwIDMwMCI+PHJlY3QgZmlsbD0iI2U1ZTdlYiIgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzljYTNhZiIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+
+    // Load vehicles from Supabase
+    async function loadVehicles() {
+        const loadingEl = document.getElementById('vehicles-loading');
+        const gridEl = document.getElementById('vehicles-grid');
+        const emptyEl = document.getElementById('vehicles-empty');
+        const errorEl = document.getElementById('vehicles-error');
+        const countStatEl = document.getElementById('vehicle-count-stat');
+
+        // Show loading, hide others
+        loadingEl.classList.remove('hidden');
+        gridEl.classList.add('hidden');
+        emptyEl.classList.add('hidden');
+        errorEl.classList.add('hidden');
+
+        try {
+            // Fetch available vehicles from Supabase
+            const { data: vehicles, error } = await supabase
+                .from('vehicles')
+                .select('*')
+                .eq('vehicle_status', 'Available')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            // Update stats
+            countStatEl.textContent = vehicles?.length || 0;
+
+            // Hide loading
+            loadingEl.classList.add('hidden');
+
+            if (!vehicles || vehicles.length === 0) {
+                // Show empty state
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+
+            // Render vehicles
+            gridEl.innerHTML = vehicles.map(vehicle => createVehicleCard(vehicle)).join('');
+            gridEl.classList.remove('hidden');
+
+        } catch (error) {
+            console.error('Error loading vehicles:', error);
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+            countStatEl.textContent = '-';
+        }
+    }
+
+    // Create vehicle card HTML
+    function createVehicleCard(vehicle) {
+        const imageUrl = vehicle.image_url || DEFAULT_VEHICLE_IMAGE;
+        const year = vehicle.year || '';
+        const make = vehicle.make || '';
+        const model = vehicle.model || '';
+        const color = vehicle.color || '';
+        const weeklyRate = vehicle.weekly_rate || 400;
+        const mileage = vehicle.current_mileage ? vehicle.current_mileage.toLocaleString() : 'N/A';
+
+        return `
+            <div class="vehicle-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="relative">
+                    <img 
+                        src="${imageUrl}" 
+                        alt="${year} ${make} ${model}"
+                        class="w-full h-48 object-cover"
+                        onerror="this.src='${DEFAULT_VEHICLE_IMAGE}'"
+                    >
+                    <div class="absolute top-4 right-4 bg-fleetzy-green text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        Available
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h4 class="text-xl font-bold text-gray-900 mb-1">${year} ${make} ${model}</h4>
+                    <p class="text-gray-500 text-sm mb-4">${color} • ${mileage} miles</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <span class="text-2xl font-bold text-fleetzy-green">$${weeklyRate}</span>
+                            <span class="text-gray-500 text-sm">/week</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-sm text-gray-500">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span>Rideshare Ready</span>
+                        </div>
+                    </div>
+
+                    <a href="application.html" class="block text-center bg-fleetzy-green text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition">
+                        Apply for This Vehicle
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
     // Detect online/offline status
     window.addEventListener('online', () => {
         document.getElementById('offline-indicator').style.display = 'none';
+        loadVehicles(); // Reload vehicles when back online
     });
 
     window.addEventListener('offline', () => {
@@ -608,8 +807,10 @@
     if (!navigator.onLine) {
         document.getElementById('offline-indicator').style.display = 'block';
     }
+
+    // Load vehicles when page loads
+    document.addEventListener('DOMContentLoaded', loadVehicles);
     </script>
 
 </body>
 </html>
-
