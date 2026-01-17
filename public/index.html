@@ -690,7 +690,7 @@
     <script>
     // Supabase Configuration
     const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE1MjcyMDMsImV4cCI6MjA0NzEwMzIwM30.S8CvvW6UWaOgWoStMuTm0U0KYhHhYPoQyptbcZRBDCU';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
     
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -716,7 +716,7 @@
             const { data: vehicles, error } = await supabase
                 .from('vehicles')
                 .select('*')
-                .eq('vehicle_status', 'Available')
+                .eq('status', 'Active')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -752,7 +752,8 @@
         const make = vehicle.make || '';
         const model = vehicle.model || '';
         const color = vehicle.color || '';
-        const weeklyRate = vehicle.weekly_rate || 400;
+        const friendlyName = vehicle.friendly_name || `${year} ${make} ${model}`;
+        const weeklyRate = vehicle.weekly_rate || 400; // Default to $400 if not set
         const mileage = vehicle.current_mileage ? vehicle.current_mileage.toLocaleString() : 'N/A';
 
         return `
@@ -760,7 +761,7 @@
                 <div class="relative">
                     <img 
                         src="${imageUrl}" 
-                        alt="${year} ${make} ${model}"
+                        alt="${friendlyName}"
                         class="w-full h-48 object-cover"
                         onerror="this.src='${DEFAULT_VEHICLE_IMAGE}'"
                     >
