@@ -47,50 +47,102 @@ document.addEventListener('DOMContentLoaded', () => {
 // SESSION CHECK - Skip auth if already logged in from dashboard
 // ============================================================================
 
+// Normalize phone - strip all non-digits
+function normalizePhone(phone) {
+    if (!phone) return '';
+    return phone.replace(/\D/g, '');
+}
+
 async function checkExistingSession() {
     const customerId = localStorage.getItem('fleetzy_customer_id');
     const customerPhone = localStorage.getItem('fleetzy_phone');
     
     console.log('🔐 Checking existing session...', { customerId, customerPhone });
     
-    if (customerId) {
+    // Check if we have stored session data
+    if (customerId || customerPhone) {
         // Already logged in from dashboard - load customer data directly
         showLoading('Loading your account...');
         
         try {
-            // Query customer with their active rental using stored customer_id
-            const { data, error } = await supabaseClient
-                .from('customers')
-                .select(`
-                    *,
-                    rentals!inner(
-                        *,
-                        vehicles(*)
-                    )
-                `)
-                .eq('id', customerId)
-                .eq('rentals.rental_status', 'active')
+            // Step 1: Get customer data (same pattern as dashboard.html)
+            let customer = null;
+            
+            if (customerId) {
+                // Try by customer_id first (most reliable)
+                const { data: customerById, error: idError } = await supabaseClient
+                    .from('customers')
+                    .select('*')
+                    .eq('id', customerId)
+                    .single();
+                
+                if (customerById && !idError) {
+                    customer = customerById;
+                    console.log('✅ Customer found by ID:', customer.full_name);
+                } else {
+                    console.log('⚠️ Customer not found by ID, trying phone...');
+                }
+            }
+            
+            // Fallback: Try by phone if ID lookup failed
+            if (!customer && customerPhone) {
+                const normalizedPhone = normalizePhone(customerPhone);
+                const { data: allCustomers, error: phoneError } = await supabaseClient
+                    .from('customers')
+                    .select('*');
+                
+                if (!phoneError && allCustomers) {
+                    customer = allCustomers.find(c => normalizePhone(c.phone) === normalizedPhone);
+                    if (customer) {
+                        console.log('✅ Customer found by phone:', customer.full_name);
+                        // Update stored customer_id for future use
+                        localStorage.setItem('fleetzy_customer_id', customer.id);
+                    }
+                }
+            }
+            
+            if (!customer) {
+                console.log('❌ Customer not found, showing auth form');
+                hideLoading();
+                initializeAuth();
+                return;
+            }
+            
+            // Step 2: Get active rental separately (same pattern as dashboard.html)
+            const { data: rental, error: rentalError } = await supabaseClient
+                .from('rentals')
+                .select('*, vehicles(*)')
+                .eq('customer_id', customer.id)
+                .eq('rental_status', 'active')
                 .single();
             
-            if (data && !error) {
-                console.log('✅ Session valid - customer found:', data.full_name);
-                customerData = data;
-                rentalData = data.rentals[0];
+            if (rental && !rentalError) {
+                console.log('✅ Active rental found:', rental.id);
+                customerData = customer;
+                rentalData = rental;
                 hideLoading();
                 showPaymentSection();
                 return; // Exit - no need for auth form
             } else {
-                console.log('⚠️ Customer found but no active rental or error:', error);
+                console.log('⚠️ No active rental found for customer:', rentalError?.message || 'No rental');
+                // Customer exists but no active rental - show auth form with message
+                hideLoading();
+                initializeAuth();
+                // Show helpful message
+                setTimeout(() => {
+                    showAuthError('No active rental found. Please contact support if you believe this is an error.');
+                }, 100);
+                return;
             }
+            
         } catch (err) {
             console.error('❌ Session load error:', err);
+            hideLoading();
         }
-        
-        hideLoading();
     }
     
-    // No valid session or no active rental - show auth form
-    console.log('📝 Showing auth form...');
+    // No valid session - show auth form
+    console.log('📝 No session found, showing auth form...');
     initializeAuth();
 }
 
