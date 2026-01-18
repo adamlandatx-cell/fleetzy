@@ -189,7 +189,7 @@ const Rentals = {
                 return start.getMonth() === thisMonth.getMonth() && 
                        start.getFullYear() === thisMonth.getFullYear();
             })
-            .reduce((sum, r) => sum + (parseFloat(r.total_amount_paid) || 0), 0);
+            .reduce((sum, r) => sum + (parseFloat(r.initial_payment) || 0), 0);
         
         // Update stat elements
         const pendingEl = document.getElementById('rentals-stat-pending');
@@ -267,12 +267,11 @@ const Rentals = {
             ? new Date(rental.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             : 'Ongoing';
         
-        // Payment info
+        // Payment info - using actual column names
         const weeklyRate = parseFloat(rental.weekly_rate) || 400;
-        const nextPayment = rental.next_payment_due
-            ? new Date(rental.next_payment_due).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            : '-';
-        const isOverdue = rental.next_payment_due && new Date(rental.next_payment_due) < new Date();
+        // Note: next_payment_due doesn't exist in schema, calculate from start_date if needed
+        const nextPayment = '-'; // Would need separate payments table logic
+        const isOverdue = false; // Would need payment tracking logic
         
         // Action buttons based on status
         const actionButtons = this.getActionButtons(rental);
@@ -468,8 +467,8 @@ const Rentals = {
                             <span class="detail-value">${rental.end_date ? new Date(rental.end_date).toLocaleDateString() : 'Ongoing'}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Weeks Contracted</span>
-                            <span class="detail-value">${rental.weeks_contracted || '-'}</span>
+                            <span class="detail-label">Weeks</span>
+                            <span class="detail-value">${rental.weeks_count || 'Ongoing'}</span>
                         </div>
                     </div>
                     
@@ -517,35 +516,26 @@ const Rentals = {
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Deposit</span>
-                            <span class="detail-value">$${parseFloat(rental.deposit_amount || 0).toLocaleString()}</span>
+                            <span class="detail-value">$${parseFloat(rental.deposit_amount || rental.deposit_included || 0).toLocaleString()}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Total Due</span>
-                            <span class="detail-value">$${parseFloat(rental.total_amount_due || 0).toLocaleString()}</span>
+                            <span class="detail-label">Initial Payment</span>
+                            <span class="detail-value">$${parseFloat(rental.initial_payment || 0).toLocaleString()}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Total Paid</span>
-                            <span class="detail-value">$${parseFloat(rental.total_amount_paid || 0).toLocaleString()}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Balance</span>
-                            <span class="detail-value ${parseFloat(rental.balance_remaining) > 0 ? 'text-red' : ''}">
-                                $${parseFloat(rental.balance_remaining || 0).toLocaleString()}
-                            </span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Next Payment</span>
-                            <span class="detail-value">${rental.next_payment_due ? new Date(rental.next_payment_due).toLocaleDateString() : '-'}</span>
+                            <span class="detail-label">Deposit Status</span>
+                            <span class="detail-value">${rental.deposit_status || 'N/A'}</span>
                         </div>
                     </div>
                 </div>
                 
-                ${rental.notes ? `
+                ${rental.pickup_inspection_notes ? `
                     <div class="detail-section full-width">
-                        <h4><i class="fas fa-sticky-note"></i> Notes</h4>
-                        <p class="notes-text">${rental.notes}</p>
+                        <h4><i class="fas fa-sticky-note"></i> Pickup Notes</h4>
+                        <p class="notes-text">${rental.pickup_inspection_notes}</p>
                     </div>
                 ` : ''}
+            `;
             `;
         }
         
@@ -957,40 +947,36 @@ const Rentals = {
         }
         
         // Calculate amounts based on rental type
-        let totalDue, initialPayment;
+        let initialPaymentAmount;
         if (isOngoing) {
             // Ongoing: initial payment = deposit + first week
-            initialPayment = deposit + weeklyRate;
-            totalDue = initialPayment; // For ongoing, total due is just the initial
+            initialPaymentAmount = deposit + weeklyRate;
             notes = (notes ? notes + '\n' : '') + 'ONGOING RENTAL (Week-to-Week)';
         } else {
-            // Fixed-term: total = deposit + all weeks
-            totalDue = (weeks * weeklyRate) + deposit;
-            initialPayment = totalDue;
+            // Fixed-term: initial payment = deposit + all weeks
+            initialPaymentAmount = (weeks * weeklyRate) + deposit;
         }
         
-        const nextPaymentDue = new Date(startDate);
-        nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
-        
+        // Build rental data using ACTUAL column names from database
         const rentalData = {
             rental_id: rentalId,
             customer_id: customerId,
             vehicle_id: vehicleId,
             start_date: startDate,
-            weeks_contracted: weeks,
             weekly_rate: weeklyRate,
-            deposit_amount: deposit,
-            total_amount_due: totalDue,
-            total_amount_paid: 0,
-            balance_remaining: totalDue,
-            rental_status: 'pending_rental', // Already approved since admin is creating
-            payment_frequency: 'Weekly',
-            next_payment_due: nextPaymentDue.toISOString().split('T')[0],
-            payments_missed: 0,
-            notes: notes,
+            weeks_count: weeks,                    // actual column (not weeks_contracted)
+            initial_payment: initialPaymentAmount, // actual column (not total_amount_due)
+            deposit_included: deposit,             // actual column
+            deposit_amount: deposit,               // also store in deposit_amount
+            deposit_status: 'held',
+            deposit_balance: deposit,
+            rental_status: 'pending_rental',       // Already approved since admin is creating
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
+        
+        // Add notes if provided (check if column exists - may need to add via SQL)
+        // For now, we'll skip notes if column doesn't exist
         
         try {
             Utils.toastInfo('Creating rental...');
