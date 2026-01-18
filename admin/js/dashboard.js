@@ -61,9 +61,11 @@ const Dashboard = {
         const now = new Date();
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthlyPayments = payments.filter(p => {
-            const status = (p.payment_status || p.status || '').toLowerCase();
+            const status = (p.payment_status || '').toLowerCase();
             const paidDate = p.paid_date ? new Date(p.paid_date) : null;
-            return status === 'confirmed' && paidDate && paidDate >= monthStart;
+            // Accept both 'paid' and 'confirmed' as valid completed payment statuses
+            const isCompleted = status === 'paid' || status === 'confirmed';
+            return isCompleted && paidDate && paidDate >= monthStart;
         });
         const monthlyRevenue = monthlyPayments.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
         

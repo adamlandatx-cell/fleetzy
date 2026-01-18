@@ -121,11 +121,13 @@ const Payments = {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         
-        // This Month (confirmed payments)
+        // This Month (paid/confirmed payments)
         const thisMonth = this.data.filter(p => {
             const paidDate = new Date(p.paid_date);
-            return paidDate >= startOfMonth && 
-                   (p.payment_status || '').toLowerCase() === 'confirmed';
+            const status = (p.payment_status || '').toLowerCase();
+            // Accept both 'paid' and 'confirmed' as valid completed payment statuses
+            const isCompleted = status === 'paid' || status === 'confirmed';
+            return paidDate >= startOfMonth && isCompleted;
         });
         const thisMonthTotal = thisMonth.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
         
