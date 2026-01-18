@@ -13,8 +13,8 @@
     <link rel="manifest" href="manifest.json">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/favicon.png">
-    <link rel="apple-touch-icon" href="assets/favicon.png">
+    <link rel="icon" type="image/png" href="fleetzy-icon.png">
+    <link rel="apple-touch-icon" href="fleetzy-icon.png">
     
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,8 +25,242 @@
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- Portal Styles -->
-    <link rel="stylesheet" href="css/portal.css">
+    <!-- CSS Variables & Base Styles -->
+    <style>
+        :root {
+            /* Colors - Dark Theme */
+            --bg-primary: #09090b;
+            --bg-secondary: #18181b;
+            --bg-tertiary: #27272a;
+            --bg-card: #1c1c1f;
+            --bg-card-hover: #252528;
+            
+            /* Text Colors */
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            
+            /* Border Colors */
+            --border-light: #27272a;
+            --border-medium: #3f3f46;
+            --border-heavy: #52525b;
+            
+            /* Accent Colors */
+            --accent-green: #10b981;
+            --accent-green-hover: #059669;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-cyan: #06b6d4;
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 12px;
+            --space-lg: 16px;
+            --space-xl: 24px;
+            --space-2xl: 32px;
+            
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-full: 9999px;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.2s ease;
+            --transition-slow: 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Ambient Glow */
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(16, 185, 129, 0.08), transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-light);
+            padding: var(--space-md) var(--space-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-logo img {
+            height: 28px;
+            width: auto;
+        }
+        
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            cursor: pointer;
+            padding: var(--space-sm);
+            border-radius: var(--radius-lg);
+            transition: background var(--transition-fast);
+        }
+        
+        .header-user:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .header-user img {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+        }
+        
+        .header-user-info {
+            text-align: right;
+        }
+        
+        .header-user-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        
+        .header-user-role {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: var(--space-xl) var(--space-lg);
+            padding-bottom: calc(80px + var(--space-2xl));
+            position: relative;
+            z-index: 1;
+        }
+        
+        .mb-xl {
+            margin-bottom: var(--space-xl);
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(9, 9, 11, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-around;
+            padding: var(--space-sm) 0;
+            padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom));
+            z-index: 100;
+        }
+        
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: var(--space-sm) var(--space-lg);
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+        }
+        
+        .bottom-nav-item i {
+            font-size: 20px;
+        }
+        
+        .bottom-nav-item.active {
+            color: var(--accent-green);
+        }
+        
+        .bottom-nav-item:hover {
+            color: var(--text-primary);
+        }
+        
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: var(--space-lg);
+            right: var(--space-lg);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-lg);
+            padding: var(--space-md) var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            font-size: 14px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast-success { border-left: 3px solid var(--accent-green); }
+        .toast-success i { color: var(--accent-green); }
+        .toast-error { border-left: 3px solid var(--accent-red); }
+        .toast-error i { color: var(--accent-red); }
+        .toast-warning { border-left: 3px solid var(--accent-amber); }
+        .toast-warning i { color: var(--accent-amber); }
+        .toast-info { border-left: 3px solid var(--accent-blue); }
+        .toast-info i { color: var(--accent-blue); }
+        
+        .toast.fade-out {
+            animation: slideOut 0.3s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
     
     <style>
         .document-card {
@@ -346,7 +580,7 @@
     <!-- Header -->
     <header class="header">
         <div class="header-logo">
-            <img src="assets/fleetzy-logo.png" alt="Fleetzy">
+            <img src="fleetzy-logo.png" alt="Fleetzy">
         </div>
         <div class="header-actions">
             <div class="header-user" onclick="toggleProfileMenu()">
