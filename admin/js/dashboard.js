@@ -35,7 +35,7 @@ const Dashboard = {
     async fetchAllData() {
         const [vehicles, rentals, payments, customers] = await Promise.all([
             db.from('vehicles').select('*'),
-            db.from('rentals').select('*, customers(first_name, last_name, phone, selfie_url)'),
+            db.from('rentals').select('*, customers(full_name, phone, selfie_url)'),
             db.from('payments').select('*').order('created_at', { ascending: false }).limit(50),
             db.from('customers').select('*').order('created_at', { ascending: false }).limit(20)
         ]);
@@ -116,8 +116,8 @@ const Dashboard = {
         container.innerHTML = displayVehicles.map(vehicle => {
             const rental = activeRentalsMap[vehicle.id];
             const status = rental ? 'rented' : 
-                          vehicle.vehicle_status === 'Maintenance' ? 'maintenance' :
-                          vehicle.vehicle_status === 'Reserved' ? 'reserved' : 'available';
+                          vehicle.status === 'Maintenance' ? 'maintenance' :
+                          vehicle.status === 'Reserved' ? 'reserved' : 'available';
             
             const statusLabel = status === 'rented' ? 'Rented' :
                                status === 'maintenance' ? 'Service' :
@@ -167,7 +167,7 @@ const Dashboard = {
             activities.push({
                 type: 'payment',
                 icon: 'fa-dollar-sign',
-                text: `<strong>${customer?.first_name || 'Customer'} ${customer?.last_name || ''}</strong> paid weekly rental <strong>$${p.paid_amount}</strong>`,
+                text: `<strong>${customer?.full_name || 'Customer'}</strong> paid weekly rental <strong>$${p.paid_amount}</strong>`,
                 time: new Date(p.created_at),
                 iconClass: 'payment'
             });
@@ -178,7 +178,7 @@ const Dashboard = {
             activities.push({
                 type: 'rental',
                 icon: 'fa-key',
-                text: `Rental started for <strong>${r.customers?.first_name || 'Customer'} ${r.customers?.last_name || ''}</strong>`,
+                text: `Rental started for <strong>${r.customers?.full_name || 'Customer'}</strong>`,
                 time: new Date(r.start_date),
                 iconClass: 'rental'
             });
@@ -246,7 +246,7 @@ const Dashboard = {
         });
         
         // Fleet optimization insight
-        const availableVehicles = vehicles.filter(v => v.vehicle_status === 'Available').length;
+        const availableVehicles = vehicles.filter(v => v.status === 'Available').length;
         if (availableVehicles > 1) {
             insights.push({
                 type: 'info',

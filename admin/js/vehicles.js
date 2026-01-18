@@ -75,7 +75,7 @@ const Vehicles = {
                 vehicle.vin?.toLowerCase().includes(searchTerm);
             
             // Status filter
-            const statusMatch = !statusFilter || vehicle.vehicle_status === statusFilter;
+            const statusMatch = !statusFilter || vehicle.status === statusFilter;
             
             return searchMatch && statusMatch;
         });
@@ -88,9 +88,9 @@ const Vehicles = {
      */
     updateStats() {
         const total = this.data.length;
-        const available = this.data.filter(v => v.vehicle_status === 'Available').length;
-        const rented = this.data.filter(v => v.vehicle_status === 'Rented').length;
-        const maintenance = this.data.filter(v => v.vehicle_status === 'Maintenance').length;
+        const available = this.data.filter(v => v.status === 'Available').length;
+        const rented = this.data.filter(v => v.status === 'Rented').length;
+        const maintenance = this.data.filter(v => v.status === 'Maintenance').length;
         
         // Update stat elements if they exist
         const totalEl = document.getElementById('vehicles-stat-total');
@@ -133,8 +133,8 @@ const Vehicles = {
      * Render single vehicle row
      */
     renderRow(vehicle) {
-        const statusClass = this.getStatusClass(vehicle.vehicle_status);
-        const statusLabel = vehicle.vehicle_status || 'Unknown';
+        const statusClass = this.getStatusClass(vehicle.status);
+        const statusLabel = vehicle.status || 'Unknown';
         
         return `
             <tr data-vehicle-id="${vehicle.id}">
@@ -264,7 +264,7 @@ const Vehicles = {
             vin: formData.get('vin'),
             license_plate: formData.get('license_plate'),
             color: formData.get('color'),
-            vehicle_status: formData.get('vehicle_status') || 'Available',
+            status: formData.get('status') || 'Available',
             weekly_rate: parseFloat(formData.get('weekly_rate')) || CONFIG.business.weeklyRate,
             current_mileage: parseInt(formData.get('current_mileage')) || 0,
             purchase_price: parseFloat(formData.get('purchase_price')) || null,
@@ -344,7 +344,7 @@ const Vehicles = {
         
         // Populate the modal with vehicle data
         const imageContainer = document.getElementById('view-vehicle-image');
-        const status = vehicle.vehicle_status || 'Available';
+        const status = vehicle.status || 'Available';
         const statusClass = status.toLowerCase().replace(' ', '-');
         
         if (vehicle.image_url) {
@@ -417,7 +417,7 @@ const Vehicles = {
         document.getElementById('edit-vehicle-vin').value = vehicle.vin || '';
         document.getElementById('edit-vehicle-license-plate').value = vehicle.license_plate || '';
         document.getElementById('edit-vehicle-color').value = vehicle.color || '';
-        document.getElementById('edit-vehicle-status').value = vehicle.vehicle_status || 'Available';
+        document.getElementById('edit-vehicle-status').value = vehicle.status || 'Available';
         document.getElementById('edit-vehicle-weekly-rate').value = vehicle.weekly_rate || 400;
         document.getElementById('edit-vehicle-mileage').value = vehicle.current_mileage || 0;
         document.getElementById('edit-vehicle-purchase-price').value = vehicle.purchase_price || '';
@@ -459,7 +459,7 @@ const Vehicles = {
             vin: document.getElementById('edit-vehicle-vin')?.value,
             license_plate: document.getElementById('edit-vehicle-license-plate')?.value,
             color: document.getElementById('edit-vehicle-color')?.value,
-            vehicle_status: document.getElementById('edit-vehicle-status')?.value,
+            status: document.getElementById('edit-vehicle-status')?.value,
             weekly_rate: parseFloat(document.getElementById('edit-vehicle-weekly-rate')?.value) || 400,
             current_mileage: parseInt(document.getElementById('edit-vehicle-mileage')?.value) || 0,
             purchase_price: parseFloat(document.getElementById('edit-vehicle-purchase-price')?.value) || null,
@@ -502,7 +502,7 @@ const Vehicles = {
         
         // Cycle through statuses
         const statuses = CONFIG.vehicleStatuses;
-        const currentIndex = statuses.indexOf(vehicle.vehicle_status);
+        const currentIndex = statuses.indexOf(vehicle.status);
         const nextIndex = (currentIndex + 1) % statuses.length;
         const newStatus = statuses[nextIndex];
         
@@ -510,7 +510,7 @@ const Vehicles = {
             const { error } = await db
                 .from('vehicles')
                 .update({ 
-                    vehicle_status: newStatus,
+                    status: newStatus,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', vehicleId);

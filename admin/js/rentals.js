@@ -21,16 +21,17 @@ const Rentals = {
     
     /**
      * Load rentals from Supabase with customer and vehicle data
+     * FIXED: Using correct column names (full_name instead of first_name/last_name)
      */
     async load() {
         try {
-            // Load rentals with related data
+            // Load rentals with related data - using correct column names
             const { data: rentals, error } = await db
                 .from('rentals')
                 .select(`
                     *,
-                    customer:customer_id(id, customer_id, first_name, last_name, phone, email, selfie_url),
-                    vehicle:vehicle_id(id, vehicle_id, make, model, year, license_plate, weekly_rate, image_url)
+                    customer:customer_id(id, customer_id, full_name, phone, email, selfie_url),
+                    vehicle:vehicle_id(id, vehicle_id, make, model, year, license_plate, image_url)
                 `)
                 .order('created_at', { ascending: false });
             
@@ -50,49 +51,76 @@ const Rentals = {
     },
     
     /**
-     * Load available customers (approved, no active rental)
+     * Load available customers for new rental dropdown
+     * FIXED: Using correct column names and status values
      */
     async loadAvailableCustomers() {
         try {
+            // Load all customers - filter in JS for flexibility
             const { data, error } = await db
                 .from('customers')
                 .select('*')
-                .or('status.ilike.%approved%,application_status.ilike.%approved%')
-                .order('first_name');
+                .order('full_name');
             
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
+            }
             
-            // Filter out customers with active rentals
+            console.log('📋 All customers from DB:', data?.length || 0);
+            
+            // Accept customers with status: approved, active, pending, or null/empty
+            // This allows flexibility for manually added customers
+            let availableCustomers = (data || []).filter(c => {
+                const status = (c.status || '').toLowerCase();
+                return status === 'approved' || 
+                       status === 'active' || 
+                       status === 'pending' ||
+                       !status; // Include customers with no status
+            });
+            
+            // Filter out customers who already have active rentals
             const activeRentalCustomerIds = this.data
                 .filter(r => ['active', 'pending_rental'].includes(r.rental_status))
                 .map(r => r.customer_id);
             
-            this.customers = (data || []).filter(c => !activeRentalCustomerIds.includes(c.id));
+            this.customers = availableCustomers.filter(c => !activeRentalCustomerIds.includes(c.id));
+            
+            console.log('✅ Available customers for rental:', this.customers.length);
             
             return this.customers;
         } catch (error) {
             console.error('Error loading customers:', error);
+            Utils.toastError('Failed to load customers');
             return [];
         }
     },
     
     /**
-     * Load available vehicles
+     * Load available vehicles for new rental dropdown
+     * FIXED: Using 'status' column (not 'vehicle_status') and 'Active' value
      */
     async loadAvailableVehicles() {
         try {
+            // Load vehicles with status = 'Active' (available for rent)
             const { data, error } = await db
                 .from('vehicles')
                 .select('*')
-                .eq('vehicle_status', 'Available')
+                .eq('status', 'Active')
                 .order('make');
             
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error:', error);
+                throw error;
+            }
             
             this.vehicles = data || [];
+            console.log('✅ Available vehicles for rental:', this.vehicles.length);
+            
             return this.vehicles;
         } catch (error) {
             console.error('Error loading vehicles:', error);
+            Utils.toastError('Failed to load vehicles');
             return [];
         }
     },
@@ -116,16 +144,15 @@ const Rentals = {
     
     /**
      * Filter rentals based on search and status
+     * FIXED: Using full_name for customer search
      */
     filter() {
         const searchTerm = document.getElementById('rentals-search')?.value?.toLowerCase() || '';
         const statusFilter = document.getElementById('rentals-status-filter')?.value || '';
         
         this.filtered = this.data.filter(rental => {
-            // Search filter - customer name, vehicle info
-            const customerName = rental.customer 
-                ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.toLowerCase()
-                : '';
+            // Search filter - customer name, vehicle info (using full_name)
+            const customerName = (rental.customer?.full_name || '').toLowerCase();
             const vehicleInfo = rental.vehicle
                 ? `${rental.vehicle.year || ''} ${rental.vehicle.make || ''} ${rental.vehicle.model || ''} ${rental.vehicle.license_plate || ''}`.toLowerCase()
                 : '';
@@ -213,15 +240,14 @@ const Rentals = {
     
     /**
      * Render single rental row
+     * FIXED: Using full_name instead of first_name/last_name
      */
     renderRow(rental) {
         const statusClass = this.getStatusClass(rental.rental_status);
         const statusLabel = this.formatStatus(rental.rental_status);
         
-        // Customer info
-        const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
-            : 'Unknown Customer';
+        // Customer info - using full_name
+        const customerName = rental.customer?.full_name || 'Unknown Customer';
         const customerAvatar = rental.customer?.selfie_url || 
             `https://ui-avatars.com/api/?name=${encodeURIComponent(customerName)}&background=10b981&color=fff&size=64`;
         const customerId = rental.customer?.customer_id || 'N/A';
@@ -411,7 +437,7 @@ const Rentals = {
         
         // Populate modal with rental details
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'Unknown';
         const vehicleName = rental.vehicle 
             ? `${rental.vehicle.year} ${rental.vehicle.make} ${rental.vehicle.model}`
@@ -570,7 +596,7 @@ const Rentals = {
         }
         
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'Customer';
         
         const confirmed = confirm(`Approve rental for ${customerName}?\n\nThis will move the rental to "Awaiting Pickup" status.`);
@@ -595,7 +621,7 @@ const Rentals = {
                 await db
                     .from('vehicles')
                     .update({ 
-                        vehicle_status: 'Reserved',
+                        status: 'Reserved',
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', rental.vehicle_id);
@@ -633,7 +659,7 @@ const Rentals = {
         }
         
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'this customer';
         
         document.getElementById('reject-rental-id').value = rentalId;
@@ -681,7 +707,7 @@ const Rentals = {
         }
         
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'Customer';
         
         if (!reason) {
@@ -709,7 +735,7 @@ const Rentals = {
                 await db
                     .from('vehicles')
                     .update({ 
-                        vehicle_status: 'Available',
+                        status: 'Available',
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', rental.vehicle_id);
@@ -750,31 +776,50 @@ const Rentals = {
             this.loadAvailableVehicles()
         ]);
         
-        // Populate customer dropdown
+        // Populate customer dropdown - using full_name
         const customerSelect = document.getElementById('new-rental-customer');
         if (customerSelect) {
-            customerSelect.innerHTML = '<option value="">Select a customer...</option>' +
-                this.customers.map(c => {
-                    const name = `${c.first_name || ''} ${c.last_name || ''}`.trim();
-                    return `<option value="${c.id}">${name} (${c.phone || 'No phone'})</option>`;
-                }).join('');
+            if (this.customers.length === 0) {
+                customerSelect.innerHTML = '<option value="">No customers available</option>';
+            } else {
+                customerSelect.innerHTML = '<option value="">Select a customer...</option>' +
+                    this.customers.map(c => {
+                        const name = c.full_name || 'Unknown';
+                        const phone = c.phone || 'No phone';
+                        const status = c.status ? ` [${c.status}]` : '';
+                        return `<option value="${c.id}">${name} (${phone})${status}</option>`;
+                    }).join('');
+            }
         }
         
-        // Populate vehicle dropdown
+        // Populate vehicle dropdown - vehicles don't have weekly_rate, use default
         const vehicleSelect = document.getElementById('new-rental-vehicle');
         if (vehicleSelect) {
-            vehicleSelect.innerHTML = '<option value="">Select a vehicle...</option>' +
-                this.vehicles.map(v => {
-                    const name = `${v.year} ${v.make} ${v.model}`;
-                    return `<option value="${v.id}" data-rate="${v.weekly_rate || 400}">${name} - ${v.license_plate} ($${v.weekly_rate || 400}/wk)</option>`;
-                }).join('');
+            if (this.vehicles.length === 0) {
+                vehicleSelect.innerHTML = '<option value="">No vehicles available</option>';
+            } else {
+                vehicleSelect.innerHTML = '<option value="">Select a vehicle...</option>' +
+                    this.vehicles.map(v => {
+                        const name = `${v.year || ''} ${v.make || ''} ${v.model || ''}`.trim();
+                        const plate = v.license_plate || 'No plate';
+                        return `<option value="${v.id}">${name} - ${plate}</option>`;
+                    }).join('');
+            }
         }
         
         // Set defaults
         document.getElementById('new-rental-start-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('new-rental-weeks').value = '4';
+        document.getElementById('new-rental-weeks').disabled = false;
+        document.getElementById('new-rental-weeks').placeholder = '';
         document.getElementById('new-rental-weekly-rate').value = '400';
         document.getElementById('new-rental-deposit').value = '500';
+        document.getElementById('new-rental-notes').value = '';
+        
+        // Reset ongoing checkbox
+        const ongoingCheckbox = document.getElementById('new-rental-ongoing');
+        if (ongoingCheckbox) ongoingCheckbox.checked = false;
+        
         this.calculateNewRentalTotal();
         
         // Generate rental ID
@@ -824,39 +869,78 @@ const Rentals = {
      * Handle vehicle selection in new rental
      */
     onVehicleSelect() {
-        const select = document.getElementById('new-rental-vehicle');
-        const option = select.options[select.selectedIndex];
-        const rate = option?.dataset?.rate || 400;
-        document.getElementById('new-rental-weekly-rate').value = rate;
+        // Vehicle selection no longer sets rate since vehicles don't have weekly_rate
+        // Rate is manually entered (default $400)
+        this.calculateNewRentalTotal();
+    },
+    
+    /**
+     * Toggle ongoing rental checkbox
+     */
+    toggleOngoing() {
+        const isOngoing = document.getElementById('new-rental-ongoing')?.checked;
+        const weeksInput = document.getElementById('new-rental-weeks');
+        
+        if (weeksInput) {
+            weeksInput.disabled = isOngoing;
+            if (isOngoing) {
+                weeksInput.value = '';
+                weeksInput.placeholder = 'Ongoing';
+            } else {
+                weeksInput.value = '4';
+                weeksInput.placeholder = '';
+            }
+        }
+        
         this.calculateNewRentalTotal();
     },
     
     /**
      * Calculate total for new rental
+     * Shows appropriate amount based on fixed-term vs ongoing
      */
     calculateNewRentalTotal() {
+        const isOngoing = document.getElementById('new-rental-ongoing')?.checked;
         const weeks = parseInt(document.getElementById('new-rental-weeks')?.value) || 0;
         const rate = parseFloat(document.getElementById('new-rental-weekly-rate')?.value) || 0;
         const deposit = parseFloat(document.getElementById('new-rental-deposit')?.value) || 0;
         
-        const total = (weeks * rate) + deposit;
+        const totalEl = document.getElementById('new-rental-total');
+        const noteEl = document.getElementById('new-rental-total-note');
         
-        const el = document.getElementById('new-rental-total');
-        if (el) el.textContent = '$' + total.toLocaleString();
+        if (isOngoing) {
+            // Ongoing rental: deposit + first week due at pickup
+            const pickupAmount = deposit + rate;
+            if (totalEl) totalEl.textContent = '$' + pickupAmount.toLocaleString();
+            if (noteEl) {
+                noteEl.style.display = 'block';
+                noteEl.innerHTML = `Includes <strong>$${deposit.toLocaleString()}</strong> deposit + first week. Then <strong>$${rate.toLocaleString()}/week</strong> ongoing.`;
+            }
+        } else {
+            // Fixed-term rental: total contract amount
+            const total = (weeks * rate) + deposit;
+            if (totalEl) totalEl.textContent = '$' + total.toLocaleString();
+            if (noteEl) {
+                noteEl.style.display = 'block';
+                noteEl.innerHTML = `<strong>$${deposit.toLocaleString()}</strong> deposit + <strong>${weeks} weeks</strong> × $${rate.toLocaleString()}/week`;
+            }
+        }
     },
     
     /**
      * Create new rental
+     * FIXED: Handles ongoing rentals properly
      */
     async createRental() {
         const customerId = document.getElementById('new-rental-customer')?.value;
         const vehicleId = document.getElementById('new-rental-vehicle')?.value;
         const startDate = document.getElementById('new-rental-start-date')?.value;
-        const weeks = parseInt(document.getElementById('new-rental-weeks')?.value) || 4;
+        const isOngoing = document.getElementById('new-rental-ongoing')?.checked;
+        const weeks = isOngoing ? null : (parseInt(document.getElementById('new-rental-weeks')?.value) || 4);
         const weeklyRate = parseFloat(document.getElementById('new-rental-weekly-rate')?.value) || 400;
         const deposit = parseFloat(document.getElementById('new-rental-deposit')?.value) || 500;
         const rentalId = document.getElementById('new-rental-id')?.value;
-        const notes = document.getElementById('new-rental-notes')?.value || '';
+        let notes = document.getElementById('new-rental-notes')?.value || '';
         
         // Validation
         if (!customerId) {
@@ -872,7 +956,19 @@ const Rentals = {
             return;
         }
         
-        const totalDue = (weeks * weeklyRate) + deposit;
+        // Calculate amounts based on rental type
+        let totalDue, initialPayment;
+        if (isOngoing) {
+            // Ongoing: initial payment = deposit + first week
+            initialPayment = deposit + weeklyRate;
+            totalDue = initialPayment; // For ongoing, total due is just the initial
+            notes = (notes ? notes + '\n' : '') + 'ONGOING RENTAL (Week-to-Week)';
+        } else {
+            // Fixed-term: total = deposit + all weeks
+            totalDue = (weeks * weeklyRate) + deposit;
+            initialPayment = totalDue;
+        }
+        
         const nextPaymentDue = new Date(startDate);
         nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
         
@@ -909,7 +1005,7 @@ const Rentals = {
             await db
                 .from('vehicles')
                 .update({ 
-                    vehicle_status: 'Reserved',
+                    status: 'Reserved',
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', vehicleId);
@@ -950,7 +1046,7 @@ const Rentals = {
         }
         
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'Customer';
         const vehicleName = rental.vehicle 
             ? `${rental.vehicle.year} ${rental.vehicle.make} ${rental.vehicle.model}`
@@ -1012,7 +1108,7 @@ const Rentals = {
         }
         
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'Customer';
         
         try {
@@ -1040,7 +1136,7 @@ const Rentals = {
                 await db
                     .from('vehicles')
                     .update({ 
-                        vehicle_status: 'Rented',
+                        status: 'Rented',
                         current_mileage: startMileage || undefined,
                         updated_at: new Date().toISOString()
                     })
@@ -1086,7 +1182,7 @@ const Rentals = {
         }
         
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'Customer';
         
         document.getElementById('payment-rental-id').value = rentalId;
@@ -1276,7 +1372,7 @@ const Rentals = {
         }
         
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'Customer';
         const vehicleName = rental.vehicle 
             ? `${rental.vehicle.year} ${rental.vehicle.make} ${rental.vehicle.model}`
@@ -1350,7 +1446,7 @@ const Rentals = {
         }
         
         const customerName = rental.customer 
-            ? `${rental.customer.first_name || ''} ${rental.customer.last_name || ''}`.trim()
+            ? rental.customer?.full_name || 'Customer'
             : 'Customer';
         
         const confirmed = confirm(`End rental for ${customerName}?\n\nThis will mark the rental as completed and make the vehicle available.`);
@@ -1397,7 +1493,7 @@ const Rentals = {
                 await db
                     .from('vehicles')
                     .update({ 
-                        vehicle_status: 'Available',
+                        status: 'Available',
                         current_mileage: endMileage || undefined,
                         updated_at: new Date().toISOString()
                     })
