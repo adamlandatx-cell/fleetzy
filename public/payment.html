@@ -444,33 +444,70 @@
                 </form>
             </div>
 
-            <!-- Alternative Payment Methods -->
+            <!-- Payment Options -->
             <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-4">Other Payment Options</h3>
-                <p class="text-gray-600 mb-4">You can also pay via:</p>
+                <h3 class="text-xl font-bold text-gray-900 mb-6">Payment Options</h3>
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="text-center p-4 border-2 border-gray-200 rounded-lg">
-                        <p class="font-semibold text-gray-700">Zelle</p>
-                        <p class="text-xs text-gray-500 mt-1">Preferred</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Zelle - Preferred -->
+                    <a href="https://enroll.zellepay.com/qr-codes?data=ewogICJuYW1lIiA6ICJBREFNIiwKICAidG9rZW4iIDogImFkYW1AZ2V0ZmxlZXR6eS5jb20iLAogICJhY3Rpb24iIDogInBheW1lbnQiCn0=" 
+                       target="_blank"
+                       class="block p-5 border-2 border-emerald-500 bg-emerald-50 rounded-xl hover:bg-emerald-100 hover:border-emerald-600 transition-all transform hover:scale-[1.02]">
+                        <div class="flex items-center justify-center mb-3">
+                            <svg class="w-8 h-8 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M13.559 24h-2.841a.483.483 0 0 1-.483-.483v-2.765H5.638a.667.667 0 0 1-.475-1.133l8.478-8.478a.357.357 0 0 1 .609.252v5.009h4.115a.667.667 0 0 1 .472 1.137l-4.795 5.978a.483.483 0 0 1-.483.483zM10.718 0h2.841c.267 0 .483.216.483.483v2.765h4.597a.667.667 0 0 1 .475 1.133l-8.478 8.478a.357.357 0 0 1-.609-.252V7.598H5.912a.667.667 0 0 1-.472-1.137L10.235.483A.483.483 0 0 1 10.718 0z"/>
+                            </svg>
+                        </div>
+                        <p class="font-bold text-gray-900 text-center text-lg">Zelle</p>
+                        <p class="text-emerald-700 font-semibold text-center mt-1">adam@getfleetzy.com</p>
+                        <p class="text-xs text-emerald-600 text-center mt-2 font-medium">⭐ Preferred - No Fees</p>
+                    </a>
+                    
+                    <!-- CashApp -->
+                    <a href="https://cash.app/$fleetzycarrentals" 
+                       target="_blank"
+                       class="block p-5 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all transform hover:scale-[1.02]">
+                        <div class="flex items-center justify-center mb-3">
+                            <svg class="w-8 h-8 text-green-500" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.59 3.47A5.1 5.1 0 0 0 20.53.41C19.171 0 18.032 0 15.753 0H8.247C5.97 0 4.83 0 3.473.41A5.08 5.08 0 0 0 .41 3.47C0 4.83 0 5.97 0 8.25v7.5c0 2.28 0 3.42.41 4.78a5.08 5.08 0 0 0 3.06 3.06c1.358.41 2.498.41 4.777.41h7.506c2.28 0 3.42 0 4.778-.41a5.1 5.1 0 0 0 3.06-3.06c.41-1.36.41-2.5.41-4.78v-7.5c0-2.28 0-3.42-.41-4.78zM17.42 15.63a2.15 2.15 0 0 1-1.81 1.31h-.84l-.38 1.53a.74.74 0 0 1-.72.56h-1.74a.74.74 0 0 1-.72-.56l-.38-1.53h-2.3a.74.74 0 0 1-.72-.93l.38-1.54a.74.74 0 0 1 .72-.56h2.74l.55-2.22H9.12a.74.74 0 0 1-.72-.93l.38-1.54a.74.74 0 0 1 .72-.56h2.74l.38-1.53a.74.74 0 0 1 .72-.56h1.74a.74.74 0 0 1 .72.56l.38 1.53h.84a2.15 2.15 0 0 1 1.81 1.31c.27.65.27 1.38 0 2.03z"/>
+                            </svg>
+                        </div>
+                        <p class="font-bold text-gray-900 text-center text-lg">Cash App</p>
+                        <p class="text-green-600 font-semibold text-center mt-1">$fleetzycarrentals</p>
+                        <p class="text-xs text-gray-500 text-center mt-2">Tap to open app</p>
+                    </a>
+                    
+                    <!-- Credit Card -->
+                    <div class="p-5 border-2 border-gray-200 rounded-xl bg-gray-50">
+                        <div class="flex items-center justify-center mb-3">
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                        </div>
+                        <p class="font-bold text-gray-900 text-center text-lg">Credit Card</p>
+                        <p class="text-gray-600 text-center mt-1 text-sm">Use form above ↑</p>
+                        <p class="text-xs text-gray-500 text-center mt-2">Visa, MC, Amex</p>
                     </div>
-                    <div class="text-center p-4 border-2 border-gray-200 rounded-lg">
-                        <p class="font-semibold text-gray-700">CashApp</p>
-                        <p class="text-xs text-gray-500 mt-1">$fleetzy</p>
-                    </div>
-                    <div class="text-center p-4 border-2 border-gray-200 rounded-lg">
-                        <p class="font-semibold text-gray-700">Venmo</p>
-                        <p class="text-xs text-gray-500 mt-1">@fleetzy</p>
-                    </div>
-                    <div class="text-center p-4 border-2 border-gray-200 rounded-lg">
-                        <p class="font-semibold text-gray-700">PayPal</p>
-                        <p class="text-xs text-gray-500 mt-1"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="83f3e2fac3e5efe6e6f7f9faade0ecee">[email&#160;protected]</a></p>
+                    
+                    <!-- Cash -->
+                    <div class="p-5 border-2 border-gray-200 rounded-xl bg-gray-50">
+                        <div class="flex items-center justify-center mb-3">
+                            <svg class="w-8 h-8 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <p class="font-bold text-gray-900 text-center text-lg">Cash</p>
+                        <p class="text-gray-600 text-center mt-1 text-sm">In-person only</p>
+                        <p class="text-xs text-gray-500 text-center mt-2">Contact to arrange</p>
                     </div>
                 </div>
                 
-                <p class="text-sm text-gray-500 mt-4 text-center">
-                    <strong>Note:</strong> Manual payments require confirmation. Please text receipt to +1 (281) 908-5583
-                </p>
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-sm text-blue-800 text-center">
+                        <strong>📱 After paying via Zelle or Cash App:</strong><br>
+                        Text screenshot to <a href="sms:+12812713900" class="font-bold underline">+1 (281) 271-3900</a> for confirmation
+                    </p>
+                </div>
             </div>
 
         </div>
