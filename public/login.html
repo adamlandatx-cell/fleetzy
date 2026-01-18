@@ -140,12 +140,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             const savedPhone = localStorage.getItem('fleetzy_phone');
             if (savedPhone) {
-                // Already logged in, redirect to dashboard
                 window.location.href = '/dashboard.html';
                 return;
             }
 
-            // Auto-fill if "remember me" was used
             const savedLogin = localStorage.getItem('fleetzy_remember_phone');
             if (savedLogin) {
                 phoneInput.value = savedLogin;
@@ -178,15 +176,12 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Hide any previous messages
             errorDiv.classList.add('hidden');
             successDiv.classList.add('hidden');
 
-            // Get input values
             const phoneRaw = phoneInput.value.replace(/\D/g, '');
             const dlLast4 = dlInput.value.toUpperCase().trim();
 
-            // Validate inputs
             if (phoneRaw.length !== 10) {
                 showError('Please enter a valid 10-digit phone number');
                 return;
@@ -197,23 +192,30 @@
                 return;
             }
 
-            // Show loading state
             loginBtn.classList.add('btn-loading');
             loginBtn.textContent = 'Signing in';
 
             try {
                 console.log('🔐 Attempting login for phone:', phoneRaw);
 
-                // Format phone with +1 for database lookup
-                const phoneFormatted = '+1' + phoneRaw;
+                // Generate all possible phone formats to search
+                // Database stores as: 832-972-3073
+                const phoneWithDashes = `${phoneRaw.slice(0,3)}-${phoneRaw.slice(3,6)}-${phoneRaw.slice(6)}`;
+                const phoneWithParens = `(${phoneRaw.slice(0,3)}) ${phoneRaw.slice(3,6)}-${phoneRaw.slice(6)}`;
+                const phonePlus1 = `+1${phoneRaw}`;
+                const phonePlus1Dashes = `+1-${phoneRaw.slice(0,3)}-${phoneRaw.slice(3,6)}-${phoneRaw.slice(6)}`;
                 
-                // Also try without +1 in case data was stored differently
+                console.log('📱 Searching for phone formats:', phoneWithDashes, phoneRaw);
+
+                // Query with multiple phone format possibilities
+                // Using CORRECT column names: full_name, dl_number, status
                 const { data: customers, error } = await db
                     .from('customers')
-                    .select('id, first_name, last_name, phone, drivers_license_number, application_status')
-                    .or(`phone.eq.${phoneFormatted},phone.eq.${phoneRaw},phone.eq.(${phoneRaw.slice(0,3)}) ${phoneRaw.slice(3,6)}-${phoneRaw.slice(6)}`);
+                    .select('id, full_name, phone, dl_number, status')
+                    .or(`phone.eq.${phoneWithDashes},phone.eq.${phoneRaw},phone.eq.${phoneWithParens},phone.eq.${phonePlus1},phone.eq.${phonePlus1Dashes}`);
 
-                console.log('📋 Customer lookup result:', customers?.length || 0, 'found');
+                console.log('📋 Query result:', customers?.length || 0, 'customers found');
+                if (customers) console.log('📋 Found:', customers);
 
                 if (error) {
                     console.error('Database error:', error);
@@ -231,50 +233,53 @@
 
                 // Find customer that matches the DL last 4
                 const customer = customers.find(c => {
-                    if (!c.drivers_license_number) return false;
-                    const dlNumber = c.drivers_license_number.toUpperCase();
+                    if (!c.dl_number) {
+                        console.log('Customer has no DL number stored');
+                        return false;
+                    }
+                    const dlNumber = c.dl_number.toString().toUpperCase();
                     const last4 = dlNumber.slice(-4);
-                    console.log('Checking DL:', last4, 'vs input:', dlLast4);
+                    console.log('Checking DL:', dlNumber, '-> last4:', last4, 'vs input:', dlLast4);
                     return last4 === dlLast4;
                 });
 
                 if (!customer) {
-                    console.log('❌ DL last 4 does not match');
+                    console.log('❌ DL last 4 does not match any customer');
                     showError('Invalid credentials. Please check your phone number and driver\'s license.');
                     resetButton();
                     return;
                 }
 
-                // Check if customer is approved
-                if (customer.application_status && customer.application_status.toLowerCase() !== 'approved') {
-                    console.log('⚠️ Customer not approved:', customer.application_status);
-                    showError(`Your application is ${customer.application_status.toLowerCase()}. Please contact us for assistance.`);
+                // Check if customer is approved (column is 'status' not 'application_status')
+                if (customer.status && customer.status.toLowerCase() !== 'approved') {
+                    console.log('⚠️ Customer not approved:', customer.status);
+                    showError(`Your application is ${customer.status.toLowerCase()}. Please contact us for assistance.`);
                     resetButton();
                     return;
                 }
 
-                // SUCCESS - Store session data
-                console.log('✅ Login successful for:', customer.first_name);
+                // SUCCESS!
+                console.log('✅ Login successful for:', customer.full_name);
                 
-                // Store phone for session (use the format stored in database)
+                // Store session data
                 localStorage.setItem('fleetzy_phone', customer.phone);
                 localStorage.setItem('fleetzy_customer_id', customer.id);
-                localStorage.setItem('fleetzy_customer_name', customer.first_name);
+                
+                // Parse name for display (full_name might be "First Last")
+                const firstName = customer.full_name ? customer.full_name.split(' ')[0] : 'Driver';
+                localStorage.setItem('fleetzy_customer_name', firstName);
 
-                // Handle "Remember me"
                 if (rememberCheckbox.checked) {
                     localStorage.setItem('fleetzy_remember_phone', phoneInput.value);
                 } else {
                     localStorage.removeItem('fleetzy_remember_phone');
                 }
 
-                // Show success message
                 successDiv.classList.remove('hidden');
                 loginBtn.textContent = 'Success!';
                 loginBtn.classList.remove('btn-loading');
                 loginBtn.classList.add('bg-emerald-600');
 
-                // Redirect to dashboard after brief delay
                 setTimeout(() => {
                     window.location.href = '/dashboard.html';
                 }, 1000);
@@ -289,7 +294,6 @@
         function showError(message) {
             errorText.textContent = message;
             errorDiv.classList.remove('hidden');
-            // Scroll to error on mobile
             errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
