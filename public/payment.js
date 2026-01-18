@@ -270,71 +270,61 @@ function showPaymentSection() {
     authSection.classList.add('hidden');
     paymentSection.classList.remove('hidden');
     
-    // Populate customer info
-    const fullName = (customerData.full_name && customerData.full_name.trim()) 
-        ? customerData.full_name 
-        : 'Customer';
-    document.getElementById('customerName').textContent = fullName;
+    // Populate customer info - use first name for greeting
+    let displayName = 'Driver';
+    if (customerData.full_name && customerData.full_name.trim()) {
+        displayName = customerData.full_name.split(' ')[0]; // First name only
+    } else if (customerData.first_name && customerData.first_name.trim()) {
+        displayName = customerData.first_name;
+    }
     
-    // Contract info
-    const contractId = rentalData.id.split('-')[0].toUpperCase();
-    document.getElementById('contractInfo').textContent = `Contract: ${contractId}`;
+    // Update greeting (matches HTML element id="customerGreeting")
+    const greetingEl = document.getElementById('customerGreeting');
+    if (greetingEl) {
+        greetingEl.textContent = `Hello, ${displayName}!`;
+    }
     
-    // Vehicle info
+    // Vehicle info (matches HTML element id="vehicleName")
     if (rentalData.vehicles) {
         const vehicle = rentalData.vehicles;
         const vehicleInfo = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
-        document.getElementById('vehicleInfo').textContent = vehicleInfo;
+        const vehicleEl = document.getElementById('vehicleName');
+        if (vehicleEl) {
+            vehicleEl.textContent = vehicleInfo;
+        }
     }
     
     // Calculate payment amounts
     const weeklyRate = parseFloat(rentalData.weekly_rate) || 400.00;
     const depositAmount = parseFloat(rentalData.deposit_amount) || 500.00;
-    const txTax = weeklyRate * 0.0625;
-    const weeklyTotal = weeklyRate + txTax;
-    const initialTotal = weeklyRate + depositAmount + txTax;
+    const processingFee = weeklyRate * 0.03; // 3% processing fee as shown in HTML
+    const weeklyTotal = weeklyRate + processingFee;
+    const depositTotal = depositAmount + (depositAmount * 0.03);
     
     paymentAmount = weeklyTotal;
     
-    // Display amounts
-    document.getElementById('weeklyRate').textContent = formatCurrency(weeklyRate);
-    document.getElementById('txTax').textContent = formatCurrency(txTax);
-    document.getElementById('totalDue').textContent = formatCurrency(weeklyTotal);
-    document.getElementById('weeklyPaymentAmount').textContent = formatCurrency(weeklyTotal);
+    // Display amounts (matches HTML element IDs)
+    const weeklyRateEl = document.getElementById('weeklyRate');
+    if (weeklyRateEl) {
+        weeklyRateEl.textContent = formatCurrency(weeklyRate);
+    }
     
-    // Populate initial payment amount
-    const initialAmountEl = document.getElementById('initialPaymentAmount');
-    if (initialAmountEl) {
-        initialAmountEl.textContent = formatCurrency(initialTotal);
+    const processingFeeEl = document.getElementById('processingFee');
+    if (processingFeeEl) {
+        processingFeeEl.textContent = formatCurrency(processingFee);
+    }
+    
+    const totalEl = document.getElementById('totalWithTax');
+    if (totalEl) {
+        totalEl.textContent = formatCurrency(weeklyTotal);
     }
     
     // Store amounts for payment type selection
     window.paymentAmounts = {
         weekly: weeklyTotal,
-        initial: initialTotal,
-        late_fee: 50
+        deposit: depositTotal,
+        custom: 0
     };
-    
-    // Calculate next payment due
-    const nextDue = new Date(rentalData.next_payment_due);
-    const today = new Date();
-    const daysUntil = Math.ceil((nextDue - today) / (1000 * 60 * 60 * 24));
-    
-    document.getElementById('nextDueDate').textContent = formatDate(nextDue);
-    document.getElementById('daysUntilDue').textContent = `${daysUntil} days`;
-    
-    // Status badge
-    const statusBadge = document.getElementById('statusBadge');
-    if (daysUntil < 0) {
-        statusBadge.textContent = 'OVERDUE';
-        statusBadge.className = 'px-4 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-700';
-    } else if (daysUntil <= 2) {
-        statusBadge.textContent = 'DUE SOON';
-        statusBadge.className = 'px-4 py-2 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-700';
-    } else {
-        statusBadge.textContent = 'CURRENT';
-        statusBadge.className = 'px-4 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-700';
-    }
     
     // Update button text
     document.getElementById('submitButtonText').textContent = `Pay ${formatCurrency(weeklyTotal)}`;
@@ -344,6 +334,13 @@ function showPaymentSection() {
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    console.log('✅ Payment section loaded:', {
+        customer: displayName,
+        weeklyRate: weeklyRate,
+        processingFee: processingFee,
+        total: weeklyTotal
+    });
 }
 
 // ============================================================================
@@ -352,51 +349,84 @@ function showPaymentSection() {
 
 function selectPaymentType(type) {
     selectedPaymentType = type;
-    document.getElementById('selectedPaymentType').value = type;
     
-    // Update card styles
-    const cards = document.querySelectorAll('.payment-type-card');
-    cards.forEach(card => {
-        if (card.dataset.type === type) {
-            card.classList.add('border-emerald-500', 'bg-emerald-50', 'selected');
-            card.classList.remove('border-gray-200');
+    // Update button styles (matches HTML class="payment-type-btn")
+    const buttons = document.querySelectorAll('.payment-type-btn');
+    buttons.forEach(btn => {
+        if (btn.dataset.type === type) {
+            btn.classList.add('active');
         } else {
-            card.classList.remove('border-emerald-500', 'bg-emerald-50', 'selected');
-            card.classList.add('border-gray-200');
+            btn.classList.remove('active');
         }
     });
     
     // Show/hide custom amount input
-    const customSection = document.getElementById('customAmountSection');
-    const needsCustomAmount = ['toll_deposit', 'damage_fee', 'other'].includes(type);
+    const customAmountGroup = document.getElementById('customAmountGroup');
     
-    if (needsCustomAmount) {
-        customSection.classList.remove('hidden');
-        document.getElementById('customPaymentAmount').focus();
-        // Don't set amount yet - wait for user input
+    if (type === 'custom') {
+        // Show custom amount input
+        if (customAmountGroup) {
+            customAmountGroup.classList.remove('hidden');
+            const customInput = document.getElementById('customAmount');
+            if (customInput) {
+                customInput.focus();
+            }
+        }
         paymentAmount = 0;
         document.getElementById('submitButtonText').textContent = 'Enter Amount';
     } else {
-        customSection.classList.add('hidden');
+        // Hide custom amount input
+        if (customAmountGroup) {
+            customAmountGroup.classList.add('hidden');
+        }
+        
         // Set predefined amounts
         if (type === 'weekly') {
-            paymentAmount = window.paymentAmounts.weekly || 425;
-        } else if (type === 'initial') {
-            paymentAmount = window.paymentAmounts.initial || 900;
-        } else if (type === 'late_fee') {
-            paymentAmount = window.paymentAmounts.late_fee || 50;
+            paymentAmount = window.paymentAmounts.weekly || 400;
+        } else if (type === 'deposit') {
+            paymentAmount = window.paymentAmounts.deposit || 500;
         }
+        
         document.getElementById('submitButtonText').textContent = `Pay ${formatCurrency(paymentAmount)}`;
+        
+        // Also update the summary card to show correct total
+        const totalEl = document.getElementById('totalWithTax');
+        if (totalEl) {
+            totalEl.textContent = formatCurrency(paymentAmount);
+        }
+        
+        // Update processing fee display
+        const baseAmount = type === 'deposit' ? (parseFloat(rentalData?.deposit_amount) || 500) : (parseFloat(rentalData?.weekly_rate) || 400);
+        const processingFee = baseAmount * 0.03;
+        const processingFeeEl = document.getElementById('processingFee');
+        if (processingFeeEl) {
+            processingFeeEl.textContent = formatCurrency(processingFee);
+        }
+        
+        // Update weekly rate label based on type
+        const weeklyRateEl = document.getElementById('weeklyRate');
+        if (weeklyRateEl) {
+            weeklyRateEl.textContent = formatCurrency(baseAmount);
+        }
     }
+    
+    console.log('💳 Payment type selected:', type, '| Amount:', paymentAmount);
 }
 
-function updateCustomPaymentAmount() {
-    const input = document.getElementById('customPaymentAmount');
-    const amount = parseFloat(input.value) || 0;
+// Renamed to match HTML oninput="updateCustomAmount()"
+function updateCustomAmount() {
+    const input = document.getElementById('customAmount');
+    const amount = parseFloat(input?.value) || 0;
     paymentAmount = amount;
     
     if (amount > 0) {
         document.getElementById('submitButtonText').textContent = `Pay ${formatCurrency(amount)}`;
+        
+        // Update total display
+        const totalEl = document.getElementById('totalWithTax');
+        if (totalEl) {
+            totalEl.textContent = formatCurrency(amount);
+        }
     } else {
         document.getElementById('submitButtonText').textContent = 'Enter Amount';
     }
