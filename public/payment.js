@@ -92,11 +92,17 @@ async function handleAuth(e) {
     hideAuthError();
     
     try {
-        // Format phone for database query (+1XXXXXXXXXX)
-        const formattedPhone = `+${phone}`;
+        // Normalize phone - strip to just digits (no country code prefix for matching)
+        let normalizedPhone = phone.replace(/\D/g, '');
+        // Remove leading 1 if present (country code)
+        if (normalizedPhone.length === 11 && normalizedPhone.startsWith('1')) {
+            normalizedPhone = normalizedPhone.slice(1);
+        }
         
-        // Query Supabase for customer with active rental
-        const { data, error } = await supabaseClient
+        console.log('Looking for customer with normalized phone:', normalizedPhone);
+        
+        // Get all customers and find by normalized phone
+        const { data: allCustomers, error: customersError } = await supabaseClient
             .from('customers')
             .select(`
                 *,
@@ -105,12 +111,22 @@ async function handleAuth(e) {
                     vehicles(*)
                 )
             `)
-            .eq('phone', formattedPhone)
-            .eq('rentals.rental_status', 'active')
-            .single();
+            .eq('rentals.rental_status', 'active');
         
-        if (error || !data) {
-            console.error('Customer not found:', error);
+        if (customersError) throw customersError;
+        
+        // Find customer where normalized phone matches
+        const data = allCustomers?.find(c => {
+            const dbPhoneNorm = (c.phone || '').replace(/\D/g, '');
+            // Also strip leading 1 from database phone if present
+            const dbPhoneClean = dbPhoneNorm.length === 11 && dbPhoneNorm.startsWith('1') 
+                ? dbPhoneNorm.slice(1) 
+                : dbPhoneNorm;
+            return dbPhoneClean === normalizedPhone;
+        });
+        
+        if (!data) {
+            console.error('Customer not found');
             hideLoading();
             showAuthError('Customer not found. Please check your phone number.');
             return;
@@ -152,7 +168,9 @@ function showPaymentSection() {
     paymentSection.classList.remove('hidden');
     
     // Populate customer info
-    const fullName = customerData.full_name || 'Customer';
+    const fullName = (customerData.full_name && customerData.full_name.trim()) 
+        ? customerData.full_name 
+        : 'Customer';
     document.getElementById('customerName').textContent = fullName;
     
     // Contract info
