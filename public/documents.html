@@ -746,11 +746,17 @@
         // ========================================
         // CONFIGURATION
         // ========================================
-        const supabaseUrl = 'https://xmixxqtcgaydasejshwn.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let customerId = null;
+        
+        // Normalize phone number - strip all non-digits
+        function normalizePhone(phone) {
+            if (!phone) return '';
+            return phone.replace(/\D/g, '');
+        }
         
         // Lightbox state for galleries
         let galleryImages = [];
@@ -901,34 +907,56 @@
         // ========================================
         async function init() {
             // Get customer from session
-            const phone = localStorage.getItem('fleetzy_phone') || sessionStorage.getItem('fleetzy_phone');
+            const rawPhone = localStorage.getItem('fleetzy_phone') || sessionStorage.getItem('fleetzy_phone');
             
-            if (!phone) {
+            if (!rawPhone) {
                 showToast('Please log in to view documents', 'error');
                 setTimeout(() => window.location.href = 'login.html', 1500);
                 return;
             }
             
+            // Normalize stored phone for comparison
+            const normalizedPhone = normalizePhone(rawPhone);
+            console.log('Looking for customer with phone:', rawPhone, '(normalized:', normalizedPhone + ')');
+            
             try {
-                // Get customer by phone
-                const { data: customer, error } = await supabase
+                // Get all customers and find by normalized phone
+                // This handles cases where stored format differs (832-972-3073 vs 8329723073)
+                const { data: customers, error } = await db
                     .from('customers')
-                    .select('*')
-                    .eq('phone', phone)
-                    .single();
+                    .select('*');
                 
-                if (error || !customer) {
-                    throw new Error('Customer not found');
+                if (error) throw error;
+                
+                // Find customer where normalized phones match
+                const customer = customers?.find(c => 
+                    normalizePhone(c.phone) === normalizedPhone
+                );
+                
+                if (!customer) {
+                    console.error('No customer found for phone:', rawPhone);
+                    showToast('Customer not found. Please log in again.', 'error');
+                    setTimeout(() => window.location.href = 'login.html', 1500);
+                    return;
                 }
                 
+                console.log('Found customer:', customer.full_name, customer.id);
                 customerId = customer.id;
                 
-                // Update header
-                const fullName = customer.full_name || 'Driver';
-                document.getElementById('user-name').textContent = fullName;
+                // Update header with customer's name
+                const displayName = (customer.full_name && customer.full_name.trim()) 
+                    ? customer.full_name 
+                    : 'Customer';
                 
+                document.getElementById('user-name').textContent = displayName;
+                
+                // Update avatar - use selfie if available, otherwise use initials
                 if (customer.selfie_url) {
                     document.getElementById('user-avatar').src = customer.selfie_url;
+                } else {
+                    // Generate initials avatar with actual name
+                    const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2);
+                    document.getElementById('user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=10b981&color=fff&size=64`;
                 }
                 
                 // Load all document sections
@@ -954,7 +982,7 @@
             const container = document.getElementById('fleetzy-docs-list');
             
             try {
-                const { data: docs, error } = await supabase
+                const { data: docs, error } = await db
                     .from('documents')
                     .select('*')
                     .eq('customer_id', customerId)
@@ -1022,27 +1050,61 @@
             const container = document.getElementById('contracts-list');
             
             try {
-                // Query documents table for contracts (contracts don't exist in rentals table)
-                const { data: contracts, error } = await supabase
+                let allContracts = [];
+                
+                // Source 1: Check documents table for contracts
+                const { data: docs, error: docsError } = await db
                     .from('documents')
                     .select('id, file_url, file_name, document_type, uploaded_at')
                     .eq('customer_id', customerId)
                     .order('uploaded_at', { ascending: false });
 
-                if (error) throw error;
+                if (!docsError && docs) {
+                    // Filter for contract-related documents
+                    const contractDocs = docs.filter(doc => {
+                        const docType = (doc.document_type || '').toLowerCase();
+                        const fileName = (doc.file_name || '').toLowerCase();
+                        return docType === 'contract' || 
+                               docType === 'admin_upload' || 
+                               fileName.includes('contract') || 
+                               fileName.includes('agreement') ||
+                               fileName.includes('rental');
+                    });
+                    
+                    allContracts.push(...contractDocs.map(doc => ({
+                        id: doc.id,
+                        url: doc.file_url,
+                        name: doc.file_name || 'Rental Contract',
+                        date: doc.uploaded_at,
+                        source: 'documents'
+                    })));
+                }
+                
+                // Source 2: Check rentals table for contract_url
+                const { data: rentals, error: rentalsError } = await db
+                    .from('rentals')
+                    .select('id, contract_url, start_date, vehicles:vehicle_id (make, model, year)')
+                    .eq('customer_id', customerId)
+                    .not('contract_url', 'is', null)
+                    .order('start_date', { ascending: false });
 
-                // Filter for contract-related documents
-                const contractDocs = (contracts || []).filter(doc => {
-                    const docType = (doc.document_type || '').toLowerCase();
-                    const fileName = (doc.file_name || '').toLowerCase();
-                    return docType === 'contract' || 
-                           docType === 'admin_upload' || 
-                           fileName.includes('contract') || 
-                           fileName.includes('agreement') ||
-                           fileName.includes('rental');
-                });
+                if (!rentalsError && rentals) {
+                    rentals.forEach(rental => {
+                        if (rental.contract_url) {
+                            const vehicle = rental.vehicles;
+                            const vehicleName = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Vehicle';
+                            allContracts.push({
+                                id: rental.id,
+                                url: rental.contract_url,
+                                name: `Rental Agreement - ${vehicleName}`,
+                                date: rental.start_date,
+                                source: 'rentals'
+                            });
+                        }
+                    });
+                }
 
-                if (contractDocs.length === 0) {
+                if (allContracts.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-file-contract"></i>
@@ -1053,22 +1115,24 @@
                     return;
                 }
 
-                document.getElementById('contract-count').textContent = contractDocs.length;
+                // Sort by date (newest first)
+                allContracts.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                document.getElementById('contract-count').textContent = allContracts.length;
                 
-                container.innerHTML = contractDocs.map(doc => {
-                    const date = new Date(doc.uploaded_at).toLocaleDateString('en-US', { 
+                container.innerHTML = allContracts.map(contract => {
+                    const date = new Date(contract.date).toLocaleDateString('en-US', { 
                         month: 'short', day: 'numeric', year: 'numeric' 
                     });
-                    const displayName = doc.file_name || 'Rental Contract';
-                    const isPdf = (doc.file_url || '').toLowerCase().includes('.pdf');
+                    const isPdf = (contract.url || '').toLowerCase().includes('.pdf');
                     
                     return `
-                        <div class="document-card" onclick="openLightbox('${doc.file_url}', '${displayName}')">
+                        <div class="document-card" onclick="openLightbox('${contract.url}', '${contract.name}')">
                             <div class="document-icon contract">
                                 <i class="fas fa-file-signature"></i>
                             </div>
                             <div class="document-info">
-                                <div class="document-name">${displayName}</div>
+                                <div class="document-name">${contract.name}</div>
                                 <div class="document-meta">
                                     <span><i class="fas fa-calendar"></i> ${date}</span>
                                     <span>•</span>
@@ -1100,7 +1164,7 @@
             const container = document.getElementById('receipts-list');
             
             try {
-                const { data: payments, error } = await supabase
+                const { data: payments, error } = await db
                     .from('payments')
                     .select('*')
                     .eq('customer_id', customerId)
@@ -1188,7 +1252,7 @@
             const container = document.getElementById('inspections-list');
             
             try {
-                const { data: rentals, error } = await supabase
+                const { data: rentals, error } = await db
                     .from('rentals')
                     .select(`
                         *,
