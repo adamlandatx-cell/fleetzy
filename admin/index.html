@@ -2189,6 +2189,22 @@
                             </div>
                         </div>
                         
+                        <!-- PAYMENT TYPE DROPDOWN - NEW -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-payment-type">Payment Type <span class="required">*</span></label>
+                                <select id="new-payment-type" required onchange="Payments.onPaymentTypeChange()">
+                                    <option value="">Select type...</option>
+                                    <option value="initial">🏁 Initial (Deposit + First Week)</option>
+                                    <option value="weekly" selected>📅 Weekly Rent</option>
+                                    <option value="toll_deposit">🚗 Toll Deposit Replenishment</option>
+                                    <option value="late_fee">⏰ Late Fee</option>
+                                    <option value="damage_fee">🧹 Damage/Cleaning Fee</option>
+                                    <option value="other">✏️ Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
                         <div class="form-row two-col">
                             <div class="form-group">
                                 <label for="new-payment-amount">Amount ($) <span class="required">*</span></label>
