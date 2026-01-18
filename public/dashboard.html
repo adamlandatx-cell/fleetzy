@@ -161,26 +161,33 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // Normalize phone - strip all non-digits
+        function normalizePhone(phone) {
+            if (!phone) return '';
+            return phone.replace(/\D/g, '');
+        }
+
         // Initialize Dashboard
         async function init() {
             console.log('🚀 Dashboard initializing...');
             
-            const phone = localStorage.getItem('fleetzy_phone');
-            console.log('📱 Phone from storage:', phone);
+            const rawPhone = localStorage.getItem('fleetzy_phone');
+            const normalizedPhone = normalizePhone(rawPhone);
+            console.log('📱 Phone from storage:', rawPhone, '(normalized:', normalizedPhone + ')');
             
-            if (!phone) {
+            if (!rawPhone) {
                 console.log('❌ No phone found, redirecting to login...');
                 window.location.href = '/login';
                 return;
             }
 
             try {
-                // Get customer by phone
-                const { data: customer, error: customerError } = await db
+                // Get all customers and find by normalized phone
+                const { data: customers, error: customerError } = await db
                     .from('customers')
-                    .select('*')
-                    .eq('phone', phone)
-                    .single();
+                    .select('*');
+                
+                const customer = customers?.find(c => normalizePhone(c.phone) === normalizedPhone);
                 
                 console.log('👤 Customer lookup:', customer ? 'Found' : 'Not found', customerError);
                 
@@ -213,8 +220,12 @@
             const loading = document.getElementById('loading');
             const main = document.getElementById('main-content');
 
-            // Set user name
-            document.getElementById('user-name').textContent = customer?.full_name?.split(' ')[0] || 'Driver';
+            // Set user name from full_name
+            let displayName = 'Driver';
+            if (customer?.full_name && customer.full_name.trim()) {
+                displayName = customer.full_name.split(' ')[0]; // First name only for greeting
+            }
+            document.getElementById('user-name').textContent = displayName;
 
             if (rental && rental.vehicles) {
                 // Has active rental
