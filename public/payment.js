@@ -39,9 +39,60 @@ const loadingText = document.getElementById('loadingText');
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeAuth();
     initializeStripe();
+    checkExistingSession();
 });
+
+// ============================================================================
+// SESSION CHECK - Skip auth if already logged in from dashboard
+// ============================================================================
+
+async function checkExistingSession() {
+    const customerId = localStorage.getItem('fleetzy_customer_id');
+    const customerPhone = localStorage.getItem('fleetzy_phone');
+    
+    console.log('🔐 Checking existing session...', { customerId, customerPhone });
+    
+    if (customerId) {
+        // Already logged in from dashboard - load customer data directly
+        showLoading('Loading your account...');
+        
+        try {
+            // Query customer with their active rental using stored customer_id
+            const { data, error } = await supabaseClient
+                .from('customers')
+                .select(`
+                    *,
+                    rentals!inner(
+                        *,
+                        vehicles(*)
+                    )
+                `)
+                .eq('id', customerId)
+                .eq('rentals.rental_status', 'active')
+                .single();
+            
+            if (data && !error) {
+                console.log('✅ Session valid - customer found:', data.full_name);
+                customerData = data;
+                rentalData = data.rentals[0];
+                hideLoading();
+                showPaymentSection();
+                return; // Exit - no need for auth form
+            } else {
+                console.log('⚠️ Customer found but no active rental or error:', error);
+            }
+        } catch (err) {
+            console.error('❌ Session load error:', err);
+        }
+        
+        hideLoading();
+    }
+    
+    // No valid session or no active rental - show auth form
+    console.log('📝 Showing auth form...');
+    initializeAuth();
+}
 
 // ============================================================================
 // AUTHENTICATION
