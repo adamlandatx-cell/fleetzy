@@ -489,7 +489,7 @@ const Customers = {
     
     /**
      * Approve customer
-     * FIXED: Uses only 'status' column (not application_status which doesn't exist)
+     * VERIFIED: Uses only columns that exist in DB (status, customer_id, updated_at)
      */
     async approve(customerId, fromModal = false) {
         const customer = this.data.find(c => c.id === customerId);
@@ -498,10 +498,10 @@ const Customers = {
             return;
         }
         
-        // DB uses full_name, not first_name/last_name
-        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
+        // DB uses full_name
+        const fullName = customer.full_name || 'Customer';
         
-        // Confirm if not from modal (modal has its own button)
+        // Confirm if not from modal
         if (!fromModal) {
             const confirmed = confirm(`Approve ${fullName} for rental?`);
             if (!confirmed) return;
@@ -516,12 +516,12 @@ const Customers = {
                 newCustomerId = await this.generateCustomerId();
             }
             
+            // ONLY these columns exist in the customers table
             const { error } = await db
                 .from('customers')
                 .update({
-                    status: 'approved',  // Only use 'status' - lowercase for consistency
+                    status: 'approved',
                     customer_id: newCustomerId,
-                    approved_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', customerId);
@@ -619,7 +619,7 @@ const Customers = {
     
     /**
      * Reject customer
-     * FIXED: Uses only 'status' column (not application_status which doesn't exist)
+     * VERIFIED: Uses only columns that exist in DB (status, updated_at)
      */
     async reject(customerId, reason = '') {
         const customer = this.data.find(c => c.id === customerId);
@@ -628,18 +628,18 @@ const Customers = {
             return;
         }
         
-        // DB uses full_name, not first_name/last_name
-        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
+        // DB uses full_name
+        const fullName = customer.full_name || 'Customer';
         
         try {
             Utils.toastInfo('Processing rejection...');
             
+            // ONLY these columns exist in the customers table
+            // Note: rejection_reason doesn't exist, so we can't store it
             const { error } = await db
                 .from('customers')
                 .update({
-                    status: 'rejected',  // Only use 'status' - lowercase for consistency
-                    rejected_at: new Date().toISOString(),
-                    rejection_reason: reason,
+                    status: 'rejected',
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', customerId);
@@ -668,7 +668,7 @@ const Customers = {
     
     /**
      * Reinstate rejected customer
-     * FIXED: Uses only 'status' column (not application_status which doesn't exist)
+     * VERIFIED: Uses only columns that exist in DB (status, updated_at)
      */
     async reinstate(customerId) {
         const customer = this.data.find(c => c.id === customerId);
@@ -677,20 +677,19 @@ const Customers = {
             return;
         }
         
-        // DB uses full_name, not first_name/last_name
-        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
+        // DB uses full_name
+        const fullName = customer.full_name || 'Customer';
         const confirmed = confirm(`Reinstate ${fullName} to pending status?`);
         if (!confirmed) return;
         
         try {
             Utils.toastInfo('Reinstating customer...');
             
+            // ONLY these columns exist in the customers table
             const { error } = await db
                 .from('customers')
                 .update({
-                    status: 'pending',  // Only use 'status' - lowercase for consistency
-                    rejected_at: null,
-                    rejection_reason: null,
+                    status: 'pending',
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', customerId);
