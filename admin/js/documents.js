@@ -140,14 +140,15 @@ const Documents = {
                 .from('documents')
                 .select('*')
                 .eq('customer_id', this.currentCustomerId)
-                .order('uploaded_date', { ascending: false });
+                .order('uploaded_at', { ascending: false });
             
             if (docsError) throw docsError;
             
             // Load customer's application documents
+            // FIXED: Using actual column names (dl_photo_front_url, etc.)
             const { data: customer, error: custError } = await db
                 .from('customers')
-                .select('selfie_url, drivers_license_front_url, drivers_license_back_url, income_proof_url')
+                .select('selfie_url, dl_photo_front_url, dl_photo_back_url, gig_proof_url, weekly_earnings_proof_url')
                 .eq('id', this.currentCustomerId)
                 .single();
             
@@ -155,19 +156,23 @@ const Documents = {
             this.data = adminDocs || [];
             
             // Build system documents list (from customer record)
+            // FIXED: Using actual column names
             let systemDocs = [];
             if (customer) {
                 if (customer.selfie_url) {
                     systemDocs.push({ type: 'system', name: 'Selfie Photo', url: customer.selfie_url, icon: 'fa-user' });
                 }
-                if (customer.drivers_license_front_url) {
-                    systemDocs.push({ type: 'system', name: "Driver's License (Front)", url: customer.drivers_license_front_url, icon: 'fa-id-card' });
+                if (customer.dl_photo_front_url) {
+                    systemDocs.push({ type: 'system', name: "Driver's License (Front)", url: customer.dl_photo_front_url, icon: 'fa-id-card' });
                 }
-                if (customer.drivers_license_back_url) {
-                    systemDocs.push({ type: 'system', name: "Driver's License (Back)", url: customer.drivers_license_back_url, icon: 'fa-id-card' });
+                if (customer.dl_photo_back_url) {
+                    systemDocs.push({ type: 'system', name: "Driver's License (Back)", url: customer.dl_photo_back_url, icon: 'fa-id-card' });
                 }
-                if (customer.income_proof_url) {
-                    systemDocs.push({ type: 'system', name: 'Income Proof', url: customer.income_proof_url, icon: 'fa-file-invoice-dollar' });
+                if (customer.gig_proof_url) {
+                    systemDocs.push({ type: 'system', name: 'Gig Platform Proof', url: customer.gig_proof_url, icon: 'fa-car' });
+                }
+                if (customer.weekly_earnings_proof_url) {
+                    systemDocs.push({ type: 'system', name: 'Earnings Proof', url: customer.weekly_earnings_proof_url, icon: 'fa-file-invoice-dollar' });
                 }
             }
             
@@ -205,8 +210,9 @@ const Documents = {
             `;
             
             this.data.forEach(doc => {
-                const isImage = this.isImageUrl(doc.document_url);
-                const isPdf = doc.document_url?.toLowerCase().includes('.pdf');
+                // FIXED: Using file_url instead of document_url
+                const isImage = this.isImageUrl(doc.file_url);
+                const isPdf = doc.file_url?.toLowerCase().includes('.pdf');
                 const icon = isPdf ? 'fa-file-pdf' : (isImage ? 'fa-image' : 'fa-file');
                 const iconColor = isPdf ? 'var(--accent-red)' : (isImage ? 'var(--accent-blue)' : 'var(--text-secondary)');
                 
@@ -216,11 +222,11 @@ const Documents = {
                             <i class="fas ${icon}"></i>
                         </div>
                         <div class="doc-info">
-                            <div class="doc-name">${doc.document_name || doc.document_type || 'Untitled'}</div>
-                            <div class="doc-date">${this.formatDate(doc.uploaded_date)}</div>
+                            <div class="doc-name">${doc.file_name || doc.document_type || 'Untitled'}</div>
+                            <div class="doc-date">${this.formatDate(doc.uploaded_at)}</div>
                         </div>
                         <div class="doc-actions">
-                            <button class="btn-icon" onclick="Documents.viewDocument('${doc.document_url}')" title="View">
+                            <button class="btn-icon" onclick="Documents.viewDocument('${doc.file_url}')" title="View">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <button class="btn-icon danger" onclick="Documents.confirmDelete('${doc.id}')" title="Delete">
@@ -342,14 +348,16 @@ const Documents = {
             const publicUrl = urlData.publicUrl;
             
             // Save document record
+            // FIXED: Using actual DB column names (verified Jan 2025)
             const { error: insertError } = await db
                 .from('documents')
                 .insert({
                     customer_id: this.currentCustomerId,
                     document_type: 'admin_upload',
-                    document_name: name,
-                    document_url: publicUrl,
-                    uploaded_date: new Date().toISOString()
+                    file_name: name,
+                    file_url: publicUrl,
+                    file_size: file.size,
+                    uploaded_at: new Date().toISOString()
                 });
             
             if (insertError) throw insertError;
