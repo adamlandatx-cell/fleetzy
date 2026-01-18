@@ -908,6 +908,9 @@ const Payments = {
             document.getElementById('new-payment-customer-display').textContent = customer;
             document.getElementById('new-payment-balance-display').textContent = Utils.formatCurrency(balance);
             document.getElementById('new-payment-amount').value = rate;
+            
+            // Also trigger payment type change to update amount based on type
+            this.onPaymentTypeChange();
         } else {
             document.getElementById('new-payment-customer-display').textContent = '—';
             document.getElementById('new-payment-balance-display').textContent = '—';
@@ -939,13 +942,14 @@ const Payments = {
     },
     
     /**
-     * Create new payment
+     * Create new payment - UPDATED: Now includes payment_type
      */
     async createPayment() {
         const rentalId = document.getElementById('new-payment-rental').value;
         const amount = parseFloat(document.getElementById('new-payment-amount').value);
         const date = document.getElementById('new-payment-date').value;
         const method = document.getElementById('new-payment-method').value;
+        const paymentType = document.getElementById('new-payment-type')?.value || 'weekly';
         const notes = document.getElementById('new-payment-notes').value;
         const screenshotInput = document.getElementById('new-payment-screenshot');
         
@@ -966,6 +970,10 @@ const Payments = {
             Utils.toastError('Please select a payment method');
             return;
         }
+        if (!paymentType) {
+            Utils.toastError('Please select a payment type');
+            return;
+        }
         
         // Get rental info
         const rental = this.activeRentals.find(r => r.id === rentalId);
@@ -974,11 +982,17 @@ const Payments = {
             return;
         }
         
-        // Check if late
+        // Check if late (only for weekly payments)
         const paidDate = new Date(date);
         const dueDate = rental.next_payment_due ? new Date(rental.next_payment_due) : null;
-        const isLate = dueDate && paidDate > dueDate;
+        const isLate = (paymentType === 'weekly' && dueDate && paidDate > dueDate);
         const daysLate = isLate ? Math.floor((paidDate - dueDate) / (1000 * 60 * 60 * 24)) : 0;
+        
+        // Generate auto-notes based on payment type
+        let autoNotes = this.getPaymentTypeLabel(paymentType);
+        if (notes) {
+            autoNotes += ': ' + notes;
+        }
         
         try {
             // Upload screenshot if provided
@@ -1001,19 +1015,22 @@ const Payments = {
                     paid_date: date,
                     due_date: rental.next_payment_due,
                     payment_method: method,
+                    payment_type: paymentType, // NEW: Payment type categorization
                     payment_screenshot_url: screenshotUrl,
                     payment_status: 'Confirmed',
                     is_late: isLate,
                     days_late: daysLate,
-                    notes: notes,
+                    notes: autoNotes,
                     approved_by: 'Admin',
                     approved_at: new Date().toISOString()
                 });
             
             if (error) throw error;
             
-            // Update rental totals
-            await this.updateRentalAfterPayment(rentalId, amount);
+            // Update rental totals (only for weekly/initial payments)
+            if (paymentType === 'weekly' || paymentType === 'initial') {
+                await this.updateRentalAfterPayment(rentalId, amount);
+            }
             
             Utils.toastSuccess('Payment recorded successfully');
             this.closeNewPaymentModal();
@@ -1022,6 +1039,56 @@ const Payments = {
         } catch (error) {
             console.error('Error creating payment:', error);
             Utils.toastError('Failed to record payment');
+        }
+    },
+    
+    /**
+     * Get human-readable label for payment type
+     */
+    getPaymentTypeLabel(type) {
+        const labels = {
+            'initial': 'Initial Payment (Deposit + First Week)',
+            'weekly': 'Weekly Rent',
+            'toll_deposit': 'Toll Deposit Replenishment',
+            'late_fee': 'Late Fee Payment',
+            'damage_fee': 'Damage/Cleaning Fee',
+            'other': 'Other Payment'
+        };
+        return labels[type] || 'Payment';
+    },
+    
+    /**
+     * Handle payment type change - auto-fill amounts
+     */
+    onPaymentTypeChange() {
+        const paymentType = document.getElementById('new-payment-type')?.value;
+        const amountInput = document.getElementById('new-payment-amount');
+        const rentalId = document.getElementById('new-payment-rental')?.value;
+        
+        if (!paymentType || !amountInput) return;
+        
+        // Get rental if selected
+        const rental = rentalId ? this.activeRentals.find(r => r.id === rentalId) : null;
+        const weeklyRate = rental ? parseFloat(rental.weekly_rate) || 400 : 400;
+        const depositAmount = rental ? parseFloat(rental.deposit_amount) || 500 : 500;
+        
+        // Auto-fill amount based on type
+        switch (paymentType) {
+            case 'initial':
+                amountInput.value = weeklyRate + depositAmount;
+                break;
+            case 'weekly':
+                amountInput.value = weeklyRate;
+                break;
+            case 'late_fee':
+                amountInput.value = 50;
+                break;
+            case 'toll_deposit':
+            case 'damage_fee':
+            case 'other':
+                // Leave amount empty for manual entry
+                amountInput.value = '';
+                break;
         }
     },
     

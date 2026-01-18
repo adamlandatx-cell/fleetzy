@@ -1090,7 +1090,7 @@ const Rentals = {
     },
     
     /**
-     * Start rental
+     * Start rental - UPDATED: Now creates initial payment record
      */
     async startRental(rentalId, startDate = null, startMileage = 0) {
         const rental = this.data.find(r => r.id === rentalId);
@@ -1114,6 +1114,10 @@ const Rentals = {
         try {
             Utils.toastInfo('Starting rental...');
             
+            // Calculate next payment due date (7 days from start)
+            const nextPaymentDue = new Date(startDate);
+            nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
+            
             // Only update columns that EXIST in the rentals table
             const { error } = await db
                 .from('rentals')
@@ -1121,6 +1125,7 @@ const Rentals = {
                     rental_status: 'active',
                     start_date: startDate,
                     start_mileage: startMileage,
+                    next_payment_due: nextPaymentDue.toISOString().split('T')[0],
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
@@ -1139,21 +1144,100 @@ const Rentals = {
                     .eq('id', rental.vehicle_id);
             }
             
+            // CREATE INITIAL PAYMENT RECORD
+            // This captures deposit + first week payment at rental start
+            await this.createInitialPayment(rental, startDate);
+            
             Utils.toastSuccess(`Rental for ${customerName} is now active!`);
             this.closeStartRentalModal();
             await this.load();
             
-            // Also refresh vehicles and dashboard
+            // Also refresh vehicles, dashboard, and payments
             if (typeof Vehicles !== 'undefined' && Vehicles.load) {
                 Vehicles.load();
             }
             if (typeof Dashboard !== 'undefined' && Dashboard.load) {
                 Dashboard.load();
             }
+            if (typeof Payments !== 'undefined' && Payments.load) {
+                Payments.load();
+            }
             
         } catch (error) {
             console.error('Error starting rental:', error);
             Utils.toastError('Failed to start rental: ' + error.message);
+        }
+    },
+    
+    /**
+     * Create initial payment record when rental starts
+     * Records deposit + first week as "initial" payment type
+     */
+    async createInitialPayment(rental, startDate) {
+        try {
+            const weeklyRate = parseFloat(rental.weekly_rate) || 400;
+            const depositAmount = parseFloat(rental.deposit_amount) || 500;
+            const initialTotal = weeklyRate + depositAmount;
+            
+            // Generate payment ID
+            const paymentId = await this.generatePaymentIdForInitial();
+            
+            // Create the initial payment record
+            const { error } = await db
+                .from('payments')
+                .insert({
+                    payment_id: paymentId,
+                    rental_id: rental.id,
+                    customer_id: rental.customer_id,
+                    paid_amount: initialTotal,
+                    paid_date: startDate,
+                    due_date: startDate, // Initial payment is due at start
+                    payment_method: rental.payment_method || 'Cash',
+                    payment_status: 'Confirmed',
+                    payment_type: 'initial', // NEW: Payment type categorization
+                    is_late: false,
+                    days_late: 0,
+                    notes: `Initial payment: $${depositAmount} deposit + $${weeklyRate} first week`,
+                    approved_by: 'System (Rental Start)',
+                    approved_at: new Date().toISOString()
+                });
+            
+            if (error) {
+                console.error('Error creating initial payment:', error);
+                // Don't throw - rental start should still succeed
+                Utils.toastInfo('Note: Initial payment record may need manual entry');
+            } else {
+                console.log(`✅ Initial payment created: ${paymentId} for $${initialTotal}`);
+            }
+        } catch (error) {
+            console.error('Error in createInitialPayment:', error);
+            // Don't throw - rental start should still succeed
+        }
+    },
+    
+    /**
+     * Generate payment ID for initial payment
+     */
+    async generatePaymentIdForInitial() {
+        try {
+            const { data, error } = await db
+                .from('payments')
+                .select('payment_id')
+                .order('created_at', { ascending: false })
+                .limit(1);
+            
+            if (error) throw error;
+            
+            if (data && data.length > 0 && data[0].payment_id) {
+                const lastId = data[0].payment_id;
+                const num = parseInt(lastId.replace('P', '')) || 0;
+                return `P${String(num + 1).padStart(3, '0')}`;
+            }
+            
+            return 'P001';
+        } catch (error) {
+            console.error('Error generating payment ID:', error);
+            return `P${Date.now()}`;
         }
     },
     
