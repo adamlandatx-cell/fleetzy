@@ -5649,3 +5649,83 @@ html {
     background: #f4f4f5;
     color: #71717a;
 }
+
+/* ============================================
+   ONGOING RENTAL CHECKBOX & CALCULATED FIELDS
+   ============================================ */
+
+/* Input with checkbox layout */
+.input-with-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.input-with-checkbox input[type="number"] {
+    flex: 1;
+}
+
+/* Ongoing checkbox styling */
+.ongoing-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+.ongoing-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent-green);
+    cursor: pointer;
+}
+
+.ongoing-checkbox:hover {
+    color: var(--accent-green);
+}
+
+/* Disabled weeks input when ongoing is checked */
+#new-rental-weeks:disabled {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.light #new-rental-weeks:disabled {
+    background: #f4f4f5;
+    color: #a1a1aa;
+}
+
+/* Calculated value styling */
+.calculated-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-green);
+    padding: 12px 16px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.calculated-note {
+    margin-top: 8px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.calculated-note strong {
+    color: var(--accent-green);
+    font-weight: 600;
+}
+
+/* Light mode calculated value */
+.light .calculated-value {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.3);
+}
