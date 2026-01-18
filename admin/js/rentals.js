@@ -1114,17 +1114,13 @@ const Rentals = {
         try {
             Utils.toastInfo('Starting rental...');
             
-            // Calculate next payment date
-            const nextPayment = new Date(startDate);
-            nextPayment.setDate(nextPayment.getDate() + 7);
-            
+            // Only update columns that EXIST in the rentals table
             const { error } = await db
                 .from('rentals')
                 .update({
                     rental_status: 'active',
                     start_date: startDate,
                     start_mileage: startMileage,
-                    next_payment_due: nextPayment.toISOString().split('T')[0],
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
@@ -1189,10 +1185,11 @@ const Rentals = {
         document.getElementById('payment-customer-id').value = rental.customer_id || '';
         document.getElementById('payment-customer-name').textContent = customerName;
         document.getElementById('payment-rental-rate').textContent = `$${rental.weekly_rate}/wk`;
-        document.getElementById('payment-balance').textContent = `$${parseFloat(rental.balance_remaining || 0).toLocaleString()}`;
+        // Note: balance_remaining doesn't exist in schema
+        document.getElementById('payment-balance').textContent = 'N/A';
         document.getElementById('payment-amount').value = rental.weekly_rate || 400;
         document.getElementById('payment-date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('payment-method').value = 'Zelle';
+        document.getElementById('payment-method').value = rental.payment_method || 'Zelle';
         document.getElementById('payment-notes').value = '';
         
         // Clear any previous screenshot
@@ -1287,28 +1284,31 @@ const Rentals = {
                 paymentId = 'P' + String(lastNum + 1).padStart(3, '0');
             }
             
-            // Check if late
-            const isLate = rental.next_payment_due && new Date(paymentDate) > new Date(rental.next_payment_due);
+            // Check if late - calculate based on start_date + weeks
+            // Since next_payment_due doesn't exist, we calculate from start_date
+            const startDate = rental.start_date ? new Date(rental.start_date) : new Date();
+            const weeksSinceStart = Math.floor((new Date(paymentDate) - startDate) / (7 * 24 * 60 * 60 * 1000));
+            const expectedPaymentDate = new Date(startDate);
+            expectedPaymentDate.setDate(expectedPaymentDate.getDate() + (weeksSinceStart * 7));
+            
+            const isLate = new Date(paymentDate) > expectedPaymentDate;
             const daysLate = isLate 
-                ? Math.floor((new Date(paymentDate) - new Date(rental.next_payment_due)) / (1000 * 60 * 60 * 24))
+                ? Math.floor((new Date(paymentDate) - expectedPaymentDate) / (1000 * 60 * 60 * 24))
                 : 0;
             
-            // Insert payment record
+            // Insert payment record - ONLY columns that exist in payments table
             const paymentData = {
                 payment_id: paymentId,
                 rental_id: rentalId,
                 customer_id: customerId,
+                due_date: expectedPaymentDate.toISOString().split('T')[0],  // NOT NULL
+                amount_due: amount,                                          // NOT NULL
+                total_amount: amount + (isLate ? daysLate * 10 : 0),        // NOT NULL (include late fees)
+                late_fees: isLate ? daysLate * 10 : 0,                       // $10/day late fee
                 paid_amount: amount,
                 paid_date: paymentDate,
-                due_date: rental.next_payment_due,
                 payment_method: paymentMethod,
-                payment_screenshot_url: screenshotUrl,
-                payment_status: 'Confirmed',
-                is_late: isLate,
-                days_late: daysLate,
-                notes: notes,
-                approved_by: 'Admin',
-                approved_at: new Date().toISOString(),
+                payment_status: 'paid',
                 created_at: new Date().toISOString()
             };
             
@@ -1318,19 +1318,12 @@ const Rentals = {
             
             if (paymentError) throw paymentError;
             
-            // Update rental
-            const newPaid = (parseFloat(rental.total_amount_paid) || 0) + amount;
-            const newBalance = (parseFloat(rental.total_amount_due) || 0) - newPaid;
-            const nextPayment = new Date(paymentDate);
-            nextPayment.setDate(nextPayment.getDate() + 7);
-            
+            // Update rental - only columns that EXIST in the table
+            // Note: total_amount_paid, balance_remaining, last_payment_date, next_payment_due 
+            // don't exist in rentals table based on schema check
             const { error: updateError } = await db
                 .from('rentals')
                 .update({
-                    total_amount_paid: newPaid,
-                    balance_remaining: newBalance,
-                    last_payment_date: paymentDate,
-                    next_payment_due: nextPayment.toISOString().split('T')[0],
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
@@ -1384,8 +1377,9 @@ const Rentals = {
         document.getElementById('end-rental-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('end-rental-mileage').value = '';
         document.getElementById('end-rental-start-mileage').textContent = (rental.start_mileage || 0).toLocaleString();
-        document.getElementById('end-rental-deposit').textContent = `$${parseFloat(rental.deposit_amount || 0).toLocaleString()}`;
-        document.getElementById('end-rental-balance').textContent = `$${parseFloat(rental.balance_remaining || 0).toLocaleString()}`;
+        document.getElementById('end-rental-deposit').textContent = `$${parseFloat(rental.deposit_amount || rental.deposit_included || 0).toLocaleString()}`;
+        // Note: balance_remaining doesn't exist, showing $0
+        document.getElementById('end-rental-balance').textContent = '$0';
         document.getElementById('end-rental-deductions').value = '0';
         document.getElementById('end-rental-deduction-reason').value = '';
         this.calculateDepositReturn();
@@ -1413,11 +1407,11 @@ const Rentals = {
         const rental = this.data.find(r => r.id === rentalId);
         if (!rental) return;
         
-        const deposit = parseFloat(rental.deposit_amount) || 0;
-        const balance = parseFloat(rental.balance_remaining) || 0;
+        const deposit = parseFloat(rental.deposit_amount || rental.deposit_included) || 0;
         const deductions = parseFloat(document.getElementById('end-rental-deductions')?.value) || 0;
         
-        let returnAmount = deposit - balance - deductions;
+        // Since balance_remaining doesn't exist, just use deposit - deductions
+        let returnAmount = deposit - deductions;
         if (returnAmount < 0) returnAmount = 0;
         
         const el = document.getElementById('end-rental-return-amount');
@@ -1459,20 +1453,7 @@ const Rentals = {
             const startMileage = rental.start_mileage || 0;
             const totalMiles = endMileage > startMileage ? endMileage - startMileage : 0;
             
-            // Calculate final deposit return
-            const deposit = parseFloat(rental.deposit_amount) || 0;
-            const balance = parseFloat(rental.balance_remaining) || 0;
-            let depositReturn = deposit - balance - deductions;
-            if (depositReturn < 0) depositReturn = 0;
-            
-            // Build notes
-            let endNotes = rental.notes || '';
-            if (deductions > 0) {
-                endNotes += `\n\nDeductions at end: $${deductions}`;
-                if (deductionReason) endNotes += ` - ${deductionReason}`;
-            }
-            endNotes += `\nDeposit returned: $${depositReturn}`;
-            
+            // Only update columns that EXIST in rentals table
             const { error } = await db
                 .from('rentals')
                 .update({
@@ -1480,8 +1461,7 @@ const Rentals = {
                     end_date: endDate,
                     end_mileage: endMileage,
                     total_miles_driven: totalMiles,
-                    notes: endNotes.trim(),
-                    completed_at: new Date().toISOString(),
+                    return_inspection_notes: deductions > 0 ? `Deductions: $${deductions} - ${deductionReason || 'No reason specified'}` : null,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
