@@ -143,6 +143,9 @@ async function handleAuth(e) {
 // PAYMENT SECTION
 // ============================================================================
 
+// Global state for selected payment type
+let selectedPaymentType = 'weekly';
+
 function showPaymentSection() {
     // Hide auth, show payment
     authSection.classList.add('hidden');
@@ -165,16 +168,31 @@ function showPaymentSection() {
     
     // Calculate payment amounts
     const weeklyRate = parseFloat(rentalData.weekly_rate) || 400.00;
+    const depositAmount = parseFloat(rentalData.deposit_amount) || 500.00;
     const txTax = weeklyRate * 0.0625;
-    const totalDue = weeklyRate + txTax;
+    const weeklyTotal = weeklyRate + txTax;
+    const initialTotal = weeklyRate + depositAmount + txTax;
     
-    paymentAmount = totalDue;
+    paymentAmount = weeklyTotal;
     
     // Display amounts
     document.getElementById('weeklyRate').textContent = formatCurrency(weeklyRate);
     document.getElementById('txTax').textContent = formatCurrency(txTax);
-    document.getElementById('totalDue').textContent = formatCurrency(totalDue);
-    document.getElementById('weeklyPaymentAmount').textContent = formatCurrency(totalDue);
+    document.getElementById('totalDue').textContent = formatCurrency(weeklyTotal);
+    document.getElementById('weeklyPaymentAmount').textContent = formatCurrency(weeklyTotal);
+    
+    // Populate initial payment amount
+    const initialAmountEl = document.getElementById('initialPaymentAmount');
+    if (initialAmountEl) {
+        initialAmountEl.textContent = formatCurrency(initialTotal);
+    }
+    
+    // Store amounts for payment type selection
+    window.paymentAmounts = {
+        weekly: weeklyTotal,
+        initial: initialTotal,
+        late_fee: 50
+    };
     
     // Calculate next payment due
     const nextDue = new Date(rentalData.next_payment_due);
@@ -198,10 +216,69 @@ function showPaymentSection() {
     }
     
     // Update button text
-    document.getElementById('submitButtonText').textContent = `Pay ${formatCurrency(totalDue)}`;
+    document.getElementById('submitButtonText').textContent = `Pay ${formatCurrency(weeklyTotal)}`;
+    
+    // Initialize payment type selection (weekly is default)
+    selectPaymentType('weekly');
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================================
+// PAYMENT TYPE SELECTION
+// ============================================================================
+
+function selectPaymentType(type) {
+    selectedPaymentType = type;
+    document.getElementById('selectedPaymentType').value = type;
+    
+    // Update card styles
+    const cards = document.querySelectorAll('.payment-type-card');
+    cards.forEach(card => {
+        if (card.dataset.type === type) {
+            card.classList.add('border-emerald-500', 'bg-emerald-50', 'selected');
+            card.classList.remove('border-gray-200');
+        } else {
+            card.classList.remove('border-emerald-500', 'bg-emerald-50', 'selected');
+            card.classList.add('border-gray-200');
+        }
+    });
+    
+    // Show/hide custom amount input
+    const customSection = document.getElementById('customAmountSection');
+    const needsCustomAmount = ['toll_deposit', 'damage_fee', 'other'].includes(type);
+    
+    if (needsCustomAmount) {
+        customSection.classList.remove('hidden');
+        document.getElementById('customPaymentAmount').focus();
+        // Don't set amount yet - wait for user input
+        paymentAmount = 0;
+        document.getElementById('submitButtonText').textContent = 'Enter Amount';
+    } else {
+        customSection.classList.add('hidden');
+        // Set predefined amounts
+        if (type === 'weekly') {
+            paymentAmount = window.paymentAmounts.weekly || 425;
+        } else if (type === 'initial') {
+            paymentAmount = window.paymentAmounts.initial || 900;
+        } else if (type === 'late_fee') {
+            paymentAmount = window.paymentAmounts.late_fee || 50;
+        }
+        document.getElementById('submitButtonText').textContent = `Pay ${formatCurrency(paymentAmount)}`;
+    }
+}
+
+function updateCustomPaymentAmount() {
+    const input = document.getElementById('customPaymentAmount');
+    const amount = parseFloat(input.value) || 0;
+    paymentAmount = amount;
+    
+    if (amount > 0) {
+        document.getElementById('submitButtonText').textContent = `Pay ${formatCurrency(amount)}`;
+    } else {
+        document.getElementById('submitButtonText').textContent = 'Enter Amount';
+    }
 }
 
 // ============================================================================
@@ -252,6 +329,14 @@ function initializeStripe() {
 async function handlePayment(e) {
     e.preventDefault();
     
+    // Validate amount for custom types
+    if (paymentAmount <= 0) {
+        const cardErrors = document.getElementById('card-errors');
+        cardErrors.textContent = 'Please enter a valid payment amount';
+        cardErrors.classList.remove('hidden');
+        return;
+    }
+    
     // Disable submit button
     const submitButton = document.getElementById('submitPayment');
     submitButton.disabled = true;
@@ -259,6 +344,9 @@ async function handlePayment(e) {
     showLoading('Processing your payment...');
     
     try {
+        // Get selected payment type
+        const paymentType = selectedPaymentType || 'weekly';
+        
         // Step 1: Create payment intent via Supabase Edge Function
         const { data: intentData, error: intentError } = await supabaseClient.functions.invoke('create-payment-intent', {
             body: {
@@ -266,7 +354,8 @@ async function handlePayment(e) {
                 customer_id: customerData.id,
                 rental_id: rentalData.id,
                 customer_email: customerData.email,
-                customer_name: `${customerData.first_name} ${customerData.last_name}`
+                customer_name: `${customerData.first_name} ${customerData.last_name}`,
+                payment_type: paymentType // NEW: Include payment type
             }
         });
         
