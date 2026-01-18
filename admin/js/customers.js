@@ -321,6 +321,7 @@ const Customers = {
     
     /**
      * Open review application modal
+     * FIXED: Uses actual DB column names (verified Jan 2025)
      */
     openReviewModal(customerId, viewOnly = false) {
         const customer = this.data.find(c => c.id === customerId);
@@ -336,7 +337,8 @@ const Customers = {
         }
         
         // Populate modal with customer data
-        const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+        // DB uses full_name, not first_name/last_name
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Unknown';
         
         // Basic info
         document.getElementById('review-customer-name').textContent = fullName;
@@ -345,19 +347,14 @@ const Customers = {
         document.getElementById('review-customer-email').textContent = customer.email || 'N/A';
         document.getElementById('review-customer-dob').textContent = customer.date_of_birth || 'N/A';
         
-        // Address
-        const address = [
-            customer.address_street,
-            customer.address_city,
-            customer.address_state,
-            customer.address_zip
-        ].filter(Boolean).join(', ') || 'N/A';
+        // Address - DB has 'address' or 'current_address' as single text field
+        const address = customer.current_address || customer.address || 'N/A';
         document.getElementById('review-customer-address').textContent = address;
         
-        // Driver's License
-        document.getElementById('review-dl-number').textContent = customer.drivers_license_number || 'N/A';
-        document.getElementById('review-dl-state').textContent = customer.drivers_license_state || 'N/A';
-        document.getElementById('review-dl-expiry').textContent = customer.drivers_license_expiry || 'N/A';
+        // Driver's License - DB uses dl_ prefix, not drivers_license_
+        document.getElementById('review-dl-number').textContent = customer.dl_number || 'N/A';
+        document.getElementById('review-dl-state').textContent = customer.dl_state || 'N/A';
+        document.getElementById('review-dl-expiry').textContent = customer.dl_expiry_date || 'N/A';
         
         // Background check status
         const bgStatus = customer.background_check_status || 'Not Started';
@@ -367,29 +364,29 @@ const Customers = {
             bgStatusEl.className = 'status-badge ' + this.getBgStatusClass(bgStatus);
         }
         
-        // Corporate info
+        // Corporate info - DB uses is_company_rental, not is_corporate_rental
         const corporateSection = document.getElementById('review-corporate-section');
         if (corporateSection) {
-            if (customer.is_corporate_rental) {
+            if (customer.is_company_rental || customer.is_corporate_rental) {
                 corporateSection.style.display = 'block';
                 document.getElementById('review-company-name').textContent = customer.company_name || 'N/A';
-                document.getElementById('review-company-rep').textContent = customer.company_rep_name || 'N/A';
-                document.getElementById('review-company-phone').textContent = customer.company_rep_phone || 'N/A';
+                document.getElementById('review-company-rep').textContent = customer.company_contact_person || customer.company_rep_name || 'N/A';
+                document.getElementById('review-company-phone').textContent = customer.company_phone || 'N/A';
             } else {
                 corporateSection.style.display = 'none';
             }
         }
         
-        // Document images
-        this.loadDocumentImage('review-dl-front', customer.drivers_license_front_url);
-        this.loadDocumentImage('review-dl-back', customer.drivers_license_back_url);
+        // Document images - DB uses dl_photo_front_url, dl_photo_back_url
+        this.loadDocumentImage('review-dl-front', customer.dl_photo_front_url);
+        this.loadDocumentImage('review-dl-back', customer.dl_photo_back_url);
         this.loadDocumentImage('review-selfie', customer.selfie_url);
-        this.loadDocumentImage('review-income-proof', customer.income_proof_url);
+        this.loadDocumentImage('review-income-proof', customer.weekly_earnings_proof_url || customer.gig_proof_url);
         
         // Income proof section visibility
         const incomeSection = document.getElementById('review-income-section');
         if (incomeSection) {
-            incomeSection.style.display = customer.is_corporate_rental ? 'none' : 'block';
+            incomeSection.style.display = (customer.is_company_rental || customer.is_corporate_rental) ? 'none' : 'block';
         }
         
         // Store customer ID for approval/rejection
