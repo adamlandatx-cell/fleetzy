@@ -1712,7 +1712,14 @@
                             </div>
                             <div class="form-group">
                                 <label for="new-rental-weeks">Weeks Contracted</label>
-                                <input type="number" id="new-rental-weeks" min="1" value="4" oninput="Rentals.calculateNewRentalTotal()">
+                                <div class="input-with-checkbox">
+                                    <input type="number" id="new-rental-weeks" min="1" value="4" oninput="Rentals.calculateNewRentalTotal()">
+                                    <label class="checkbox-label ongoing-checkbox">
+                                        <input type="checkbox" id="new-rental-ongoing" onchange="Rentals.toggleOngoing()">
+                                        <span class="checkmark"></span>
+                                        Ongoing
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         
@@ -1729,8 +1736,9 @@
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Total Amount Due</label>
+                                <label>Amount Due at Pickup</label>
                                 <div class="calculated-value" id="new-rental-total">$0</div>
+                                <div class="calculated-note" id="new-rental-total-note" style="display: none;"></div>
                             </div>
                         </div>
                         
