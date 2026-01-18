@@ -5,10 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Fleetzy</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
             min-height: 100vh;
+        }
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .btn-loading::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -24,30 +44,63 @@
             <h1 class="text-3xl font-bold text-white text-center mb-2">Welcome Back</h1>
             <p class="text-slate-400 text-center mb-8">Sign in to your Fleetzy account</p>
 
-            <form class="space-y-6">
+            <!-- Error Message -->
+            <div id="error-message" class="hidden mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm text-center">
+                <span id="error-text">Invalid credentials</span>
+            </div>
+
+            <!-- Success Message -->
+            <div id="success-message" class="hidden mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-400 text-sm text-center">
+                <span>Login successful! Redirecting...</span>
+            </div>
+
+            <form id="login-form" class="space-y-6">
                 <!-- Phone Number -->
                 <div>
                     <label for="phone" class="block text-sm font-medium text-slate-300 mb-2">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition" required>
+                    <input 
+                        type="tel" 
+                        id="phone" 
+                        name="phone" 
+                        placeholder="(555) 123-4567" 
+                        class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition" 
+                        required
+                    >
                 </div>
 
                 <!-- Last 4 of DL -->
                 <div>
                     <label for="dl-last4" class="block text-sm font-medium text-slate-300 mb-2">Last 4 of Driver's License</label>
-                    <input type="text" id="dl-last4" name="dl-last4" placeholder="1234" maxlength="4" class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition" required>
+                    <input 
+                        type="text" 
+                        id="dl-last4" 
+                        name="dl-last4" 
+                        placeholder="1234" 
+                        maxlength="4" 
+                        pattern="[A-Za-z0-9]{4}"
+                        class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition uppercase" 
+                        required
+                    >
+                    <p class="mt-1 text-xs text-slate-500">Enter the last 4 characters of your DL number</p>
                 </div>
 
                 <!-- Remember Me & Forgot Password -->
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center text-slate-400 cursor-pointer">
-                        <input type="checkbox" class="mr-2 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500">
+                        <input type="checkbox" id="remember-me" class="mr-2 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500">
                         <span>Remember me</span>
                     </label>
                     <a href="forgot-password.html" class="text-emerald-500 hover:text-emerald-400 transition">Forgot password?</a>
                 </div>
 
                 <!-- Login Button -->
-                <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition transform duration-300">Sign In</button>
+                <button 
+                    type="submit" 
+                    id="login-btn"
+                    class="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition transform duration-300"
+                >
+                    Sign In
+                </button>
 
                 <!-- Divider -->
                 <div class="relative my-6">
@@ -60,11 +113,190 @@
                 </div>
 
                 <!-- Apply Now Button -->
-                <a href="application.html" class="block w-full px-6 py-3 bg-slate-900 border-2 border-emerald-500 text-emerald-500 font-semibold rounded-lg text-center hover:bg-emerald-500 hover:text-white transition duration-300">Apply Now</a>
+                <a class='block w-full px-6 py-3 bg-slate-900 border-2 border-emerald-500 text-emerald-500 font-semibold rounded-lg text-center hover:bg-emerald-500 hover:text-white transition duration-300' href='/application'>Apply Now</a>
             </form>
 
             <p class="text-center text-sm text-slate-500 mt-6">Need help? Call us at <a href="tel:2812713900" class="text-emerald-500 hover:text-emerald-400">(281) 271-3900</a></p>
         </div>
     </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // DOM Elements
+        const form = document.getElementById('login-form');
+        const phoneInput = document.getElementById('phone');
+        const dlInput = document.getElementById('dl-last4');
+        const loginBtn = document.getElementById('login-btn');
+        const errorDiv = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const successDiv = document.getElementById('success-message');
+        const rememberCheckbox = document.getElementById('remember-me');
+
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedPhone = localStorage.getItem('fleetzy_phone');
+            if (savedPhone) {
+                // Already logged in, redirect to dashboard
+                window.location.href = '/dashboard.html';
+                return;
+            }
+
+            // Auto-fill if "remember me" was used
+            const savedLogin = localStorage.getItem('fleetzy_remember_phone');
+            if (savedLogin) {
+                phoneInput.value = savedLogin;
+                rememberCheckbox.checked = true;
+            }
+        });
+
+        // Format phone number as user types
+        phoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+            
+            if (value.length >= 6) {
+                value = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
+            } else if (value.length >= 3) {
+                value = `(${value.slice(0, 3)}) ${value.slice(3)}`;
+            } else if (value.length > 0) {
+                value = `(${value}`;
+            }
+            
+            e.target.value = value;
+        });
+
+        // Force uppercase for DL input
+        dlInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Hide any previous messages
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            // Get input values
+            const phoneRaw = phoneInput.value.replace(/\D/g, '');
+            const dlLast4 = dlInput.value.toUpperCase().trim();
+
+            // Validate inputs
+            if (phoneRaw.length !== 10) {
+                showError('Please enter a valid 10-digit phone number');
+                return;
+            }
+
+            if (dlLast4.length !== 4) {
+                showError('Please enter the last 4 characters of your driver\'s license');
+                return;
+            }
+
+            // Show loading state
+            loginBtn.classList.add('btn-loading');
+            loginBtn.textContent = 'Signing in';
+
+            try {
+                console.log('🔐 Attempting login for phone:', phoneRaw);
+
+                // Format phone with +1 for database lookup
+                const phoneFormatted = '+1' + phoneRaw;
+                
+                // Also try without +1 in case data was stored differently
+                const { data: customers, error } = await db
+                    .from('customers')
+                    .select('id, first_name, last_name, phone, drivers_license_number, application_status')
+                    .or(`phone.eq.${phoneFormatted},phone.eq.${phoneRaw},phone.eq.(${phoneRaw.slice(0,3)}) ${phoneRaw.slice(3,6)}-${phoneRaw.slice(6)}`);
+
+                console.log('📋 Customer lookup result:', customers?.length || 0, 'found');
+
+                if (error) {
+                    console.error('Database error:', error);
+                    showError('Unable to verify credentials. Please try again.');
+                    resetButton();
+                    return;
+                }
+
+                if (!customers || customers.length === 0) {
+                    console.log('❌ No customer found with phone:', phoneRaw);
+                    showError('No account found with this phone number. Please apply first.');
+                    resetButton();
+                    return;
+                }
+
+                // Find customer that matches the DL last 4
+                const customer = customers.find(c => {
+                    if (!c.drivers_license_number) return false;
+                    const dlNumber = c.drivers_license_number.toUpperCase();
+                    const last4 = dlNumber.slice(-4);
+                    console.log('Checking DL:', last4, 'vs input:', dlLast4);
+                    return last4 === dlLast4;
+                });
+
+                if (!customer) {
+                    console.log('❌ DL last 4 does not match');
+                    showError('Invalid credentials. Please check your phone number and driver\'s license.');
+                    resetButton();
+                    return;
+                }
+
+                // Check if customer is approved
+                if (customer.application_status && customer.application_status.toLowerCase() !== 'approved') {
+                    console.log('⚠️ Customer not approved:', customer.application_status);
+                    showError(`Your application is ${customer.application_status.toLowerCase()}. Please contact us for assistance.`);
+                    resetButton();
+                    return;
+                }
+
+                // SUCCESS - Store session data
+                console.log('✅ Login successful for:', customer.first_name);
+                
+                // Store phone for session (use the format stored in database)
+                localStorage.setItem('fleetzy_phone', customer.phone);
+                localStorage.setItem('fleetzy_customer_id', customer.id);
+                localStorage.setItem('fleetzy_customer_name', customer.first_name);
+
+                // Handle "Remember me"
+                if (rememberCheckbox.checked) {
+                    localStorage.setItem('fleetzy_remember_phone', phoneInput.value);
+                } else {
+                    localStorage.removeItem('fleetzy_remember_phone');
+                }
+
+                // Show success message
+                successDiv.classList.remove('hidden');
+                loginBtn.textContent = 'Success!';
+                loginBtn.classList.remove('btn-loading');
+                loginBtn.classList.add('bg-emerald-600');
+
+                // Redirect to dashboard after brief delay
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 1000);
+
+            } catch (err) {
+                console.error('Login error:', err);
+                showError('An unexpected error occurred. Please try again.');
+                resetButton();
+            }
+        });
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            // Scroll to error on mobile
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetButton() {
+            loginBtn.classList.remove('btn-loading');
+            loginBtn.textContent = 'Sign In';
+        }
+    </script>
 </body>
 </html>
