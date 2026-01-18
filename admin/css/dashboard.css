@@ -15,16 +15,25 @@
     --bg-card-hover: rgba(39, 39, 42, 0.8);
     --bg-card-solid: #27272a;
     
+    /* Card & Input backgrounds (ADDED) */
+    --card-bg: #1a1a1d;
+    --card-border: rgba(255, 255, 255, 0.1);
+    --input-bg: #0f0f10;
+    
     /* Borders */
     --border-subtle: rgba(255, 255, 255, 0.06);
     --border-medium: rgba(255, 255, 255, 0.1);
     --border-strong: rgba(255, 255, 255, 0.15);
+    --border-color: rgba(255, 255, 255, 0.1);
     
     /* Text */
     --text-primary: #fafafa;
     --text-secondary: #a1a1aa;
     --text-tertiary: #71717a;
     --text-muted: #52525b;
+    
+    /* Primary color */
+    --primary: #10b981;
     
     /* Brand Gradient */
     --gradient-brand: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
@@ -35,6 +44,7 @@
     /* Accent Colors */
     --accent-green: #10b981;
     --accent-emerald: #34d399;
+    --accent-teal: #14b8a6;
     --accent-cyan: #06b6d4;
     --accent-blue: #3b82f6;
     --accent-amber: #f59e0b;
@@ -91,6 +101,14 @@
     --bg-card: rgba(255, 255, 255, 0.8);
     --bg-card-hover: rgba(255, 255, 255, 0.95);
     --bg-card-solid: #ffffff;
+    
+    /* Card & Input backgrounds for light mode (ADDED) */
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.12);
+    --input-bg: #ffffff;
+    --border-color: rgba(0, 0, 0, 0.12);
+    --primary: #10b981;
+    
     --border-subtle: rgba(0, 0, 0, 0.04);
     --border-medium: rgba(0, 0, 0, 0.08);
     --border-strong: rgba(0, 0, 0, 0.12);
@@ -1950,6 +1968,14 @@ img {
     font-size: 14px;
     color: var(--text-primary);
     transition: all 0.2s ease;
+    width: 100%;
+}
+
+/* Improve placeholder visibility */
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
 }
 
 .form-group input:focus,
@@ -1957,7 +1983,8 @@ img {
 .form-group textarea:focus {
     outline: none;
     border-color: var(--accent-green);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    background: var(--input-bg);
 }
 
 .form-group input.readonly {
@@ -5520,4 +5547,105 @@ html {
 /* Required asterisk */
 .required {
     color: #ef4444;
+}
+
+/* ============================================
+   IMPROVED INPUT VISIBILITY - DARK & LIGHT MODE
+   ============================================ */
+
+/* Dark mode input improvements */
+#modal-add-customer .form-group input,
+#modal-add-customer .form-group select,
+#modal-add-customer .form-group textarea {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+#modal-add-customer .form-group input:focus,
+#modal-add-customer .form-group select:focus,
+#modal-add-customer .form-group textarea:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-green);
+}
+
+#modal-add-customer .form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Light mode specific overrides */
+.light #modal-add-customer .form-group input,
+.light #modal-add-customer .form-group select,
+.light #modal-add-customer .form-group textarea {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    color: #09090b;
+}
+
+.light #modal-add-customer .form-group input:focus,
+.light #modal-add-customer .form-group select:focus,
+.light #modal-add-customer .form-group textarea:focus {
+    background: #ffffff;
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.light #modal-add-customer .form-group input::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+/* Modal background fix for light mode */
+.light .modal-content {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.light .modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.light .modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.light .modal-close {
+    background: #f4f4f5;
+    color: #52525b;
+}
+
+.light .modal-close:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Toggle switch light mode */
+.light .toggle-switch {
+    background: #d1d5db;
+}
+
+.light .toggle-group {
+    background: #f4f4f5;
+}
+
+/* File upload light mode */
+.light .file-upload-placeholder {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.light .file-upload-wrapper:hover .file-upload-placeholder {
+    background: rgba(16, 185, 129, 0.05);
+    border-color: var(--accent-green);
+}
+
+/* Section titles light mode */
+.light .section-title {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Readonly input light mode */
+.light .form-group input.readonly {
+    background: #f4f4f5;
+    color: #71717a;
 }
