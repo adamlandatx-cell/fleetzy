@@ -22,12 +22,12 @@ const Payments = {
      */
     async load() {
         try {
-            // Load payments with related data
+            // Load payments with related data - using full_name (not first_name/last_name)
             const { data: payments, error } = await db
                 .from('payments')
                 .select(`
                     *,
-                    customer:customer_id(id, customer_id, first_name, last_name, phone, email, selfie_url),
+                    customer:customer_id(id, customer_id, full_name, phone, email, selfie_url),
                     rental:rental_id(id, rental_id, weekly_rate, vehicle_id, start_date)
                 `)
                 .order('created_at', { ascending: false });
@@ -92,9 +92,7 @@ const Payments = {
         
         this.filtered = this.data.filter(payment => {
             // Search filter - customer name, rental ID, payment ID
-            const customerName = payment.customer 
-                ? `${payment.customer.first_name} ${payment.customer.last_name}`.toLowerCase() 
-                : '';
+            const customerName = payment.customer?.full_name?.toLowerCase() || '';
             const rentalId = payment.rental?.rental_id?.toLowerCase() || '';
             const paymentId = payment.payment_id?.toLowerCase() || '';
             const matchesSearch = !search || 
@@ -217,10 +215,8 @@ const Payments = {
         const status = payment.payment_status || 'Pending';
         const method = payment.payment_method || 'Unknown';
         
-        // Customer cell
-        const customerName = customer 
-            ? `${customer.first_name} ${customer.last_name}`
-            : 'Unknown Customer';
+        // Customer cell - using full_name
+        const customerName = customer?.full_name || 'Unknown Customer';
         const customerPhoto = customer?.selfie_url || 'assets/default-avatar.png';
         const customerId = customer?.customer_id || '—';
         
@@ -517,7 +513,7 @@ const Payments = {
                     <h4><i class="fas fa-user"></i> Customer</h4>
                     <div class="detail-row">
                         <span class="detail-label">Name</span>
-                        <span class="detail-value">${customer ? `${customer.first_name} ${customer.last_name}` : '—'}</span>
+                        <span class="detail-value">${customer?.full_name || '—'}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Customer ID</span>
@@ -624,9 +620,7 @@ const Payments = {
         }
         
         // Confirm action
-        const customerName = payment.customer 
-            ? `${payment.customer.first_name} ${payment.customer.last_name}`
-            : 'Unknown';
+        const customerName = payment.customer?.full_name || 'Unknown';
         const amount = Utils.formatCurrency(payment.paid_amount || 0);
         
         if (!confirm(`Approve payment of ${amount} from ${customerName}?`)) {
@@ -741,9 +735,7 @@ const Payments = {
         this.rejectingPaymentId = paymentId;
         
         // Populate modal
-        const customerName = payment.customer 
-            ? `${payment.customer.first_name} ${payment.customer.last_name}`
-            : 'Unknown';
+        const customerName = payment.customer?.full_name || 'Unknown';
         const amount = Utils.formatCurrency(payment.paid_amount || 0);
         
         const customerNameEl = document.getElementById('reject-payment-customer');
@@ -1176,7 +1168,7 @@ const Payments = {
         
         const rows = this.filtered.map(p => [
             p.payment_id || '',
-            p.customer ? `${p.customer.first_name} ${p.customer.last_name}` : '',
+            p.customer?.full_name || '',
             p.rental?.rental_id || '',
             p.paid_amount || 0,
             p.payment_method || '',
