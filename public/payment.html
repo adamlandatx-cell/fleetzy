@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Make a Payment - Fleetzy</title>
+    
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#059669">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#09090b">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Fleetzy">
-    <meta name="mobile-web-app-capable" content="yes">
     
     <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="/manifest.json">
@@ -16,40 +17,20 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
     <link rel="shortcut icon" href="/icons/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-120x120.png">
-    
-    <!-- Apple Splash Screens -->
-    <link rel="apple-touch-startup-image" href="/splash/iphone5_splash.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/splash/iphone6_splash.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/splash/iphoneplus_splash.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/splash/iphonex_splash.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/splash/iphonexr_splash.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/splash/iphonexsmax_splash.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
-    <link rel="apple-touch-startup-image" href="/splash/ipad_splash.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/splash/ipadpro1_splash.png" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)">
-    <link rel="apple-touch-startup-image" href="/splash/ipadpro2_splash.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)">
     
     <!-- Social Media Preview -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://getfleetzy.netlify.app">
     <meta property="og:title" content="Payment - Fleetzy Car Rental">
     <meta property="og:description" content="Reliable weekly car rentals starting at $400/week. Fast approval, quality vehicles, flexible payments.">
-    <meta property="og:image" content="https://getfleetzy.netlify.app/social/og_image.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://getfleetzy.netlify.app">
-    <meta name="twitter:title" content="Fleetzy - Weekly Car Rentals">
-    <meta name="twitter:description" content="Reliable weekly car rentals for gig economy drivers">
-    <meta name="twitter:image" content="https://getfleetzy.netlify.app/social/twitter_large.png">
     
-    <!-- PWA Helper Script -->
-    <script src="/pwa-helper.js" defer></script>
-
-    <title>Make a Payment - Fleetzy</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Stripe.js -->
     <script src="https://js.stripe.com/v3/"></script>
@@ -57,8 +38,795 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- PWA Helper Script -->
+    <script src="/pwa-helper.js" defer></script>
+
     <style>
-        /* Custom animations */
+        /* ============================================
+           FLEETZY PAYMENT PORTAL - DARK MODE
+           Premium Tesla/Apple Inspired Design
+           ============================================ */
+        
+        :root {
+            --bg-primary: #09090b;
+            --bg-secondary: #18181b;
+            --bg-tertiary: #27272a;
+            --bg-card: rgba(39, 39, 42, 0.5);
+            
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.15);
+            
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --text-muted: #52525b;
+            
+            --accent-green: #10b981;
+            --accent-emerald: #34d399;
+            --accent-teal: #14b8a6;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            
+            --gradient-brand: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+            --gradient-card: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
+            
+            --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.2);
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.5;
+            padding-bottom: 80px;
+        }
+        
+        .hidden { display: none !important; }
+        
+        /* Ambient Glow Background */
+        .ambient-glow {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .header-content {
+            max-width: 28rem;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-logo {
+            height: 2rem;
+        }
+        
+        .header-back {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+        }
+        
+        .header-back:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 28rem;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+        
+        /* Page Title */
+        .page-title {
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .page-title h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-title h1 i {
+            font-size: 1.25rem;
+            color: var(--accent-green);
+        }
+        
+        .page-title p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .card-gradient {
+            background: var(--gradient-card);
+        }
+        
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        
+        /* Auth Form */
+        .auth-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .auth-icon i {
+            font-size: 1.75rem;
+            background: var(--gradient-brand);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .auth-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .auth-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-title p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all var(--transition-base);
+        }
+        
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+        
+        /* Error Alert */
+        .error-alert {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .error-alert i {
+            color: var(--accent-red);
+            font-size: 1.25rem;
+        }
+        
+        .error-alert p {
+            color: #fca5a5;
+            font-size: 0.875rem;
+        }
+        
+        /* Primary Button */
+        .btn-primary {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--gradient-brand);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all var(--transition-base);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Secondary Button */
+        .btn-secondary {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all var(--transition-base);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--border-strong);
+        }
+        
+        /* Payment Summary */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .summary-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .summary-value.highlight {
+            color: var(--accent-green);
+            font-size: 1.25rem;
+        }
+        
+        /* Payment Type Buttons */
+        .payment-types {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .payment-type-btn {
+            padding: 0.875rem 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+        
+        .payment-type-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .payment-type-btn.active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        
+        /* Custom Amount Input */
+        .amount-input-wrapper {
+            position: relative;
+        }
+        
+        .amount-input-wrapper::before {
+            content: '$';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .amount-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1.5rem;
+            font-weight: 700;
+            transition: all var(--transition-base);
+        }
+        
+        .amount-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+        
+        .amount-input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        
+        /* Stripe Element Container */
+        .stripe-element-container {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            transition: all var(--transition-base);
+        }
+        
+        .stripe-element-container.StripeElement--focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+        }
+        
+        .stripe-element-container.StripeElement--invalid {
+            border-color: var(--accent-red);
+        }
+        
+        .card-errors {
+            color: var(--accent-red);
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        /* Section Divider */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border-medium);
+        }
+        
+        .divider-text {
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Alternative Payment Methods */
+        .alt-payments-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .alt-payment-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 16px;
+            padding: 1.25rem;
+            text-align: center;
+            text-decoration: none;
+            transition: all var(--transition-base);
+            display: block;
+        }
+        
+        .alt-payment-card:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--border-strong);
+            transform: translateY(-2px);
+        }
+        
+        .alt-payment-card.preferred {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.1) 100%);
+            border-color: var(--accent-green);
+        }
+        
+        .alt-payment-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            font-size: 1.5rem;
+        }
+        
+        .alt-payment-icon.zelle { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+        .alt-payment-icon.cashapp { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .alt-payment-icon.credit { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .alt-payment-icon.cash { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        
+        .alt-payment-name {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .alt-payment-info {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+        
+        .alt-payment-badge {
+            display: inline-block;
+            background: var(--accent-green);
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+        
+        /* Info Box */
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .info-box p {
+            color: #93c5fd;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        
+        .info-box a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        /* Success Section */
+        .success-section {
+            text-align: center;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .success-icon i {
+            font-size: 2.5rem;
+            color: var(--accent-green);
+        }
+        
+        .success-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .success-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        
+        .success-details {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .success-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .success-row:last-child {
+            border-bottom: none;
+        }
+        
+        .success-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .success-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .success-value.highlight {
+            color: var(--accent-green);
+        }
+        
+        .success-notice {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .success-notice p {
+            color: #6ee7b7;
+            font-size: 0.875rem;
+        }
+        
+        .success-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(9, 9, 11, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: 1.25rem;
+            padding: 2rem 3rem;
+            text-align: center;
+        }
+        
+        .loading-card .loading-spinner {
+            margin: 0 auto 1rem;
+        }
+        
+        .loading-card p {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: rgba(9, 9, 11, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-subtle);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .bottom-nav-content {
+            max-width: 28rem;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all var(--transition-base);
+            border-radius: 12px;
+        }
+        
+        .nav-item i {
+            font-size: 1.25rem;
+        }
+        
+        .nav-item span {
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .nav-item.active {
+            color: var(--accent-green);
+        }
+        
+        .nav-item:hover:not(.active) {
+            color: var(--text-secondary);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+        
+        .footer a {
+            color: var(--accent-green);
+            text-decoration: none;
+        }
+        
+        /* Animations */
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -74,517 +842,354 @@
             animation: slideIn 0.3s ease-out;
         }
         
-        /* Stripe element styling */
-        .StripeElement {
-            background-color: white;
-            padding: 14px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            transition: border-color 0.2s;
-        }
-        
-        .StripeElement--focus {
-            border-color: #059669;
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-        }
-        
-        .StripeElement--invalid {
-            border-color: #ef4444;
-        }
-        
-        /* Loading spinner */
-        .spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #059669;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Mobile Optimizations */
+        @media (max-width: 380px) {
+            .alt-payments-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .payment-types {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.25rem;
+            }
+            
+            .payment-type-btn {
+                padding: 0.75rem 0.25rem;
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-    
+<body>
+    <!-- Ambient Glow Background -->
+    <div class="ambient-glow"></div>
+
     <!-- Header -->
-    <header class="bg-emerald-600 text-white shadow-lg">
-        <div class="max-w-4xl mx-auto px-4 py-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <h1 class="text-2xl font-bold">Fleetzy Payments</h1>
-                </div>
-                <div class="text-sm opacity-90">
-                    Houston, TX
-                </div>
-            </div>
+    <header class="header">
+        <div class="header-content">
+            <img src="/fleetzy-logo.png" alt="Fleetzy" class="header-logo">
+            <a href="/dashboard" class="header-back">
+                <i class="fas fa-arrow-left"></i>
+            </a>
         </div>
     </header>
 
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Processing...</p>
+        </div>
+    </div>
+
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-4 py-8">
+    <main class="main-content">
         
         <!-- Authentication Section -->
         <div id="authSection" class="slide-in">
-            <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 rounded-full mb-4">
-                        <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Verify Your Identity</h2>
-                    <p class="text-gray-600">Enter your information to access your rental account</p>
+            <div class="page-title">
+                <h1><i class="fas fa-credit-card"></i> Make a Payment</h1>
+                <p>Verify your account to continue</p>
+            </div>
+            
+            <div class="card">
+                <div class="auth-icon">
+                    <i class="fas fa-shield-halved"></i>
                 </div>
-
-                <form id="authForm" class="space-y-6">
-                    <!-- Phone Number -->
-                    <div>
-                        <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Phone Number
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                                </svg>
-                            </div>
-                            <input 
-                                type="tel" 
-                                id="phone" 
-                                name="phone"
-                                placeholder="+1 (281) 908-5583"
-                                class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all text-lg"
-                                required
-                            >
-                        </div>
-                        <p class="mt-2 text-sm text-gray-500">Include country code (e.g., +1 for US)</p>
+                
+                <div class="auth-title">
+                    <h2>Account Verification</h2>
+                    <p>Enter your phone number and driver's license info</p>
+                </div>
+                
+                <!-- Error Alert -->
+                <div id="authError" class="error-alert hidden">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p id="authErrorText">Error message here</p>
+                </div>
+                
+                <form id="authForm">
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input 
+                            type="tel" 
+                            id="phone" 
+                            class="form-input" 
+                            placeholder="+1 (555) 123-4567"
+                            required
+                        >
                     </div>
-
-                    <!-- Last 4 of DL -->
-                    <div>
-                        <label for="dlLast4" class="block text-sm font-semibold text-gray-700 mb-2">
-                            Last 4 Digits of Driver's License
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
-                                </svg>
-                            </div>
-                            <input 
-                                type="text" 
-                                id="dlLast4" 
-                                name="dlLast4"
-                                placeholder="1234"
-                                maxlength="4"
-                                pattern="[0-9]{4}"
-                                class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all text-lg text-center tracking-widest font-mono"
-                                required
-                            >
-                        </div>
-                        <p class="mt-2 text-sm text-gray-500">For security verification only</p>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Last 4 of Driver's License</label>
+                        <input 
+                            type="text" 
+                            id="dlLast4" 
+                            class="form-input" 
+                            placeholder="1234"
+                            maxlength="4"
+                            pattern="\d{4}"
+                            required
+                        >
                     </div>
-
-                    <!-- Submit Button -->
-                    <button 
-                        type="submit" 
-                        id="authButton"
-                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2"
-                    >
-                        <span>Continue to Payment</span>
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                        </svg>
+                    
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-unlock"></i>
+                        Verify Account
                     </button>
                 </form>
-
-                <!-- Error Message -->
-                <div id="authError" class="hidden mt-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                        </svg>
-                        <span id="authErrorText"></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Security Notice -->
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
-                <div class="flex items-start">
-                    <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                    </svg>
-                    <div class="text-sm text-blue-700">
-                        <p class="font-semibold mb-1">🔒 Secure Payment Portal</p>
-                        <p>Your payment information is encrypted and processed securely through Stripe. We never store your card details.</p>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <!-- Payment Section (Hidden Initially) -->
-        <div id="paymentSection" class="hidden">
+        <!-- Payment Section -->
+        <div id="paymentSection" class="hidden slide-in">
+            <div class="page-title">
+                <h1><i class="fas fa-credit-card"></i> Make a Payment</h1>
+                <p id="customerGreeting">Hello, Driver!</p>
+            </div>
             
-            <!-- Customer Welcome -->
-            <div id="welcomeCard" class="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-2xl shadow-xl p-8 mb-6 slide-in">
-                <div class="flex items-center justify-between flex-wrap gap-4">
-                    <div>
-                        <p class="text-emerald-100 text-sm mb-1">Welcome back,</p>
-                        <h2 id="customerName" class="text-3xl font-bold"></h2>
-                        <p id="contractInfo" class="text-emerald-100 mt-2"></p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-emerald-100 text-sm">Vehicle</p>
-                        <p id="vehicleInfo" class="text-xl font-semibold"></p>
-                    </div>
+            <!-- Payment Summary Card -->
+            <div class="card card-gradient">
+                <div class="card-title">Payment Summary</div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Vehicle</span>
+                    <span id="vehicleName" class="summary-value">---</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Weekly Rate</span>
+                    <span id="weeklyRate" class="summary-value">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Processing Fee (3%)</span>
+                    <span id="processingFee" class="summary-value">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Total</span>
+                    <span id="totalWithTax" class="summary-value highlight">$0.00</span>
                 </div>
             </div>
-
-            <!-- Balance Card -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 mb-6 slide-in">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold text-gray-900">Current Balance</h3>
-                    <div id="statusBadge" class="px-4 py-2 rounded-full text-sm font-semibold"></div>
-                </div>
-
-                <div class="space-y-4 mb-6">
-                    <div class="flex justify-between items-center py-3 border-b border-gray-100">
-                        <span class="text-gray-600">Weekly Rental</span>
-                        <span id="weeklyRate" class="text-lg font-semibold text-gray-900"></span>
-                    </div>
-                    <div class="flex justify-between items-center py-3 border-b border-gray-100">
-                        <span class="text-gray-600">TX Rental Tax (6.25%)</span>
-                        <span id="txTax" class="text-lg font-semibold text-gray-900"></span>
-                    </div>
-                    <div class="flex justify-between items-center py-4 bg-emerald-50 rounded-lg px-4 -mx-4">
-                        <span class="text-xl font-bold text-gray-900">Total Due</span>
-                        <span id="totalDue" class="text-3xl font-bold text-emerald-600"></span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Next Payment Due</p>
-                        <p id="nextDueDate" class="font-semibold text-gray-900"></p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm text-gray-500 mb-1">Days Until Due</p>
-                        <p id="daysUntilDue" class="font-semibold text-gray-900"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment Type Selection - UPDATED with full payment type cards -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 mb-6 slide-in">
-                <h3 class="text-2xl font-bold text-gray-900 mb-6">What are you paying for?</h3>
+            
+            <!-- Payment Form Card -->
+            <div class="card">
+                <div class="card-title">Payment Details</div>
                 
-                <div class="space-y-4" id="paymentTypeGrid">
-                    
-                    <!-- Initial Payment (Deposit + First Week) -->
-                    <div class="payment-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-emerald-400 hover:bg-emerald-50" data-type="initial" onclick="selectPaymentType('initial')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mr-4">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900">🏁 Initial Payment</h4>
-                                    <p class="text-sm text-gray-600">Deposit + First Week</p>
-                                </div>
-                            </div>
-                            <span id="initialPaymentAmount" class="text-xl font-bold text-emerald-600">$900</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Weekly Rent - Default Selected -->
-                    <div class="payment-type-card border-2 border-emerald-500 bg-emerald-50 rounded-lg p-4 cursor-pointer transition-all selected" data-type="weekly" onclick="selectPaymentType('weekly')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mr-4">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900">📅 Weekly Rent</h4>
-                                    <p class="text-sm text-gray-600">Regular scheduled payment</p>
-                                </div>
-                            </div>
-                            <span id="weeklyPaymentAmount" class="text-xl font-bold text-emerald-600">$425</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Toll Deposit Replenishment -->
-                    <div class="payment-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-emerald-400 hover:bg-emerald-50" data-type="toll_deposit" onclick="selectPaymentType('toll_deposit')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mr-4">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900">🚗 Toll Deposit</h4>
-                                    <p class="text-sm text-gray-600">Replenish toll charges</p>
-                                </div>
-                            </div>
-                            <span class="text-sm text-gray-500">Enter amount</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Late Fee -->
-                    <div class="payment-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-emerald-400 hover:bg-emerald-50" data-type="late_fee" onclick="selectPaymentType('late_fee')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mr-4">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900">⏰ Late Fee</h4>
-                                    <p class="text-sm text-gray-600">Late payment penalty</p>
-                                </div>
-                            </div>
-                            <span class="text-xl font-bold text-red-600">$50</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Damage/Cleaning Fee -->
-                    <div class="payment-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-emerald-400 hover:bg-emerald-50" data-type="damage_fee" onclick="selectPaymentType('damage_fee')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0 mr-4">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900">🧹 Damage/Cleaning</h4>
-                                    <p class="text-sm text-gray-600">Additional charges</p>
-                                </div>
-                            </div>
-                            <span class="text-sm text-gray-500">Enter amount</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Other / Custom -->
-                    <div class="payment-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer transition-all hover:border-emerald-400 hover:bg-emerald-50" data-type="other" onclick="selectPaymentType('other')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center flex-shrink-0 mr-4">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-gray-900">✏️ Other</h4>
-                                    <p class="text-sm text-gray-600">Custom payment amount</p>
-                                </div>
-                            </div>
-                            <span class="text-sm text-gray-500">Enter amount</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Custom Amount Input (shown for toll_deposit, damage_fee, other) -->
-                <div id="customAmountSection" class="hidden mt-4 pt-4 border-t border-gray-200">
-                    <label for="customPaymentAmount" class="block text-sm font-semibold text-gray-700 mb-2">Enter Amount</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg">$</span>
-                        <input type="number" id="customPaymentAmount" min="1" step="0.01" 
-                               class="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-lg"
-                               placeholder="0.00" oninput="updateCustomPaymentAmount()">
-                    </div>
-                </div>
-                
-                <!-- Hidden input for selected payment type -->
-                <input type="hidden" id="selectedPaymentType" value="weekly">
-            </div>
-
-            <!-- Stripe Payment Form -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 mb-6 slide-in">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-2xl font-bold text-gray-900">Payment Method</h3>
-                    <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/stripe.svg" alt="Stripe" class="h-6 opacity-50">
-                </div>
-
-                <form id="paymentForm">
-                    <!-- Card Element Container -->
-                    <div id="card-element" class="mb-4"></div>
-                    
-                    <!-- Card Errors -->
-                    <div id="card-errors" class="hidden mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg"></div>
-
-                    <!-- Pay Button -->
-                    <button 
-                        type="submit" 
-                        id="submitPayment"
-                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
-                    >
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                        </svg>
-                        <span id="submitButtonText">Pay Now</span>
+                <!-- Payment Type Selection -->
+                <div class="payment-types">
+                    <button type="button" class="payment-type-btn active" data-type="weekly" onclick="selectPaymentType('weekly')">
+                        Weekly
                     </button>
-
-                    <p class="text-center text-sm text-gray-500 mt-4">
-                        🔒 Payments are securely processed by Stripe
-                    </p>
+                    <button type="button" class="payment-type-btn" data-type="deposit" onclick="selectPaymentType('deposit')">
+                        Deposit
+                    </button>
+                    <button type="button" class="payment-type-btn" data-type="custom" onclick="selectPaymentType('custom')">
+                        Custom
+                    </button>
+                </div>
+                
+                <!-- Custom Amount Input (Hidden by default) -->
+                <div id="customAmountGroup" class="form-group hidden">
+                    <label class="form-label">Enter Amount</label>
+                    <div class="amount-input-wrapper">
+                        <input 
+                            type="number" 
+                            id="customAmount" 
+                            class="amount-input" 
+                            placeholder="0.00" 
+                            min="1" 
+                            step="0.01"
+                            oninput="updateCustomAmount()"
+                        >
+                    </div>
+                </div>
+                
+                <form id="paymentForm">
+                    <div class="form-group">
+                        <label class="form-label">Card Information</label>
+                        <div id="card-element" class="stripe-element-container"></div>
+                        <div id="card-errors" class="card-errors hidden"></div>
+                    </div>
+                    
+                    <button type="submit" id="submitPayment" class="btn-primary">
+                        <i class="fas fa-lock"></i>
+                        <span id="submitButtonText">Pay $0.00</span>
+                    </button>
                 </form>
             </div>
-
-            <!-- Payment Options -->
-            <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-6">Payment Options</h3>
+            
+            <!-- Alternative Payment Methods -->
+            <div class="card">
+                <div class="section-divider">
+                    <span class="divider-line"></span>
+                    <span class="divider-text">Or Pay With</span>
+                    <span class="divider-line"></span>
+                </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- Zelle - Preferred -->
-                    <a href="https://enroll.zellepay.com/qr-codes?data=ewogICJuYW1lIiA6ICJBREFNIiwKICAidG9rZW4iIDogImFkYW1AZ2V0ZmxlZXR6eS5jb20iLAogICJhY3Rpb24iIDogInBheW1lbnQiCn0=" 
-                       target="_blank"
-                       class="block p-5 border-2 border-emerald-500 bg-emerald-50 rounded-xl hover:bg-emerald-100 hover:border-emerald-600 transition-all transform hover:scale-[1.02]">
-                        <div class="flex items-center justify-center mb-3">
-                            <svg class="w-8 h-8 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M13.559 24h-2.841a.483.483 0 0 1-.483-.483v-2.765H5.638a.667.667 0 0 1-.475-1.133l8.478-8.478a.357.357 0 0 1 .609.252v5.009h4.115a.667.667 0 0 1 .472 1.137l-4.795 5.978a.483.483 0 0 1-.483.483zM10.718 0h2.841c.267 0 .483.216.483.483v2.765h4.597a.667.667 0 0 1 .475 1.133l-8.478 8.478a.357.357 0 0 1-.609-.252V7.598H5.912a.667.667 0 0 1-.472-1.137L10.235.483A.483.483 0 0 1 10.718 0z"/>
-                            </svg>
+                <div class="alt-payments-grid">
+                    <!-- Zelle -->
+                    <a href="mailto:adam@getfleetzy.com?subject=Fleetzy%20Payment" class="alt-payment-card preferred">
+                        <div class="alt-payment-icon zelle">
+                            <i class="fas fa-bolt"></i>
                         </div>
-                        <p class="font-bold text-gray-900 text-center text-lg">Zelle</p>
-                        <p class="text-emerald-700 font-semibold text-center mt-1">adam@getfleetzy.com</p>
-                        <p class="text-xs text-emerald-600 text-center mt-2 font-medium">⭐ Preferred - No Fees</p>
+                        <p class="alt-payment-name">Zelle</p>
+                        <p class="alt-payment-info">adam@getfleetzy.com</p>
+                        <span class="alt-payment-badge">⭐ Preferred</span>
                     </a>
                     
                     <!-- CashApp -->
-                    <a href="https://cash.app/$fleetzycarrentals" 
-                       target="_blank"
-                       class="block p-5 border-2 border-gray-200 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all transform hover:scale-[1.02]">
-                        <div class="flex items-center justify-center mb-3">
-                            <svg class="w-8 h-8 text-green-500" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M23.59 3.47A5.1 5.1 0 0 0 20.53.41C19.171 0 18.032 0 15.753 0H8.247C5.97 0 4.83 0 3.473.41A5.08 5.08 0 0 0 .41 3.47C0 4.83 0 5.97 0 8.25v7.5c0 2.28 0 3.42.41 4.78a5.08 5.08 0 0 0 3.06 3.06c1.358.41 2.498.41 4.777.41h7.506c2.28 0 3.42 0 4.778-.41a5.1 5.1 0 0 0 3.06-3.06c.41-1.36.41-2.5.41-4.78v-7.5c0-2.28 0-3.42-.41-4.78zM17.42 15.63a2.15 2.15 0 0 1-1.81 1.31h-.84l-.38 1.53a.74.74 0 0 1-.72.56h-1.74a.74.74 0 0 1-.72-.56l-.38-1.53h-2.3a.74.74 0 0 1-.72-.93l.38-1.54a.74.74 0 0 1 .72-.56h2.74l.55-2.22H9.12a.74.74 0 0 1-.72-.93l.38-1.54a.74.74 0 0 1 .72-.56h2.74l.38-1.53a.74.74 0 0 1 .72-.56h1.74a.74.74 0 0 1 .72.56l.38 1.53h.84a2.15 2.15 0 0 1 1.81 1.31c.27.65.27 1.38 0 2.03z"/>
-                            </svg>
+                    <a href="https://cash.app/$fleetzycarrentals" target="_blank" class="alt-payment-card">
+                        <div class="alt-payment-icon cashapp">
+                            <i class="fas fa-dollar-sign"></i>
                         </div>
-                        <p class="font-bold text-gray-900 text-center text-lg">Cash App</p>
-                        <p class="text-green-600 font-semibold text-center mt-1">$fleetzycarrentals</p>
-                        <p class="text-xs text-gray-500 text-center mt-2">Tap to open app</p>
+                        <p class="alt-payment-name">Cash App</p>
+                        <p class="alt-payment-info">$fleetzycarrentals</p>
                     </a>
                     
                     <!-- Credit Card -->
-                    <div class="p-5 border-2 border-gray-200 rounded-xl bg-gray-50">
-                        <div class="flex items-center justify-center mb-3">
-                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                            </svg>
+                    <div class="alt-payment-card" style="cursor: default;">
+                        <div class="alt-payment-icon credit">
+                            <i class="fas fa-credit-card"></i>
                         </div>
-                        <p class="font-bold text-gray-900 text-center text-lg">Credit Card</p>
-                        <p class="text-gray-600 text-center mt-1 text-sm">Use form above ↑</p>
-                        <p class="text-xs text-gray-500 text-center mt-2">Visa, MC, Amex</p>
+                        <p class="alt-payment-name">Credit Card</p>
+                        <p class="alt-payment-info">Use form above ↑</p>
                     </div>
                     
                     <!-- Cash -->
-                    <div class="p-5 border-2 border-gray-200 rounded-xl bg-gray-50">
-                        <div class="flex items-center justify-center mb-3">
-                            <svg class="w-8 h-8 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
+                    <div class="alt-payment-card" style="cursor: default;">
+                        <div class="alt-payment-icon cash">
+                            <i class="fas fa-money-bill-wave"></i>
                         </div>
-                        <p class="font-bold text-gray-900 text-center text-lg">Cash</p>
-                        <p class="text-gray-600 text-center mt-1 text-sm">In-person only</p>
-                        <p class="text-xs text-gray-500 text-center mt-2">Contact to arrange</p>
+                        <p class="alt-payment-name">Cash</p>
+                        <p class="alt-payment-info">In-person only</p>
                     </div>
                 </div>
                 
-                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-sm text-blue-800 text-center">
+                <div class="info-box">
+                    <p>
                         <strong>📱 After paying via Zelle or Cash App:</strong><br>
-                        Text screenshot to <a href="sms:+12812713900" class="font-bold underline">+1 (281) 271-3900</a> for confirmation
+                        Text screenshot to <a href="sms:+12812713900">+1 (281) 271-3900</a>
                     </p>
                 </div>
             </div>
-
         </div>
 
-        <!-- Success Section (Hidden Initially) -->
+        <!-- Success Section -->
         <div id="successSection" class="hidden">
-            <div class="bg-white rounded-2xl shadow-xl p-8 text-center slide-in">
-                <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 rounded-full mb-6">
-                    <svg class="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
-                <p class="text-gray-600 mb-8">Your payment has been processed</p>
+            <div class="card slide-in">
+                <div class="success-section">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    
+                    <h2 class="success-title">Payment Successful!</h2>
+                    <p class="success-subtitle">Your payment has been processed</p>
 
-                <div class="bg-gray-50 rounded-lg p-6 mb-8">
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Amount Paid:</span>
-                            <span id="successAmount" class="font-bold text-gray-900"></span>
+                    <div class="success-details">
+                        <div class="success-row">
+                            <span class="success-label">Amount Paid</span>
+                            <span id="successAmount" class="success-value">$0.00</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Date:</span>
-                            <span id="successDate" class="font-semibold text-gray-900"></span>
+                        <div class="success-row">
+                            <span class="success-label">Date</span>
+                            <span id="successDate" class="success-value">---</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Method:</span>
-                            <span id="successMethod" class="font-semibold text-gray-900"></span>
+                        <div class="success-row">
+                            <span class="success-label">Method</span>
+                            <span id="successMethod" class="success-value">---</span>
                         </div>
-                        <div class="flex justify-between pt-3 border-t border-gray-200">
-                            <span class="text-gray-600">Next Payment:</span>
-                            <span id="successNextDue" class="font-semibold text-emerald-600"></span>
+                        <div class="success-row">
+                            <span class="success-label">Next Payment</span>
+                            <span id="successNextDue" class="success-value highlight">---</span>
                         </div>
                     </div>
-                </div>
 
-                <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-lg mb-6">
-                    <p class="text-emerald-700">
-                        ✅ Receipt sent via SMS to your phone
-                    </p>
-                </div>
+                    <div class="success-notice">
+                        <p>✅ Receipt sent via SMS to your phone</p>
+                    </div>
 
-                <div class="space-y-3">
-                    <button 
-                        onclick="location.reload()" 
-                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-all"
-                    >
-                        Make Another Payment
-                    </button>
-                    <button 
-                        onclick="window.location.href='dashboard.html'" 
-                        class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-all"
-                    >
-                        Go to Dashboard
-                    </button>
+                    <div class="success-buttons">
+                        <button onclick="location.reload()" class="btn-primary">
+                            Make Another Payment
+                        </button>
+                        <button onclick="window.location.href='/dashboard'" class="btn-secondary">
+                            Go to Dashboard
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-2xl p-8 text-center max-w-sm mx-4">
-                <div class="spinner mx-auto mb-4"></div>
-                <p id="loadingText" class="text-gray-700 font-semibold">Processing...</p>
-            </div>
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2025 Fleetzy. All rights reserved.</p>
+            <p style="margin-top: 0.5rem;">Questions? Call or text: <a href="tel:+12812713900">+1 (281) 271-3900</a></p>
         </div>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="max-w-4xl mx-auto px-4 py-8 text-center text-gray-500 text-sm">
-        <p>&copy; 2025 Fleetzy. All rights reserved.</p>
-        <p class="mt-2">Questions? Call or text: <a href="tel:+12819085583" class="text-emerald-600 hover:underline">+1 (281) 908-5583</a></p>
-    </footer>
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-content">
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/payment" class="nav-item active">
+                <i class="fas fa-credit-card"></i>
+                <span>Pay</span>
+            </a>
+            <a href="/documents" class="nav-item">
+                <i class="fas fa-folder"></i>
+                <span>Docs</span>
+            </a>
+            <a href="/login" class="nav-item" onclick="handleLogout(); return false;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </nav>
 
     <!-- Payment Portal JavaScript -->
     <script src="/payment.js"></script>
+    
+    <!-- Stripe Element Dark Mode Styling Override -->
+    <script>
+        // Wait for Stripe to initialize, then override styles for dark mode
+        document.addEventListener('DOMContentLoaded', function() {
+            // Override the default Stripe element creation with dark mode styles
+            const originalInitStripe = window.initializeStripe;
+            
+            if (typeof originalInitStripe !== 'function') {
+                // If payment.js hasn't loaded yet, set up our own initialization
+                window.stripeStyleOverride = {
+                    base: {
+                        fontSize: '16px',
+                        color: '#fafafa',
+                        fontFamily: 'Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, sans-serif',
+                        '::placeholder': {
+                            color: '#71717a'
+                        },
+                        iconColor: '#a1a1aa'
+                    },
+                    invalid: {
+                        color: '#ef4444',
+                        iconColor: '#ef4444'
+                    },
+                    complete: {
+                        color: '#10b981',
+                        iconColor: '#10b981'
+                    }
+                };
+            }
+        });
+        
+        // Logout function for bottom nav
+        function handleLogout() {
+            localStorage.removeItem('fleetzy_phone');
+            localStorage.removeItem('fleetzy_customer_id');
+            sessionStorage.clear();
+            window.location.href = '/login';
+        }
+    </script>
 </body>
 </html>
