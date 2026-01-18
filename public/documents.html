@@ -690,7 +690,7 @@
                 customerId = customer.id;
                 
                 // Update header
-                const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Driver';
+                const fullName = customer.full_name || 'Driver';
                 document.getElementById('user-name').textContent = fullName;
                 
                 if (customer.selfie_url) {
@@ -724,7 +724,7 @@
                     .from('documents')
                     .select('*')
                     .eq('customer_id', customerId)
-                    .order('uploaded_date', { ascending: false });
+                    .order('uploaded_at', { ascending: false });
                 
                 if (error) throw error;
                 
@@ -742,21 +742,21 @@
                 document.getElementById('fleetzy-docs-count').textContent = docs.length;
                 
                 container.innerHTML = docs.map(doc => {
-                    const isImage = isImageUrl(doc.document_url);
-                    const isPdf = doc.document_url?.toLowerCase().includes('.pdf');
+                    const isImage = isImageUrl(doc.file_url);
+                    const isPdf = doc.file_url?.toLowerCase().includes('.pdf');
                     const icon = isPdf ? 'fa-file-pdf' : (isImage ? 'fa-image' : 'fa-file');
                     
-                    const date = new Date(doc.uploaded_date).toLocaleDateString('en-US', { 
+                    const date = new Date(doc.uploaded_at).toLocaleDateString('en-US', { 
                         month: 'short', day: 'numeric', year: 'numeric' 
                     });
                     
                     return `
-                        <div class="document-card" onclick="openLightbox('${doc.document_url}', '${doc.document_name || 'Document'}')">
+                        <div class="document-card" onclick="openLightbox('${doc.file_url}', '${doc.file_name || 'Document'}')">
                             <div class="document-icon fleetzy">
                                 <i class="fas ${icon}"></i>
                             </div>
                             <div class="document-info">
-                                <div class="document-name">${doc.document_name || doc.document_type || 'Document'}</div>
+                                <div class="document-name">${doc.file_name || doc.document_type || 'Document'}</div>
                                 <div class="document-meta">
                                     <span><i class="fas fa-calendar"></i> ${date}</span>
                                     <span>•</span>
@@ -788,18 +788,27 @@
             const container = document.getElementById('contracts-list');
             
             try {
-                const { data: rentals, error } = await supabase
-                    .from('rentals')
-                    .select(`
-                        *,
-                        vehicles:vehicle_id (make, model, year)
-                    `)
+                // Query documents table for contracts (contracts don't exist in rentals table)
+                const { data: contracts, error } = await supabase
+                    .from('documents')
+                    .select('id, file_url, file_name, document_type, uploaded_at')
                     .eq('customer_id', customerId)
-                    .not('contract_url', 'is', null);
+                    .order('uploaded_at', { ascending: false });
 
                 if (error) throw error;
 
-                if (!rentals || rentals.length === 0) {
+                // Filter for contract-related documents
+                const contractDocs = (contracts || []).filter(doc => {
+                    const docType = (doc.document_type || '').toLowerCase();
+                    const fileName = (doc.file_name || '').toLowerCase();
+                    return docType === 'contract' || 
+                           docType === 'admin_upload' || 
+                           fileName.includes('contract') || 
+                           fileName.includes('agreement') ||
+                           fileName.includes('rental');
+                });
+
+                if (contractDocs.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-file-contract"></i>
@@ -810,26 +819,26 @@
                     return;
                 }
 
-                document.getElementById('contract-count').textContent = rentals.length;
+                document.getElementById('contract-count').textContent = contractDocs.length;
                 
-                container.innerHTML = rentals.map(rental => {
-                    const vehicle = rental.vehicles;
-                    const vehicleName = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Vehicle';
-                    const date = new Date(rental.start_date).toLocaleDateString('en-US', { 
+                container.innerHTML = contractDocs.map(doc => {
+                    const date = new Date(doc.uploaded_at).toLocaleDateString('en-US', { 
                         month: 'short', day: 'numeric', year: 'numeric' 
                     });
+                    const displayName = doc.file_name || 'Rental Contract';
+                    const isPdf = (doc.file_url || '').toLowerCase().includes('.pdf');
                     
                     return `
-                        <div class="document-card" onclick="openLightbox('${rental.contract_url}', 'Rental Contract - ${vehicleName}')">
+                        <div class="document-card" onclick="openLightbox('${doc.file_url}', '${displayName}')">
                             <div class="document-icon contract">
                                 <i class="fas fa-file-signature"></i>
                             </div>
                             <div class="document-info">
-                                <div class="document-name">Rental Contract - ${vehicleName}</div>
+                                <div class="document-name">${displayName}</div>
                                 <div class="document-meta">
                                     <span><i class="fas fa-calendar"></i> ${date}</span>
                                     <span>•</span>
-                                    <span>PDF</span>
+                                    <span>${isPdf ? 'PDF' : 'Document'}</span>
                                 </div>
                             </div>
                             <div class="document-action">
@@ -861,7 +870,7 @@
                     .from('payments')
                     .select('*')
                     .eq('customer_id', customerId)
-                    .eq('status', 'confirmed')
+                    .eq('payment_status', 'paid')
                     .order('paid_date', { ascending: false });
 
                 if (error) throw error;
@@ -884,7 +893,7 @@
                         month: 'short', day: 'numeric', year: 'numeric' 
                     });
                     const amount = payment.paid_amount ? `$${parseFloat(payment.paid_amount).toFixed(2)}` : 'N/A';
-                    const hasScreenshot = payment.screenshot_url;
+                    const hasScreenshot = payment.payment_screenshot_url;
                     
                     if (!hasScreenshot) {
                         return `
@@ -908,7 +917,7 @@
                     }
                     
                     return `
-                        <div class="document-card" onclick="openLightbox('${payment.screenshot_url}', 'Payment Receipt - ${amount}')">
+                        <div class="document-card" onclick="openLightbox('${payment.payment_screenshot_url}', 'Payment Receipt - ${amount}')">
                             <div class="document-icon receipt">
                                 <i class="fas fa-receipt"></i>
                             </div>
@@ -957,8 +966,8 @@
 
                 // Filter rentals with inspection photos
                 const rentalsWithInspections = rentals?.filter(r => 
-                    (r.checkin_inspection_photos && r.checkin_inspection_photos.length > 0) ||
-                    (r.checkout_inspection_photos && r.checkout_inspection_photos.length > 0)
+                    (r.pickup_photos && r.pickup_photos.length > 0) ||
+                    (r.return_photos && r.return_photos.length > 0)
                 ) || [];
 
                 if (rentalsWithInspections.length === 0) {
@@ -978,21 +987,21 @@
                     const vehicle = rental.vehicles;
                     const vehicleName = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'Vehicle';
                     
-                    if (rental.checkin_inspection_photos && rental.checkin_inspection_photos.length > 0) {
+                    if (rental.pickup_photos && rental.pickup_photos.length > 0) {
                         inspectionItems.push({
                             type: 'Check-In',
                             vehicle: vehicleName,
                             date: rental.start_date,
-                            photos: rental.checkin_inspection_photos
+                            photos: rental.pickup_photos
                         });
                     }
                     
-                    if (rental.checkout_inspection_photos && rental.checkout_inspection_photos.length > 0) {
+                    if (rental.return_photos && rental.return_photos.length > 0) {
                         inspectionItems.push({
                             type: 'Check-Out',
                             vehicle: vehicleName,
                             date: rental.end_date || new Date().toISOString(),
-                            photos: rental.checkout_inspection_photos
+                            photos: rental.return_photos
                         });
                     }
                 });
@@ -1053,18 +1062,18 @@
             const container = document.getElementById('uploads-list');
             let documents = [];
             
-            if (customer.drivers_license_front_url) {
+            if (customer.dl_photo_front_url) {
                 documents.push({
                     name: "Driver's License (Front)",
-                    url: customer.drivers_license_front_url,
+                    url: customer.dl_photo_front_url,
                     type: 'license'
                 });
             }
             
-            if (customer.drivers_license_back_url) {
+            if (customer.dl_photo_back_url) {
                 documents.push({
                     name: "Driver's License (Back)",
-                    url: customer.drivers_license_back_url,
+                    url: customer.dl_photo_back_url,
                     type: 'license'
                 });
             }
@@ -1077,10 +1086,10 @@
                 });
             }
             
-            if (customer.income_proof_url) {
+            if (customer.weekly_earnings_proof_url) {
                 documents.push({
                     name: "Income Verification",
-                    url: customer.income_proof_url,
+                    url: customer.weekly_earnings_proof_url,
                     type: 'income'
                 });
             }
