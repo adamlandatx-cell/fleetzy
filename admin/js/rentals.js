@@ -956,6 +956,9 @@ const Rentals = {
             initialPaymentAmount = (weeks * weeklyRate) + deposit;
         }
         
+        // Get payment method from form (defaults to Zelle if not specified)
+        const paymentMethod = document.getElementById('new-rental-payment-method')?.value || 'Zelle';
+        
         // Build rental data using ACTUAL column names from database
         const rentalData = {
             rental_id: rentalId,
@@ -969,6 +972,7 @@ const Rentals = {
             deposit_amount: deposit,               // also store in deposit_amount
             deposit_status: 'held',
             deposit_balance: deposit,
+            payment_method: paymentMethod,         // REQUIRED - NOT NULL in database
             rental_status: 'pending_rental',       // Already approved since admin is creating
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
