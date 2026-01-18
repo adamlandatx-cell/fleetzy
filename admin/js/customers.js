@@ -78,8 +78,8 @@ const Customers = {
         const statusFilter = document.getElementById('customers-status-filter')?.value || '';
         
         this.filtered = this.data.filter(customer => {
-            // Search filter
-            const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.toLowerCase();
+            // Search filter - DB uses full_name, not first_name/last_name
+            const fullName = (customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`).toLowerCase();
             const searchMatch = !searchTerm || 
                 fullName.includes(searchTerm) ||
                 customer.phone?.toLowerCase().includes(searchTerm) ||
@@ -151,12 +151,14 @@ const Customers = {
     
     /**
      * Render single customer row
+     * UPDATED: Uses actual column names (full_name, is_company_rental)
      */
     renderRow(customer) {
         const normalizedStatus = this.normalizeStatus(customer);
         const statusClass = this.getStatusClass(normalizedStatus);
         const statusLabel = this.formatStatus(normalizedStatus);
-        const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Unknown';
+        // DB uses full_name, not first_name/last_name
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Unknown';
         
         // Get avatar - use selfie if available, otherwise generate initial avatar
         const avatarUrl = customer.selfie_url || 
@@ -167,8 +169,8 @@ const Customers = {
             ? new Date(customer.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             : 'N/A';
         
-        // Corporate badge
-        const corporateBadge = customer.is_corporate_rental 
+        // Corporate badge - DB uses is_company_rental, not is_corporate_rental
+        const corporateBadge = (customer.is_company_rental || customer.is_corporate_rental)
             ? '<span class="badge-corporate">Corporate</span>' 
             : '';
         
@@ -953,18 +955,25 @@ const Customers = {
     
     /**
      * Create new customer
+     * UPDATED: Uses actual Supabase column names (verified Jan 2025)
      */
     async create() {
         // Validate required fields
         const firstName = document.getElementById('add-customer-first-name')?.value?.trim();
         const lastName = document.getElementById('add-customer-last-name')?.value?.trim();
         const phone = document.getElementById('add-customer-phone')?.value?.trim();
+        const email = document.getElementById('add-customer-email')?.value?.trim();
         const dlNumber = document.getElementById('add-customer-dl-number')?.value?.trim();
         const dlState = document.getElementById('add-customer-dl-state')?.value;
         const dlExpiry = document.getElementById('add-customer-dl-expiry')?.value;
         
         if (!firstName || !lastName || !phone) {
             Utils.toastError('First name, last name, and phone are required');
+            return;
+        }
+        
+        if (!email) {
+            Utils.toastError('Email is required');
             return;
         }
         
@@ -1013,65 +1022,57 @@ const Customers = {
                 selfieUrl = await this.uploadFile(selfieFile, 'selfies', `${baseFileName}-selfie`);
             }
             
-            // Build customer data object
+            // Build address string from form fields
+            const street = document.getElementById('add-customer-address')?.value?.trim() || '';
+            const city = document.getElementById('add-customer-city')?.value?.trim() || '';
+            const state = document.getElementById('add-customer-state')?.value || '';
+            const zip = document.getElementById('add-customer-zip')?.value?.trim() || '';
+            const fullAddress = [street, city, state, zip].filter(Boolean).join(', ');
+            
+            // Build customer data object using ACTUAL Supabase column names
+            // Schema verified: January 2025
             const customerData = {
+                // Identity
                 customer_id: customerId,
-                first_name: firstName,
-                last_name: lastName,
+                full_name: `${firstName} ${lastName}`,  // DB uses full_name, not first_name/last_name
                 phone: phone,
-                email: document.getElementById('add-customer-email')?.value?.trim() || null,
+                email: email,
                 date_of_birth: document.getElementById('add-customer-dob')?.value || null,
                 
-                // Address
-                address_street: document.getElementById('add-customer-address')?.value?.trim() || null,
-                address_city: document.getElementById('add-customer-city')?.value?.trim() || null,
-                address_state: document.getElementById('add-customer-state')?.value || null,
-                address_zip: document.getElementById('add-customer-zip')?.value?.trim() || null,
+                // Address - DB has 'address' and 'current_address' as single text fields
+                address: fullAddress || null,
+                current_address: fullAddress || null,
                 
-                // Driver's License
-                drivers_license_number: dlNumber,
-                drivers_license_state: dlState,
-                drivers_license_expiry: dlExpiry,
-                drivers_license_front_url: dlFrontUrl,
-                drivers_license_back_url: dlBackUrl,
+                // Driver's License - DB uses dl_ prefix, not drivers_license_
+                dl_number: dlNumber,
+                dl_state: dlState,
+                dl_expiry_date: dlExpiry,
+                dl_photo_front_url: dlFrontUrl,
+                dl_photo_back_url: dlBackUrl,
+                
+                // Selfie
                 selfie_url: selfieUrl,
                 
-                // Corporate
-                is_corporate_rental: isCorporate,
+                // Corporate - DB uses is_company_rental, not is_corporate_rental
+                is_company_rental: isCorporate,
                 company_name: isCorporate ? document.getElementById('add-customer-company-name')?.value?.trim() : null,
-                tax_id: isCorporate ? document.getElementById('add-customer-tax-id')?.value?.trim() : null,
                 company_phone: isCorporate ? document.getElementById('add-customer-company-phone')?.value?.trim() : null,
-                company_address: isCorporate ? document.getElementById('add-customer-company-address')?.value?.trim() : null,
-                company_rep_name: isCorporate ? document.getElementById('add-customer-rep-name')?.value?.trim() : null,
-                company_rep_email: isCorporate ? document.getElementById('add-customer-rep-email')?.value?.trim() : null,
-                company_rep_phone: isCorporate ? document.getElementById('add-customer-rep-phone')?.value?.trim() : null,
+                company_email: isCorporate ? document.getElementById('add-customer-rep-email')?.value?.trim() : null,
+                company_contact_person: isCorporate ? document.getElementById('add-customer-rep-name')?.value?.trim() : null,
                 
-                // Payment
-                payment_method_primary: document.getElementById('add-customer-payment-primary')?.value || null,
-                payment_method_secondary: document.getElementById('add-customer-payment-secondary')?.value || null,
-                
-                // Emergency Contact
-                emergency_contact_name: document.getElementById('add-customer-emergency-name')?.value?.trim() || null,
-                emergency_contact_phone: document.getElementById('add-customer-emergency-phone')?.value?.trim() || null,
-                emergency_contact_relationship: document.getElementById('add-customer-emergency-relationship')?.value || null,
-                
-                // Notes
-                notes: document.getElementById('add-customer-notes')?.value?.trim() || null,
+                // Application type
+                application_type: isCorporate ? 'corporate' : 'individual',
                 
                 // Status - Admin-added customers are pre-approved
-                application_status: 'Approved',
-                status: 'Approved',
-                background_check_status: 'Pending',
+                status: 'approved',
+                background_check_status: 'pending',
+                dl_verification_status: 'pending',
                 
                 // Defaults
                 payment_reliability_score: 5.0,
-                total_rentals: 0,
-                total_payments_made: 0,
-                total_late_payments: 0,
+                late_payment_count: 0,
                 
                 // Timestamps
-                application_date: new Date().toISOString().split('T')[0],
-                approved_at: new Date().toISOString(),
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
