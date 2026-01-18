@@ -106,7 +106,7 @@ async function handleAuth(e) {
                 )
             `)
             .eq('phone', formattedPhone)
-            .eq('rentals.status', 'active')
+            .eq('rentals.rental_status', 'active')
             .single();
         
         if (error || !data) {
@@ -152,7 +152,7 @@ function showPaymentSection() {
     paymentSection.classList.remove('hidden');
     
     // Populate customer info
-    const fullName = `${customerData.first_name} ${customerData.last_name}`;
+    const fullName = customerData.full_name || 'Customer';
     document.getElementById('customerName').textContent = fullName;
     
     // Contract info
@@ -354,7 +354,7 @@ async function handlePayment(e) {
                 customer_id: customerData.id,
                 rental_id: rentalData.id,
                 customer_email: customerData.email,
-                customer_name: `${customerData.first_name} ${customerData.last_name}`,
+                customer_name: customerData.full_name || 'Customer',
                 payment_type: paymentType // NEW: Include payment type
             }
         });
@@ -370,7 +370,7 @@ async function handlePayment(e) {
                 payment_method: {
                     card: cardElement,
                     billing_details: {
-                        name: `${customerData.first_name} ${customerData.last_name}`,
+                        name: customerData.full_name || 'Customer',
                         email: customerData.email,
                         phone: customerData.phone
                     }
