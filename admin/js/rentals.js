@@ -858,8 +858,17 @@ const Rentals = {
      * Handle vehicle selection in new rental
      */
     onVehicleSelect() {
-        // Vehicle selection no longer sets rate since vehicles don't have weekly_rate
-        // Rate is manually entered (default $400)
+        // Auto-fill mileage from selected vehicle
+        const vehicleId = document.getElementById('new-rental-vehicle')?.value;
+        const vehicle = this.vehicles.find(v => v.id === vehicleId);
+        
+        if (vehicle && vehicle.current_mileage) {
+            const mileageInput = document.getElementById('new-rental-start-mileage');
+            if (mileageInput) {
+                mileageInput.value = vehicle.current_mileage;
+            }
+        }
+        
         this.calculateNewRentalTotal();
     },
     
@@ -929,6 +938,7 @@ const Rentals = {
         const weeklyRate = parseFloat(document.getElementById('new-rental-weekly-rate')?.value) || 400;
         const deposit = parseFloat(document.getElementById('new-rental-deposit')?.value) || 500;
         const rentalId = document.getElementById('new-rental-id')?.value;
+        const startMileage = parseInt(document.getElementById('new-rental-start-mileage')?.value) || 0;
         let notes = document.getElementById('new-rental-notes')?.value || '';
         
         // Validation
@@ -968,11 +978,12 @@ const Rentals = {
             weekly_rate: weeklyRate,
             weeks_count: weeks,                    // actual column (not weeks_contracted)
             initial_payment: initialPaymentAmount, // actual column (not total_amount_due)
-            deposit_included: deposit,             // actual column
+            deposit_included: deposit,             // actual column - NOT NULL
             deposit_amount: deposit,               // also store in deposit_amount
             deposit_status: 'held',
             deposit_balance: deposit,
             payment_method: paymentMethod,         // REQUIRED - NOT NULL in database
+            start_mileage: startMileage,           // REQUIRED - NOT NULL in database
             rental_status: 'pending_rental',       // Already approved since admin is creating
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
