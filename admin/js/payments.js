@@ -854,6 +854,7 @@ const Payments = {
     
     /**
      * Load active rentals for dropdown
+     * FIXED: Now includes multiple statuses (active, Active, pending_rental)
      */
     async loadActiveRentals() {
         try {
@@ -861,35 +862,47 @@ const Payments = {
                 .from('rentals')
                 .select(`
                     *,
-                    customer:customer_id(id, first_name, last_name),
-                    vehicle:vehicle_id(make, model, year)
+                    customer:customer_id(id, customer_id, full_name, phone),
+                    vehicle:vehicle_id(id, vehicle_id, make, model, year, license_plate)
                 `)
-                .eq('rental_status', 'active')
+                .in('rental_status', ['active', 'Active', 'pending_rental', 'Pending Rental'])
                 .order('created_at', { ascending: false });
             
-            if (error) throw error;
+            if (error) {
+                console.error('Error loading rentals:', error);
+                throw error;
+            }
+            
+            console.log('📋 Active rentals loaded:', data?.length || 0, data);
             
             const select = document.getElementById('new-payment-rental');
             if (select) {
-                select.innerHTML = '<option value="">Select rental...</option>' +
-                    (data || []).map(rental => {
-                        const customer = rental.customer;
-                        const vehicle = rental.vehicle;
-                        const name = customer ? `${customer.first_name} ${customer.last_name}` : 'Unknown';
-                        const vehicleInfo = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : '';
-                        return `<option value="${rental.id}" 
-                                        data-customer="${name}"
-                                        data-balance="${rental.balance_remaining || 0}"
-                                        data-rate="${rental.weekly_rate || 0}">
-                                    ${rental.rental_id} - ${name} (${vehicleInfo})
-                                </option>`;
-                    }).join('');
+                if (!data || data.length === 0) {
+                    select.innerHTML = '<option value="">No active rentals found</option>';
+                } else {
+                    select.innerHTML = '<option value="">Select rental...</option>' +
+                        (data || []).map(rental => {
+                            const customer = rental.customer;
+                            const vehicle = rental.vehicle;
+                            const name = customer?.full_name || 'Unknown Customer';
+                            const vehicleInfo = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'No Vehicle';
+                            const rentalId = rental.rental_id || rental.id.substring(0, 8);
+                            return `<option value="${rental.id}" 
+                                            data-customer="${name}"
+                                            data-balance="${rental.balance_remaining || 0}"
+                                            data-rate="${rental.weekly_rate || 400}"
+                                            data-deposit="${rental.deposit_amount || 500}">
+                                        ${rentalId} - ${name} (${vehicleInfo})
+                                    </option>`;
+                        }).join('');
+                }
             }
             
             this.activeRentals = data || [];
             
         } catch (error) {
             console.error('Error loading rentals:', error);
+            Utils.toastError('Failed to load rentals');
         }
     },
     
