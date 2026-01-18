@@ -1711,6 +1711,13 @@
                                 <input type="date" id="new-rental-start-date" required>
                             </div>
                             <div class="form-group">
+                                <label for="new-rental-start-mileage">Start Mileage <span class="required">*</span></label>
+                                <input type="number" id="new-rental-start-mileage" min="0" value="0" placeholder="Current odometer reading">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row two-col">
+                            <div class="form-group">
                                 <label for="new-rental-weeks">Weeks Contracted</label>
                                 <div class="input-with-checkbox">
                                     <input type="number" id="new-rental-weeks" min="1" value="4" oninput="Rentals.calculateNewRentalTotal()">
@@ -1721,20 +1728,17 @@
                                     </label>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="form-row two-col">
                             <div class="form-group">
                                 <label for="new-rental-weekly-rate">Weekly Rate ($)</label>
                                 <input type="number" id="new-rental-weekly-rate" min="0" step="0.01" value="400" oninput="Rentals.calculateNewRentalTotal()">
                             </div>
+                        </div>
+                        
+                        <div class="form-row two-col">
                             <div class="form-group">
                                 <label for="new-rental-deposit">Deposit ($)</label>
                                 <input type="number" id="new-rental-deposit" min="0" step="0.01" value="500" oninput="Rentals.calculateNewRentalTotal()">
                             </div>
-                        </div>
-                        
-                        <div class="form-row">
                             <div class="form-group">
                                 <label for="new-rental-payment-method">Payment Method <span class="required">*</span></label>
                                 <select id="new-rental-payment-method" required>
