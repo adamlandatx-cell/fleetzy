@@ -810,6 +810,298 @@ const Customers = {
         Utils.toastInfo('Refreshing...');
         await this.load();
         Utils.toastSuccess('Customers refreshed');
+    },
+    
+    // ============================================
+    // ADD CUSTOMER FUNCTIONALITY
+    // ============================================
+    
+    /**
+     * Open add customer modal
+     */
+    async openAddModal() {
+        const modal = document.getElementById('modal-add-customer');
+        if (!modal) {
+            Utils.toastError('Add customer modal not found');
+            return;
+        }
+        
+        // Reset form
+        const form = document.getElementById('form-add-customer');
+        if (form) form.reset();
+        
+        // Generate next customer ID
+        const nextId = await this.generateCustomerId();
+        document.getElementById('add-customer-id').value = nextId;
+        
+        // Reset previews
+        this.resetImagePreviews();
+        
+        // Hide corporate section by default
+        const corporateSection = document.getElementById('add-customer-corporate-section');
+        if (corporateSection) corporateSection.style.display = 'none';
+        
+        // Uncheck corporate toggle
+        const corporateToggle = document.getElementById('add-customer-is-corporate');
+        if (corporateToggle) corporateToggle.checked = false;
+        
+        // Show modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus first input
+        setTimeout(() => {
+            document.getElementById('add-customer-first-name')?.focus();
+        }, 100);
+    },
+    
+    /**
+     * Close add customer modal
+     */
+    closeAddModal() {
+        const modal = document.getElementById('modal-add-customer');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    },
+    
+    /**
+     * Toggle corporate fields visibility
+     */
+    toggleCorporateFields() {
+        const isCorpate = document.getElementById('add-customer-is-corporate')?.checked;
+        const corporateSection = document.getElementById('add-customer-corporate-section');
+        
+        if (corporateSection) {
+            corporateSection.style.display = isCorpate ? 'block' : 'none';
+        }
+        
+        // Toggle required on company name
+        const companyName = document.getElementById('add-customer-company-name');
+        if (companyName) {
+            companyName.required = isCorpate;
+        }
+    },
+    
+    /**
+     * Preview image when file selected
+     */
+    previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (!preview) return;
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                preview.classList.add('has-image');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    },
+    
+    /**
+     * Reset all image previews
+     */
+    resetImagePreviews() {
+        const previews = [
+            { id: 'preview-dl-front', icon: 'fa-id-card', text: 'Click to upload front' },
+            { id: 'preview-dl-back', icon: 'fa-id-card', text: 'Click to upload back' },
+            { id: 'preview-selfie', icon: 'fa-camera', text: 'Click to upload selfie' }
+        ];
+        
+        previews.forEach(p => {
+            const el = document.getElementById(p.id);
+            if (el) {
+                el.innerHTML = `<i class="fas ${p.icon}"></i><span>${p.text}</span>`;
+                el.classList.remove('has-image');
+            }
+        });
+    },
+    
+    /**
+     * Upload file to Supabase storage
+     */
+    async uploadFile(file, bucket, fileName) {
+        if (!file) return null;
+        
+        try {
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${fileName}.${fileExt}`;
+            
+            const { data, error } = await db.storage
+                .from(bucket)
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
+            
+            if (error) throw error;
+            
+            // Get public URL
+            const { data: urlData } = db.storage
+                .from(bucket)
+                .getPublicUrl(filePath);
+            
+            return urlData.publicUrl;
+        } catch (error) {
+            console.error(`Error uploading to ${bucket}:`, error);
+            return null;
+        }
+    },
+    
+    /**
+     * Create new customer
+     */
+    async create() {
+        // Validate required fields
+        const firstName = document.getElementById('add-customer-first-name')?.value?.trim();
+        const lastName = document.getElementById('add-customer-last-name')?.value?.trim();
+        const phone = document.getElementById('add-customer-phone')?.value?.trim();
+        const dlNumber = document.getElementById('add-customer-dl-number')?.value?.trim();
+        const dlState = document.getElementById('add-customer-dl-state')?.value;
+        const dlExpiry = document.getElementById('add-customer-dl-expiry')?.value;
+        
+        if (!firstName || !lastName || !phone) {
+            Utils.toastError('First name, last name, and phone are required');
+            return;
+        }
+        
+        if (!dlNumber || !dlState || !dlExpiry) {
+            Utils.toastError('Driver\'s license information is required');
+            return;
+        }
+        
+        // Check for duplicate phone
+        const existingCustomer = this.data.find(c => c.phone === phone);
+        if (existingCustomer) {
+            Utils.toastError('A customer with this phone number already exists');
+            return;
+        }
+        
+        try {
+            Utils.toastInfo('Creating customer...');
+            
+            const customerId = document.getElementById('add-customer-id')?.value;
+            const isCorporate = document.getElementById('add-customer-is-corporate')?.checked || false;
+            
+            // Upload files
+            const timestamp = Date.now();
+            const baseFileName = `${customerId}-${timestamp}`;
+            
+            const dlFrontFile = document.getElementById('add-customer-dl-front')?.files?.[0];
+            const dlBackFile = document.getElementById('add-customer-dl-back')?.files?.[0];
+            const selfieFile = document.getElementById('add-customer-selfie')?.files?.[0];
+            
+            let dlFrontUrl = null;
+            let dlBackUrl = null;
+            let selfieUrl = null;
+            
+            if (dlFrontFile) {
+                Utils.toastInfo('Uploading DL front...');
+                dlFrontUrl = await this.uploadFile(dlFrontFile, 'drivers-licenses', `${baseFileName}-front`);
+            }
+            
+            if (dlBackFile) {
+                Utils.toastInfo('Uploading DL back...');
+                dlBackUrl = await this.uploadFile(dlBackFile, 'drivers-licenses', `${baseFileName}-back`);
+            }
+            
+            if (selfieFile) {
+                Utils.toastInfo('Uploading selfie...');
+                selfieUrl = await this.uploadFile(selfieFile, 'selfies', `${baseFileName}-selfie`);
+            }
+            
+            // Build customer data object
+            const customerData = {
+                customer_id: customerId,
+                first_name: firstName,
+                last_name: lastName,
+                phone: phone,
+                email: document.getElementById('add-customer-email')?.value?.trim() || null,
+                date_of_birth: document.getElementById('add-customer-dob')?.value || null,
+                
+                // Address
+                address_street: document.getElementById('add-customer-address')?.value?.trim() || null,
+                address_city: document.getElementById('add-customer-city')?.value?.trim() || null,
+                address_state: document.getElementById('add-customer-state')?.value || null,
+                address_zip: document.getElementById('add-customer-zip')?.value?.trim() || null,
+                
+                // Driver's License
+                drivers_license_number: dlNumber,
+                drivers_license_state: dlState,
+                drivers_license_expiry: dlExpiry,
+                drivers_license_front_url: dlFrontUrl,
+                drivers_license_back_url: dlBackUrl,
+                selfie_url: selfieUrl,
+                
+                // Corporate
+                is_corporate_rental: isCorporate,
+                company_name: isCorporate ? document.getElementById('add-customer-company-name')?.value?.trim() : null,
+                tax_id: isCorporate ? document.getElementById('add-customer-tax-id')?.value?.trim() : null,
+                company_phone: isCorporate ? document.getElementById('add-customer-company-phone')?.value?.trim() : null,
+                company_address: isCorporate ? document.getElementById('add-customer-company-address')?.value?.trim() : null,
+                company_rep_name: isCorporate ? document.getElementById('add-customer-rep-name')?.value?.trim() : null,
+                company_rep_email: isCorporate ? document.getElementById('add-customer-rep-email')?.value?.trim() : null,
+                company_rep_phone: isCorporate ? document.getElementById('add-customer-rep-phone')?.value?.trim() : null,
+                
+                // Payment
+                payment_method_primary: document.getElementById('add-customer-payment-primary')?.value || null,
+                payment_method_secondary: document.getElementById('add-customer-payment-secondary')?.value || null,
+                
+                // Emergency Contact
+                emergency_contact_name: document.getElementById('add-customer-emergency-name')?.value?.trim() || null,
+                emergency_contact_phone: document.getElementById('add-customer-emergency-phone')?.value?.trim() || null,
+                emergency_contact_relationship: document.getElementById('add-customer-emergency-relationship')?.value || null,
+                
+                // Notes
+                notes: document.getElementById('add-customer-notes')?.value?.trim() || null,
+                
+                // Status - Admin-added customers are pre-approved
+                application_status: 'Approved',
+                status: 'Approved',
+                background_check_status: 'Pending',
+                
+                // Defaults
+                payment_reliability_score: 5.0,
+                total_rentals: 0,
+                total_payments_made: 0,
+                total_late_payments: 0,
+                
+                // Timestamps
+                application_date: new Date().toISOString().split('T')[0],
+                approved_at: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            
+            // Insert into Supabase
+            const { data, error } = await db
+                .from('customers')
+                .insert([customerData])
+                .select()
+                .single();
+            
+            if (error) throw error;
+            
+            Utils.toastSuccess(`Customer ${firstName} ${lastName} created successfully!`);
+            
+            // Close modal
+            this.closeAddModal();
+            
+            // Reload data
+            await this.load();
+            
+            // Update dashboard
+            if (typeof Dashboard !== 'undefined' && Dashboard.load) {
+                Dashboard.load();
+            }
+            
+        } catch (error) {
+            console.error('Error creating customer:', error);
+            Utils.toastError('Failed to create customer: ' + error.message);
+        }
     }
 };
 
