@@ -410,18 +410,26 @@ function initializeStripe() {
     // Create card element when payment form is visible
     const elements = stripe.elements();
     
+    // Dark mode styling to match the premium Fleetzy aesthetic
     cardElement = elements.create('card', {
         style: {
             base: {
                 fontSize: '16px',
-                color: '#1f2937',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                color: '#fafafa',
+                fontFamily: '"Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif',
+                fontSmoothing: 'antialiased',
                 '::placeholder': {
-                    color: '#9ca3af'
-                }
+                    color: '#71717a'
+                },
+                iconColor: '#a1a1aa'
             },
             invalid: {
-                color: '#ef4444'
+                color: '#ef4444',
+                iconColor: '#ef4444'
+            },
+            complete: {
+                color: '#10b981',
+                iconColor: '#10b981'
             }
         },
         hidePostalCode: false
