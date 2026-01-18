@@ -191,7 +191,6 @@
                 }
 
                 // Get active rental for this customer
-                // Note: rental_status uses lowercase 'active' in database
                 const { data: rental, error: rentalError } = await db
                     .from('rentals')
                     .select('*, vehicles(*)')
@@ -206,7 +205,7 @@
                 
             } catch (err) {
                 console.error('💥 Dashboard error:', err);
-                showDashboard({ first_name: 'Driver' }, null);
+                showDashboard({ full_name: 'Driver' }, null);
             }
         }
 
@@ -214,9 +213,8 @@
             const loading = document.getElementById('loading');
             const main = document.getElementById('main-content');
 
-            // Set user name (extract first name from full_name)
-            const firstName = customer?.full_name?.split(' ')[0] || 'Driver';
-            document.getElementById('user-name').textContent = firstName;
+            // Set user name
+            document.getElementById('user-name').textContent = customer?.full_name?.split(' ')[0] || 'Driver';
 
             if (rental && rental.vehicles) {
                 // Has active rental
