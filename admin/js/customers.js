@@ -206,8 +206,8 @@ const Customers = {
                 </td>
                 <td>
                     <div class="dl-info">
-                        <div>${customer.drivers_license_state || ''} ${customer.drivers_license_number ? '•••' + customer.drivers_license_number.slice(-4) : 'N/A'}</div>
-                        <div class="dl-expiry">${customer.drivers_license_expiry ? 'Exp: ' + customer.drivers_license_expiry : ''}</div>
+                        <div>${customer.dl_state || ''} ${customer.dl_number ? '•••' + customer.dl_number.slice(-4) : 'N/A'}</div>
+                        <div class="dl-expiry">${customer.dl_expiry_date ? 'Exp: ' + customer.dl_expiry_date : ''}</div>
                     </div>
                 </td>
                 <td>
@@ -227,7 +227,8 @@ const Customers = {
      */
     getActionButtons(customer, status) {
         let buttons = [];
-        const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
+        // DB uses full_name
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
         
         // View button (always available)
         buttons.push(`
@@ -1067,11 +1068,7 @@ const Customers = {
                 
                 // Defaults
                 payment_reliability_score: 5.0,
-                late_payment_count: 0,
-                
-                // Timestamps
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                late_payment_count: 0
             };
             
             // Insert into Supabase
