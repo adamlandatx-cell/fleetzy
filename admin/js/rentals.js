@@ -957,17 +957,27 @@ const Rentals = {
         
         // Calculate amounts based on rental type
         let initialPaymentAmount;
+        let totalAmountDue;
+        
         if (isOngoing) {
             // Ongoing: initial payment = deposit + first week
             initialPaymentAmount = deposit + weeklyRate;
+            // For ongoing rentals, total_amount_due = just first week (ongoing adds more each week)
+            totalAmountDue = weeklyRate;
             notes = (notes ? notes + '\n' : '') + 'ONGOING RENTAL (Week-to-Week)';
         } else {
             // Fixed-term: initial payment = deposit + all weeks
             initialPaymentAmount = (weeks * weeklyRate) + deposit;
+            // Total due = all weeks (deposit is separate/refundable)
+            totalAmountDue = weeks * weeklyRate;
         }
         
         // Get payment method from form (defaults to Zelle if not specified)
         const paymentMethod = document.getElementById('new-rental-payment-method')?.value || 'Zelle';
+        
+        // Calculate first payment due date (7 days from start)
+        const firstPaymentDue = new Date(startDate);
+        firstPaymentDue.setDate(firstPaymentDue.getDate() + 7);
         
         // Build rental data using ACTUAL column names from database
         const rentalData = {
@@ -985,6 +995,11 @@ const Rentals = {
             payment_method: paymentMethod,         // REQUIRED - NOT NULL in database
             start_mileage: startMileage,           // REQUIRED - NOT NULL in database
             rental_status: 'pending_rental',       // Already approved since admin is creating
+            // NEW: Set balance tracking columns
+            total_amount_due: totalAmountDue,      // Total rent owed (not including deposit)
+            total_amount_paid: 0,                  // Nothing paid yet
+            balance_remaining: totalAmountDue,     // Full amount still owed
+            next_payment_due: firstPaymentDue.toISOString().split('T')[0], // First payment due in 7 days
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
@@ -1118,7 +1133,15 @@ const Rentals = {
             const nextPaymentDue = new Date(startDate);
             nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
             
-            // Only update columns that EXIST in the rentals table
+            // Calculate initial balance (weekly rate for first week - deposit already collected)
+            const weeklyRate = parseFloat(rental.weekly_rate) || 400;
+            const weeksCount = rental.weeks_count;
+            
+            // For ongoing rentals, total_amount_due starts at one week
+            // For fixed-term, it's all weeks
+            const totalAmountDue = weeksCount ? (weeksCount * weeklyRate) : weeklyRate;
+            
+            // Update rental with all tracking columns
             const { error } = await db
                 .from('rentals')
                 .update({
@@ -1126,6 +1149,10 @@ const Rentals = {
                     start_date: startDate,
                     start_mileage: startMileage,
                     next_payment_due: nextPaymentDue.toISOString().split('T')[0],
+                    // Set balance tracking
+                    total_amount_due: totalAmountDue,
+                    total_amount_paid: 0,
+                    balance_remaining: totalAmountDue,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
@@ -1269,8 +1296,9 @@ const Rentals = {
         document.getElementById('payment-customer-id').value = rental.customer_id || '';
         document.getElementById('payment-customer-name').textContent = customerName;
         document.getElementById('payment-rental-rate').textContent = `$${rental.weekly_rate}/wk`;
-        // Note: balance_remaining doesn't exist in schema
-        document.getElementById('payment-balance').textContent = 'N/A';
+        // Show actual balance_remaining
+        const balance = parseFloat(rental.balance_remaining) || 0;
+        document.getElementById('payment-balance').textContent = Utils.formatCurrency(balance);
         document.getElementById('payment-amount').value = rental.weekly_rate || 400;
         document.getElementById('payment-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('payment-method').value = rental.payment_method || 'Zelle';
@@ -1368,31 +1396,36 @@ const Rentals = {
                 paymentId = 'P' + String(lastNum + 1).padStart(3, '0');
             }
             
-            // Check if late - calculate based on start_date + weeks
-            // Since next_payment_due doesn't exist, we calculate from start_date
-            const startDate = rental.start_date ? new Date(rental.start_date) : new Date();
-            const weeksSinceStart = Math.floor((new Date(paymentDate) - startDate) / (7 * 24 * 60 * 60 * 1000));
-            const expectedPaymentDate = new Date(startDate);
-            expectedPaymentDate.setDate(expectedPaymentDate.getDate() + (weeksSinceStart * 7));
-            
-            const isLate = new Date(paymentDate) > expectedPaymentDate;
+            // Check if late based on next_payment_due
+            const dueDate = rental.next_payment_due ? new Date(rental.next_payment_due) : null;
+            const paidDateObj = new Date(paymentDate);
+            const isLate = dueDate && paidDateObj > dueDate;
             const daysLate = isLate 
-                ? Math.floor((new Date(paymentDate) - expectedPaymentDate) / (1000 * 60 * 60 * 24))
+                ? Math.floor((paidDateObj - dueDate) / (1000 * 60 * 60 * 24))
                 : 0;
+            const lateFee = isLate ? daysLate * 10 : 0; // $10/day late fee
             
-            // Insert payment record - ONLY columns that exist in payments table
+            // Insert payment record with ACTUAL column names from payments table
             const paymentData = {
                 payment_id: paymentId,
                 rental_id: rentalId,
                 customer_id: customerId,
-                due_date: expectedPaymentDate.toISOString().split('T')[0],  // NOT NULL
-                amount_due: amount,                                          // NOT NULL
-                total_amount: amount + (isLate ? daysLate * 10 : 0),        // NOT NULL (include late fees)
-                late_fees: isLate ? daysLate * 10 : 0,                       // $10/day late fee
+                due_date: rental.next_payment_due || paymentDate,  // NOT NULL
+                amount_due: amount,                                 // NOT NULL
+                toll_charges: 0,
+                damage_charges: 0,
+                late_fees: lateFee,
+                total_amount: amount + lateFee,                     // NOT NULL
                 paid_amount: amount,
                 paid_date: paymentDate,
                 payment_method: paymentMethod,
                 payment_status: 'paid',
+                payment_type: 'weekly_rent',
+                is_late: isLate,
+                days_late: daysLate,
+                notes: notes || null,
+                approved_by: 'Admin',
+                approved_at: new Date().toISOString(),
                 created_at: new Date().toISOString()
             };
             
@@ -1402,15 +1435,37 @@ const Rentals = {
             
             if (paymentError) throw paymentError;
             
-            // Update rental - only columns that EXIST in the table
-            // Note: total_amount_paid, balance_remaining, last_payment_date, next_payment_due 
-            // don't exist in rentals table based on schema check
+            // Update rental balance tracking
+            const currentPaid = parseFloat(rental.total_amount_paid) || 0;
+            const newPaid = currentPaid + amount;
+            const totalDue = parseFloat(rental.total_amount_due) || 0;
+            
+            // For ongoing rentals, add another week to total_amount_due
+            let newTotalDue = totalDue;
+            if (!rental.weeks_count) {
+                // Ongoing rental - add another week
+                newTotalDue = totalDue + parseFloat(rental.weekly_rate || 400);
+            }
+            
+            const newBalance = newTotalDue - newPaid;
+            
+            // Calculate next payment due (7 days from this payment)
+            const nextDue = new Date(paymentDate);
+            nextDue.setDate(nextDue.getDate() + 7);
+            
             const { error: updateError } = await db
                 .from('rentals')
                 .update({
+                    total_amount_paid: newPaid,
+                    total_amount_due: newTotalDue,
+                    balance_remaining: Math.max(0, newBalance),
+                    last_payment_date: paymentDate,
+                    next_payment_due: nextDue.toISOString().split('T')[0],
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
+            
+            if (updateError) throw updateError;
             
             if (updateError) throw updateError;
             

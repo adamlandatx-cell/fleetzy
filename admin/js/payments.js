@@ -689,9 +689,17 @@ const Payments = {
             const currentPaid = parseFloat(rental.total_amount_paid) || 0;
             const newPaid = currentPaid + parseFloat(paidAmount);
             const totalDue = parseFloat(rental.total_amount_due) || 0;
-            const newBalance = totalDue - newPaid;
             
-            // Calculate next payment date
+            // For ongoing rentals (no weeks_count), add another week to total_amount_due
+            let newTotalDue = totalDue;
+            if (!rental.weeks_count) {
+                // Ongoing rental - add another week's worth
+                newTotalDue = totalDue + parseFloat(rental.weekly_rate || 400);
+            }
+            
+            const newBalance = newTotalDue - newPaid;
+            
+            // Calculate next payment date (7 days from now)
             const lastPayment = new Date();
             const nextPaymentDue = new Date(lastPayment);
             nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
@@ -701,6 +709,7 @@ const Payments = {
                 .from('rentals')
                 .update({
                     total_amount_paid: newPaid,
+                    total_amount_due: newTotalDue,
                     balance_remaining: Math.max(0, newBalance),
                     last_payment_date: lastPayment.toISOString().split('T')[0],
                     next_payment_due: nextPaymentDue.toISOString().split('T')[0],
@@ -710,7 +719,7 @@ const Payments = {
             
             if (updateError) throw updateError;
             
-            console.log(`✅ Updated rental ${rentalId} totals`);
+            console.log(`✅ Updated rental ${rentalId}: paid=$${newPaid}, due=$${newTotalDue}, balance=$${newBalance}`);
             
         } catch (error) {
             console.error('Error updating rental:', error);
@@ -854,7 +863,7 @@ const Payments = {
     
     /**
      * Load active rentals for dropdown
-     * FIXED: Now includes multiple statuses (active, Active, pending_rental)
+     * FIXED: Now includes multiple statuses (active, Active, pending_rental) and shows balance
      */
     async loadActiveRentals() {
         try {
@@ -887,12 +896,13 @@ const Payments = {
                             const name = customer?.full_name || 'Unknown Customer';
                             const vehicleInfo = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'No Vehicle';
                             const rentalId = rental.rental_id || rental.id.substring(0, 8);
+                            const balance = parseFloat(rental.balance_remaining) || 0;
                             return `<option value="${rental.id}" 
                                             data-customer="${name}"
-                                            data-balance="${rental.balance_remaining || 0}"
+                                            data-balance="${balance}"
                                             data-rate="${rental.weekly_rate || 400}"
                                             data-deposit="${rental.deposit_amount || 500}">
-                                        ${rentalId} - ${name} (${vehicleInfo})
+                                        ${rentalId} - ${name} (${vehicleInfo}) - Balance: $${balance.toLocaleString()}
                                     </option>`;
                         }).join('');
                 }
@@ -1017,20 +1027,34 @@ const Payments = {
             // Generate payment ID
             const paymentId = await this.generatePaymentId();
             
-            // Create payment record
+            // Calculate late fee
+            const lateFee = isLate ? daysLate * 10 : 0; // $10/day
+            
+            // Generate auto-notes based on payment type
+            let autoNotes = this.getPaymentTypeLabel(paymentType);
+            if (notes) {
+                autoNotes += ': ' + notes;
+            }
+            
+            // Create payment record with ACTUAL column names
             const { error } = await db
                 .from('payments')
                 .insert({
                     payment_id: paymentId,
                     rental_id: rentalId,
                     customer_id: rental.customer_id,
+                    due_date: rental.next_payment_due || date,
+                    amount_due: amount,
+                    toll_charges: 0,
+                    damage_charges: 0,
+                    late_fees: lateFee,
+                    total_amount: amount + lateFee,
                     paid_amount: amount,
                     paid_date: date,
-                    due_date: rental.next_payment_due,
                     payment_method: method,
-                    payment_type: paymentType, // NEW: Payment type categorization
+                    payment_type: paymentType,
                     payment_screenshot_url: screenshotUrl,
-                    payment_status: 'Confirmed',
+                    payment_status: 'paid',
                     is_late: isLate,
                     days_late: daysLate,
                     notes: autoNotes,
