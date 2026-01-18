@@ -536,7 +536,6 @@ const Rentals = {
                     </div>
                 ` : ''}
             `;
-            `;
         }
         
         modal.classList.add('active');
@@ -589,7 +588,7 @@ const Rentals = {
             ? rental.customer?.full_name || 'Customer'
             : 'Customer';
         
-        const confirmed = confirm(`Approve rental for ${customerName}?\n\nThis will move the rental to "Awaiting Pickup" status.`);
+        const confirmed = confirm("Approve rental for " + customerName + "?\n\nThis will move the rental to 'Awaiting Pickup' status.");
         if (!confirmed) return;
         
         try {

@@ -489,6 +489,7 @@ const Customers = {
     
     /**
      * Approve customer
+     * FIXED: Uses only 'status' column (not application_status which doesn't exist)
      */
     async approve(customerId, fromModal = false) {
         const customer = this.data.find(c => c.id === customerId);
@@ -497,7 +498,8 @@ const Customers = {
             return;
         }
         
-        const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+        // DB uses full_name, not first_name/last_name
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
         
         // Confirm if not from modal (modal has its own button)
         if (!fromModal) {
@@ -517,8 +519,7 @@ const Customers = {
             const { error } = await db
                 .from('customers')
                 .update({
-                    application_status: 'Approved',
-                    status: 'Approved',
+                    status: 'approved',  // Only use 'status' - lowercase for consistency
                     customer_id: newCustomerId,
                     approved_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
@@ -561,6 +562,7 @@ const Customers = {
     
     /**
      * Open reject modal
+     * FIXED: Uses full_name instead of first_name/last_name
      */
     openRejectModal(customerId) {
         const customer = this.data.find(c => c.id === customerId);
@@ -577,7 +579,8 @@ const Customers = {
             return;
         }
         
-        const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+        // DB uses full_name, not first_name/last_name
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
         document.getElementById('reject-customer-name').textContent = fullName;
         document.getElementById('reject-reason').value = '';
         
@@ -616,6 +619,7 @@ const Customers = {
     
     /**
      * Reject customer
+     * FIXED: Uses only 'status' column (not application_status which doesn't exist)
      */
     async reject(customerId, reason = '') {
         const customer = this.data.find(c => c.id === customerId);
@@ -624,7 +628,8 @@ const Customers = {
             return;
         }
         
-        const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+        // DB uses full_name, not first_name/last_name
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
         
         try {
             Utils.toastInfo('Processing rejection...');
@@ -632,8 +637,7 @@ const Customers = {
             const { error } = await db
                 .from('customers')
                 .update({
-                    application_status: 'Rejected',
-                    status: 'Rejected',
+                    status: 'rejected',  // Only use 'status' - lowercase for consistency
                     rejected_at: new Date().toISOString(),
                     rejection_reason: reason,
                     updated_at: new Date().toISOString()
@@ -664,6 +668,7 @@ const Customers = {
     
     /**
      * Reinstate rejected customer
+     * FIXED: Uses only 'status' column (not application_status which doesn't exist)
      */
     async reinstate(customerId) {
         const customer = this.data.find(c => c.id === customerId);
@@ -672,7 +677,8 @@ const Customers = {
             return;
         }
         
-        const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim();
+        // DB uses full_name, not first_name/last_name
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
         const confirmed = confirm(`Reinstate ${fullName} to pending status?`);
         if (!confirmed) return;
         
@@ -682,8 +688,7 @@ const Customers = {
             const { error } = await db
                 .from('customers')
                 .update({
-                    application_status: 'Pending',
-                    status: 'Pending',
+                    status: 'pending',  // Only use 'status' - lowercase for consistency
                     rejected_at: null,
                     rejection_reason: null,
                     updated_at: new Date().toISOString()
