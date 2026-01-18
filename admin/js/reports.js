@@ -92,10 +92,14 @@ const Reports = {
     async fetchAllData() {
         const [payments, rentals, vehicles, customers] = await Promise.all([
             db.from('payments')
-                .select('*, rentals(customer_id, vehicle_id, weekly_rate), customers(first_name, last_name, phone, email, selfie_url)')
+                .select(`
+                    *,
+                    rental:rental_id(customer_id, vehicle_id, weekly_rate),
+                    customer:customer_id(id, full_name, first_name, last_name, phone, email, selfie_url)
+                `)
                 .order('paid_date', { ascending: false }),
             db.from('rentals')
-                .select('*, vehicles(make, model, year, license_plate), customers(first_name, last_name)')
+                .select('*, vehicles(make, model, year, license_plate), customers(full_name, first_name, last_name)')
                 .order('created_at', { ascending: false }),
             db.from('vehicles').select('*'),
             db.from('customers').select('*')
@@ -692,14 +696,14 @@ const Reports = {
         // Calculate revenue by customer
         const customerRevenue = {};
         periodPayments.forEach(p => {
-            const customerId = p.customer_id || p.rentals?.customer_id;
+            const customerId = p.customer_id || p.rental?.customer_id;
             if (customerId) {
                 if (!customerRevenue[customerId]) {
                     customerRevenue[customerId] = {
                         id: customerId,
                         total: 0,
                         paymentCount: 0,
-                        customer: p.customers || customers.find(c => c.id === customerId)
+                        customer: p.customer || customers.find(c => c.id === customerId)
                     };
                 }
                 customerRevenue[customerId].total += (p.paid_amount || 0);
@@ -730,7 +734,7 @@ const Reports = {
         listEl.innerHTML = topCustomers.map((item, index) => {
             const customer = item.customer;
             const name = customer 
-                ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim() 
+                ? (customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim())
                 : 'Unknown';
             const initials = name.split(' ').map(n => n[0]).join('').toUpperCase() || '?';
             const avatar = customer?.selfie_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=10b981&color=fff&size=64`;
@@ -958,9 +962,9 @@ const Reports = {
         }
         
         tbody.innerHTML = periodPayments.map(p => {
-            const customer = p.customers;
+            const customer = p.customer;
             const customerName = customer 
-                ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
+                ? (customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim())
                 : 'Unknown';
             const rental = this.data.rentals.find(r => r.id === p.rental_id);
             const vehicle = rental?.vehicles;
@@ -1124,9 +1128,9 @@ const Reports = {
         // Build CSV
         const headers = ['Date', 'Customer', 'Vehicle', 'Amount', 'Method', 'Status', 'Rental ID'];
         const rows = periodPayments.map(p => {
-            const customer = p.customers;
+            const customer = p.customer;
             const customerName = customer 
-                ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
+                ? (customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim())
                 : 'Unknown';
             const rental = rentals.find(r => r.id === p.rental_id);
             const vehicle = rental?.vehicles;
@@ -1163,9 +1167,9 @@ const Reports = {
         
         const headers = ['Payment ID', 'Date', 'Customer', 'Amount', 'Method', 'Status', 'Late', 'Days Late', 'Late Fee'];
         const rows = periodPayments.map(p => {
-            const customer = p.customers;
+            const customer = p.customer;
             const customerName = customer 
-                ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
+                ? (customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim())
                 : 'Unknown';
             
             return [

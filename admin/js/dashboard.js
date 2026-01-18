@@ -60,14 +60,19 @@ const Dashboard = {
         // Calculate monthly revenue (current month)
         const now = new Date();
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const monthlyPayments = payments.filter(p => 
-            p.status === 'confirmed' && new Date(p.paid_date) >= monthStart
-        );
-        const monthlyRevenue = monthlyPayments.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+        const monthlyPayments = payments.filter(p => {
+            const status = (p.payment_status || p.status || '').toLowerCase();
+            const paidDate = p.paid_date ? new Date(p.paid_date) : null;
+            return status === 'confirmed' && paidDate && paidDate >= monthStart;
+        });
+        const monthlyRevenue = monthlyPayments.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
         
         // Count pending actions
         const pendingApprovals = rentals.filter(r => r.rental_status === 'pending_approval').length;
-        const pendingPayments = payments.filter(p => p.status === 'pending').length;
+        const pendingPayments = payments.filter(p => {
+            const status = (p.payment_status || p.status || '').toLowerCase();
+            return status === 'pending';
+        }).length;
         const pendingActions = pendingApprovals + pendingPayments;
         
         // Animate the stats
