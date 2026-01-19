@@ -2898,8 +2898,8 @@
             // Fetch pending items
             try {
                 const [customers, payments] = await Promise.all([
-                    db.from('customers').select('*').eq('status', 'pending').limit(5),
-                    db.from('payments').select('*, customers(first_name, last_name)').eq('status', 'pending').limit(5)
+                    db.from('customers').select('*').eq('application_status', 'Pending').limit(5),
+                    db.from('payments').select('*, customers(full_name)').eq('payment_status', 'pending').limit(5)
                 ]);
                 
                 const notifications = [];
@@ -2910,7 +2910,7 @@
                         icon: 'fa-user-plus',
                         iconClass: 'info',
                         title: 'New Application',
-                        message: `${c.first_name} ${c.last_name} applied for rental`,
+                        message: `${c.full_name || c.first_name + ' ' + c.last_name || 'Customer'} applied for rental`,
                         time: Utils.formatDate(c.created_at, 'relative'),
                         action: () => { Sidebar.navigate('customers'); closeDropdowns(); }
                     });
@@ -2918,7 +2918,7 @@
                 
                 // Add pending payments
                 (payments.data || []).forEach(p => {
-                    const name = p.customers ? `${p.customers.first_name} ${p.customers.last_name}` : 'Customer';
+                    const name = p.customers?.full_name || 'Customer';
                     notifications.push({
                         icon: 'fa-dollar-sign',
                         iconClass: 'warning',
@@ -2976,8 +2976,8 @@
         async function loadNotificationBadges() {
             try {
                 const [customers, payments] = await Promise.all([
-                    db.from('customers').select('id', { count: 'exact' }).eq('status', 'pending'),
-                    db.from('payments').select('id', { count: 'exact' }).eq('status', 'pending')
+                    db.from('customers').select('id', { count: 'exact' }).eq('application_status', 'Pending'),
+                    db.from('payments').select('id', { count: 'exact' }).eq('payment_status', 'pending')
                 ]);
                 
                 const pendingCustomers = customers.count || 0;
