@@ -39,8 +39,8 @@ async function loadVehicles() {
     const gallery = document.getElementById('vehicleGallery');
     
     try {
-        // Fetch available vehicles from Supabase
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/vehicles?select=*&status=eq.Active&order=monthly_payment.asc`, {
+        // Fetch ALL vehicles from Supabase (not just Active) so customers can see what's coming available
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/vehicles?select=*&order=status.asc,monthly_payment.asc`, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
@@ -59,7 +59,7 @@ async function loadVehicles() {
                 <div class="loading-vehicles">
                     <i class="fas fa-car-crash text-4xl text-slate-400 mb-3"></i>
                     <p class="text-lg font-medium">No vehicles available</p>
-                    <p class="text-sm">Please check back soon or call us at (281) 908-5583</p>
+                    <p class="text-sm">Please check back soon or call us at (281) 271-3900</p>
                 </div>
             `;
             return;
@@ -74,7 +74,7 @@ async function loadVehicles() {
             <div class="loading-vehicles">
                 <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-3"></i>
                 <p class="text-lg font-medium text-red-600">Error loading vehicles</p>
-                <p class="text-sm text-slate-600">Please refresh the page or call us at (281) 908-5583</p>
+                <p class="text-sm text-slate-600">Please refresh the page or call us at (281) 271-3900</p>
             </div>
         `;
     }
@@ -84,7 +84,8 @@ function renderVehicles() {
     const gallery = document.getElementById('vehicleGallery');
     
     gallery.innerHTML = vehicles.map(vehicle => {
-        const isAvailable = vehicle.status === 'Active';
+        const statusLower = (vehicle.status || '').toLowerCase();
+        const isAvailable = statusLower === 'active' || statusLower === 'available';
         const statusBadge = getStatusBadge(vehicle.status);
         const imageUrl = vehicle.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80';
         const displayName = vehicle.friendly_name || `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
@@ -127,7 +128,7 @@ function renderVehicles() {
                             </button>
                         ` : `
                             <span class="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm font-medium">
-                                Unavailable
+                                ${statusBadge.text}
                             </span>
                         `}
                     </div>
@@ -147,13 +148,18 @@ function renderVehicles() {
 }
 
 function getStatusBadge(status) {
-    switch(status) {
-        case 'Active':
-            return { class: 'badge-available', text: '✓ Available' };
-        case 'Maintenance':
-            return { class: 'badge-maintenance', text: 'In Maintenance' };
-        default:
-            return { class: 'badge-reserved', text: 'Reserved' };
+    const statusLower = (status || '').toLowerCase();
+    
+    if (statusLower === 'active' || statusLower === 'available') {
+        return { class: 'badge-available', text: '✓ Available' };
+    } else if (statusLower === 'rented' || statusLower === 'currently rented') {
+        return { class: 'badge-rented', text: 'Currently Rented' };
+    } else if (statusLower === 'maintenance' || statusLower === 'in service') {
+        return { class: 'badge-maintenance', text: 'In Service' };
+    } else if (statusLower === 'reserved') {
+        return { class: 'badge-reserved', text: 'Reserved' };
+    } else {
+        return { class: 'badge-reserved', text: status || 'Unavailable' };
     }
 }
 
