@@ -1,7 +1,18 @@
 /* ============================================
    UPCOMING PAYMENTS - Dashboard Enhancement
-   FIXED VERSION - Better error handling
+   FIXED VERSION - Timezone bug fixed
    ============================================ */
+
+/**
+ * Parse a date string as LOCAL time (not UTC)
+ * This fixes the timezone bug where "2025-01-24" shows as wrong day
+ */
+function parseLocalDate(dateStr) {
+    if (!dateStr) return null;
+    // Append T00:00:00 to force local time interpretation
+    // Without this, "2025-01-24" is treated as UTC midnight
+    return new Date(dateStr + 'T00:00:00');
+}
 
 /**
  * Load and render upcoming payments
@@ -95,7 +106,7 @@ async function loadUpcomingPayments() {
             };
         }));
         
-        // Calculate dates
+        // Calculate dates - use local dates
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
@@ -111,7 +122,9 @@ async function loadUpcomingPayments() {
         const dueLater = [];
         
         enrichedRentals.forEach(rental => {
-            const dueDate = new Date(rental.next_payment_due);
+            // FIX: Use parseLocalDate to avoid timezone shift
+            const dueDate = parseLocalDate(rental.next_payment_due);
+            if (!dueDate) return;
             dueDate.setHours(0, 0, 0, 0);
             
             if (dueDate.getTime() === tomorrow.getTime()) {
@@ -197,13 +210,15 @@ function renderUpcomingPaymentItem(rental, isUrgent) {
     const vehicleInfo = rental.vehicles ? 
         `${rental.vehicles.make || ''} ${rental.vehicles.model || ''}`.trim() || 'Unknown' : 'Unknown';
     const licensePlate = rental.vehicles?.license_plate || 'N/A';
-    const dueDate = new Date(rental.next_payment_due);
-    const dueDateStr = dueDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    
+    // FIX: Use parseLocalDate to avoid timezone shift
+    const dueDate = parseLocalDate(rental.next_payment_due);
+    const dueDateStr = dueDate ? dueDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'N/A';
     
     // Check if overdue
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const isOverdue = dueDate < today;
+    const isOverdue = dueDate && dueDate < today;
     
     return `
         <div class="upcoming-payment-item ${isUrgent ? 'due-tomorrow' : ''}">
@@ -295,3 +310,4 @@ window.loadUpcomingPayments = loadUpcomingPayments;
 window.renderUpcomingPaymentItem = renderUpcomingPaymentItem;
 window.updateUpcomingStats = updateUpcomingStats;
 window.showTollCheckAlert = showTollCheckAlert;
+window.parseLocalDate = parseLocalDate;
