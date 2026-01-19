@@ -1,7 +1,6 @@
 /* ============================================
    FLEETZY ADMIN - CHARGES MODULE
    Manages tolls, damages, and other charges
-   FIXED VERSION - Correct column names
    ============================================ */
 
 const Charges = {
@@ -58,7 +57,7 @@ const Charges = {
         const modal = document.getElementById('modal-add-charge');
         if (!modal) {
             console.error('Add Charge modal not found!');
-            Utils.toastError('Add Charge modal not found');
+            if (typeof Utils !== 'undefined') Utils.toastError('Add Charge modal not found');
             return;
         }
         
@@ -98,7 +97,7 @@ const Charges = {
     
     /**
      * Load active rentals into the dropdown
-     * FIXED: Uses full_name instead of first_name/last_name
+     * Uses full_name (correct column name in DB)
      */
     async loadRentalsDropdown(preselectedId = null) {
         const select = document.getElementById('charge-rental-select');
@@ -225,17 +224,6 @@ const Charges = {
         }
         
         try {
-            // Check if rental_charges table exists
-            const { data: tableCheck, error: tableError } = await db
-                .from('rental_charges')
-                .select('id')
-                .limit(1);
-            
-            if (tableError && tableError.code === '42P01') {
-                // Table doesn't exist
-                throw new Error('rental_charges table not found. Please run the database migration SQL first.');
-            }
-            
             // Handle receipt upload if provided
             let receiptUrl = null;
             const receiptInput = document.getElementById('charge-receipt');
@@ -322,11 +310,8 @@ const Charges = {
                 .order('created_at', { ascending: false });
             
             if (error) {
-                if (error.code === '42P01') {
-                    console.warn('rental_charges table does not exist');
-                    return [];
-                }
-                throw error;
+                console.error('Error fetching charges:', error);
+                return [];
             }
             
             return data || [];
@@ -348,11 +333,8 @@ const Charges = {
                 .order('created_at', { ascending: false });
             
             if (error) {
-                if (error.code === '42P01') {
-                    console.warn('rental_charges table does not exist');
-                    return [];
-                }
-                throw error;
+                console.error('Error fetching charges:', error);
+                return [];
             }
             
             return data || [];
