@@ -1,7 +1,19 @@
 /* ============================================
    FLEETZY ADMIN - PAYMENTS MODULE
    Full payment management with approval workflows
+   TIMEZONE FIX: Jan 18, 2025 - Fixed date calculations
    ============================================ */
+
+/**
+ * Format a Date object to YYYY-MM-DD string in LOCAL time
+ * This ensures the date stored matches the actual local date
+ */
+function formatLocalDateForPayments(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 const Payments = {
     // Cached data
@@ -707,8 +719,8 @@ const Payments = {
                     total_amount_paid: newPaid,
                     total_amount_due: newTotalDue,
                     balance_remaining: Math.max(0, newBalance),
-                    last_payment_date: lastPayment.toISOString().split('T')[0],
-                    next_payment_due: nextPaymentDue.toISOString().split('T')[0],
+                    last_payment_date: formatLocalDateForPayments(lastPayment),
+                    next_payment_due: formatLocalDateForPayments(nextPaymentDue),
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
@@ -833,7 +845,7 @@ const Payments = {
         // Reset form
         document.getElementById('form-new-payment').reset();
         document.getElementById('new-payment-id').value = paymentId;
-        document.getElementById('new-payment-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('new-payment-date').value = formatLocalDateForPayments(new Date());
         document.getElementById('new-payment-customer-display').textContent = '—';
         document.getElementById('new-payment-balance-display').textContent = '—';
         
