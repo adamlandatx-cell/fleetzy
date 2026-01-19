@@ -321,12 +321,21 @@ const Charges = {
                 .order('created_at', { ascending: false });
             
             if (error) {
+                // Silently handle missing table/column errors (table may not be set up yet)
+                if (error.code === 'PGRST204' || error.code === '42P01' || error.message?.includes('does not exist')) {
+                    console.log('Charges table not set up yet - skipping');
+                    return [];
+                }
                 console.error('Error fetching charges:', error);
                 return [];
             }
             
             return data || [];
         } catch (error) {
+            // Silently handle if table doesn't exist
+            if (error.message?.includes('does not exist') || error.code === '42P01') {
+                return [];
+            }
             console.error('Error fetching charges:', error);
             return [];
         }
