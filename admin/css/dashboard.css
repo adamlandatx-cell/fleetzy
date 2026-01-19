@@ -1273,12 +1273,14 @@ img {
     padding: var(--space-lg);
     opacity: 0;
     visibility: hidden;
+    pointer-events: none; /* Don't block clicks when hidden */
     transition: all var(--transition-base);
 }
 
 .modal-overlay.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto; /* Allow clicks when visible */
 }
 
 .modal-overlay .modal-box {
@@ -2000,6 +2002,7 @@ img {
     padding: 20px;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none; /* Don't block clicks when hidden */
     transition: all 0.3s ease;
     margin: 0 !important; /* Override any inherited margin */
 }
@@ -2007,6 +2010,7 @@ img {
 .modal.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto; /* Allow clicks when visible */
 }
 
 .modal-backdrop {
