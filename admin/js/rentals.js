@@ -130,7 +130,7 @@ const Rentals = {
             const { data, error } = await db
                 .from('vehicles')
                 .select('*')
-                .eq('status', 'Active')
+                .eq('vehicle_status', 'Available')
                 .order('make');
             
             if (error) {

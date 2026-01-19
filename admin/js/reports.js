@@ -2,6 +2,7 @@
    FLEETZY ADMIN - REPORTS & ANALYTICS
    Comprehensive financial reports, trends, and insights
    Session 6 - January 2025
+   FIXED: January 19, 2025 - Added error handling
    ============================================ */
 
 const Reports = {
@@ -21,6 +22,13 @@ const Reports = {
         endDate: null
     },
     
+
+    // Helper: Check if payment status indicates completion
+    isCompletedPayment(status) {
+        const s = (status || '').toLowerCase();
+        return s === 'confirmed' || s === 'paid';
+    },
+
     // Chart configurations
     charts: {
         revenue: null,
@@ -76,39 +84,114 @@ const Reports = {
                 <div class="error-state">
                     <i class="fas fa-exclamation-triangle"></i>
                     <h3>Failed to Load Reports</h3>
-                    <p>There was an error loading the reports data.</p>
+                    <p>${error.message || 'There was an error loading the reports data.'}</p>
                     <button class="btn btn-primary" onclick="Reports.load()">
                         <i class="fas fa-redo"></i> Try Again
                     </button>
                 </div>
             `;
-            Utils.toastError('Failed to load reports data');
+            Utils.toastError('Failed to load reports: ' + error.message);
         }
     },
 
     /**
      * Fetch all required data from Supabase
+     * FIXED: Added proper error handling and simpler queries
      */
     async fetchAllData() {
-        const [payments, rentals, vehicles, customers] = await Promise.all([
-            db.from('payments')
-                .select(`
-                    *,
-                    rental:rental_id(customer_id, vehicle_id, weekly_rate),
-                    customer:customer_id(id, full_name, first_name, last_name, phone, email, selfie_url)
-                `)
-                .order('paid_date', { ascending: false }),
-            db.from('rentals')
-                .select('*, vehicles(make, model, year, license_plate), customers(full_name, first_name, last_name)')
-                .order('created_at', { ascending: false }),
+        console.log('📊 Reports: Fetching data from Supabase...');
+        
+        // Fetch all data in parallel with simpler queries
+        const [paymentsRes, rentalsRes, vehiclesRes, customersRes] = await Promise.all([
+            db.from('payments').select('*').order('paid_date', { ascending: false }),
+            db.from('rentals').select('*').order('created_at', { ascending: false }),
             db.from('vehicles').select('*'),
             db.from('customers').select('*')
         ]);
         
-        this.data.payments = payments.data || [];
-        this.data.rentals = rentals.data || [];
-        this.data.vehicles = vehicles.data || [];
-        this.data.customers = customers.data || [];
+        // Check for errors in each response
+        if (paymentsRes.error) {
+            console.error('❌ Payments query failed:', paymentsRes.error);
+            throw new Error('Failed to load payments: ' + paymentsRes.error.message);
+        }
+        if (rentalsRes.error) {
+            console.error('❌ Rentals query failed:', rentalsRes.error);
+            throw new Error('Failed to load rentals: ' + rentalsRes.error.message);
+        }
+        if (vehiclesRes.error) {
+            console.error('❌ Vehicles query failed:', vehiclesRes.error);
+            throw new Error('Failed to load vehicles: ' + vehiclesRes.error.message);
+        }
+        if (customersRes.error) {
+            console.error('❌ Customers query failed:', customersRes.error);
+            throw new Error('Failed to load customers: ' + customersRes.error.message);
+        }
+        
+        // Store raw data
+        this.data.vehicles = vehiclesRes.data || [];
+        this.data.customers = customersRes.data || [];
+        this.data.rentals = rentalsRes.data || [];
+        
+        // Create lookup maps for efficient joins
+        const customersMap = {};
+        this.data.customers.forEach(c => { customersMap[c.id] = c; });
+        
+        const vehiclesMap = {};
+        this.data.vehicles.forEach(v => { vehiclesMap[v.id] = v; });
+        
+        const rentalsMap = {};
+        this.data.rentals.forEach(r => { rentalsMap[r.id] = r; });
+        
+        // Enrich payments with customer and rental data (manual join)
+        this.data.payments = (paymentsRes.data || []).map(payment => {
+            // Try to get customer directly or through rental
+            let customer = null;
+            let rental = null;
+            let vehicle = null;
+            
+            // Get customer if customer_id exists on payment
+            if (payment.customer_id) {
+                customer = customersMap[payment.customer_id] || null;
+            }
+            
+            // Get rental if rental_id exists
+            if (payment.rental_id) {
+                rental = rentalsMap[payment.rental_id] || null;
+                
+                // Get customer from rental if not directly on payment
+                if (!customer && rental && rental.customer_id) {
+                    customer = customersMap[rental.customer_id] || null;
+                }
+                
+                // Get vehicle from rental
+                if (rental && rental.vehicle_id) {
+                    vehicle = vehiclesMap[rental.vehicle_id] || null;
+                }
+            }
+            
+            return {
+                ...payment,
+                customer: customer,
+                rental: rental,
+                vehicle: vehicle
+            };
+        });
+        
+        // Enrich rentals with customer and vehicle data
+        this.data.rentals = this.data.rentals.map(rental => {
+            return {
+                ...rental,
+                customers: rental.customer_id ? customersMap[rental.customer_id] : null,
+                vehicles: rental.vehicle_id ? vehiclesMap[rental.vehicle_id] : null
+            };
+        });
+        
+        console.log('✅ Reports data loaded:', {
+            payments: this.data.payments.length,
+            rentals: this.data.rentals.length,
+            vehicles: this.data.vehicles.length,
+            customers: this.data.customers.length
+        });
     },
 
     /**
@@ -401,7 +484,7 @@ const Reports = {
         });
         
         const confirmedPayments = periodPayments.filter(p => 
-            (p.payment_status || p.status || '').toLowerCase() === 'confirmed'
+            this.isCompletedPayment(p.payment_status || p.status)
         );
         
         // Calculate metrics
@@ -433,7 +516,7 @@ const Reports = {
         const prevPayments = payments.filter(p => {
             const payDate = new Date(p.paid_date);
             const status = (p.payment_status || p.status || '').toLowerCase();
-            return payDate >= prevRange.start && payDate <= prevRange.end && status === 'confirmed';
+            return payDate >= prevRange.start && payDate <= prevRange.end && this.isCompletedPayment(status);
         });
         const prevRevenue = prevPayments.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
         const revenueChange = prevRevenue > 0 
@@ -533,7 +616,7 @@ const Reports = {
      */
     calculateRevenueData(payments, view) {
         const confirmedPayments = payments.filter(p => 
-            (p.payment_status || p.status || '').toLowerCase() === 'confirmed'
+            this.isCompletedPayment(p.payment_status || p.status)
         );
         
         const data = [];
@@ -604,7 +687,7 @@ const Reports = {
         const periodPayments = payments.filter(p => {
             const payDate = new Date(p.paid_date);
             const status = (p.payment_status || p.status || '').toLowerCase();
-            return payDate >= dateRange.start && payDate <= dateRange.end && status === 'confirmed';
+            return payDate >= dateRange.start && payDate <= dateRange.end && this.isCompletedPayment(status);
         });
         
         // Count by method
@@ -690,7 +773,7 @@ const Reports = {
         const periodPayments = payments.filter(p => {
             const payDate = new Date(p.paid_date);
             const status = (p.payment_status || p.status || '').toLowerCase();
-            return payDate >= dateRange.start && payDate <= dateRange.end && status === 'confirmed';
+            return payDate >= dateRange.start && payDate <= dateRange.end && this.isCompletedPayment(status);
         });
         
         // Calculate revenue by customer
@@ -859,7 +942,7 @@ const Reports = {
         const periodPayments = payments.filter(p => {
             const payDate = new Date(p.paid_date);
             const status = (p.payment_status || p.status || '').toLowerCase();
-            return payDate >= dateRange.start && payDate <= dateRange.end && status === 'confirmed';
+            return payDate >= dateRange.start && payDate <= dateRange.end && this.isCompletedPayment(status);
         });
         
         // Calculate revenue by vehicle through rentals
@@ -1199,7 +1282,7 @@ const Reports = {
         const periodPayments = payments.filter(p => {
             const payDate = new Date(p.paid_date);
             const status = (p.payment_status || p.status || '').toLowerCase();
-            return payDate >= dateRange.start && payDate <= dateRange.end && status === 'confirmed';
+            return payDate >= dateRange.start && payDate <= dateRange.end && this.isCompletedPayment(status);
         });
         
         const methodCounts = {};
@@ -1234,7 +1317,7 @@ const Reports = {
         const periodPayments = payments.filter(p => {
             const payDate = new Date(p.paid_date);
             const status = (p.payment_status || p.status || '').toLowerCase();
-            return payDate >= dateRange.start && payDate <= dateRange.end && status === 'confirmed';
+            return payDate >= dateRange.start && payDate <= dateRange.end && this.isCompletedPayment(status);
         });
         
         const vehicleRevenue = {};
