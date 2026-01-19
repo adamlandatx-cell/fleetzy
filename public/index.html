@@ -1066,16 +1066,18 @@
         errorEl.classList.add('hidden');
 
         try {
+            // Load ALL vehicles (not just Active) to show fleet with status badges
             const { data: vehicles, error } = await supabaseClient
                 .from('vehicles')
                 .select('*')
-                .eq('status', 'Active')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
 
+            // Count available vehicles for stat
+            const availableCount = vehicles?.filter(v => v.status === 'Active' || v.status === 'Available').length || 0;
             if (countStatEl) {
-                countStatEl.textContent = vehicles?.length || 0;
+                countStatEl.textContent = availableCount;
             }
 
             loadingEl.classList.add('hidden');
@@ -1096,6 +1098,43 @@
         }
     }
 
+    // Get status badge HTML based on vehicle status
+    function getStatusBadge(status) {
+        const statusLower = (status || '').toLowerCase();
+        
+        if (statusLower === 'active' || statusLower === 'available') {
+            return {
+                bgClass: 'bg-brand-emerald/90',
+                text: 'Available',
+                pulse: true
+            };
+        } else if (statusLower === 'rented' || statusLower === 'currently rented') {
+            return {
+                bgClass: 'bg-blue-500/90',
+                text: 'Currently Rented',
+                pulse: false
+            };
+        } else if (statusLower === 'maintenance' || statusLower === 'in service') {
+            return {
+                bgClass: 'bg-amber-500/90',
+                text: 'In Service',
+                pulse: false
+            };
+        } else if (statusLower === 'reserved') {
+            return {
+                bgClass: 'bg-purple-500/90',
+                text: 'Reserved',
+                pulse: false
+            };
+        } else {
+            return {
+                bgClass: 'bg-slate-500/90',
+                text: status || 'Unknown',
+                pulse: false
+            };
+        }
+    }
+
     // Create vehicle card HTML
     function createVehicleCard(vehicle) {
         const imageUrl = vehicle.image_url || DEFAULT_VEHICLE_IMAGE;
@@ -1103,27 +1142,31 @@
         const make = vehicle.make || '';
         const model = vehicle.model || '';
         const color = vehicle.color || '';
+        const friendlyName = vehicle.friendly_name || `${year} ${make} ${model}`;
         const weeklyRate = 400;
         const mileage = vehicle.current_mileage ? vehicle.current_mileage.toLocaleString() : 'N/A';
+        
+        const statusBadge = getStatusBadge(vehicle.status);
+        const isAvailable = (vehicle.status || '').toLowerCase() === 'active' || (vehicle.status || '').toLowerCase() === 'available';
 
         return `
-            <div class="vehicle-card rounded-2xl overflow-hidden">
+            <div class="vehicle-card rounded-2xl overflow-hidden ${!isAvailable ? 'opacity-80' : ''}">
                 <div class="relative">
                     <img 
                         src="${imageUrl}" 
-                        alt="${year} ${make} ${model}"
+                        alt="${friendlyName}"
                         class="w-full h-48 object-cover"
                         onerror="this.src='${DEFAULT_VEHICLE_IMAGE}'"
                     >
                     <div class="absolute top-4 right-4">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-brand-emerald/90 text-white backdrop-blur-sm">
-                            <span class="w-1.5 h-1.5 bg-white rounded-full status-pulse"></span>
-                            Available
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${statusBadge.bgClass} text-white backdrop-blur-sm">
+                            ${statusBadge.pulse ? '<span class="w-1.5 h-1.5 bg-white rounded-full status-pulse"></span>' : ''}
+                            ${statusBadge.text}
                         </span>
                     </div>
                 </div>
                 <div class="p-6">
-                    <h4 class="text-xl font-bold mb-1">${year} ${make} ${model}</h4>
+                    <h4 class="text-xl font-bold mb-1">${friendlyName}</h4>
                     <p class="text-slate-500 text-sm mb-4">${color} • ${mileage} miles</p>
                     
                     <div class="flex items-center justify-between mb-5">
@@ -1139,9 +1182,15 @@
                         </div>
                     </div>
 
-                    <a href="application.html" class="btn-primary block text-center text-white py-3 rounded-xl font-semibold text-sm">
-                        Apply for This Vehicle
-                    </a>
+                    ${isAvailable ? `
+                        <a href="application.html" class="btn-primary block text-center text-white py-3 rounded-xl font-semibold text-sm">
+                            Apply for This Vehicle
+                        </a>
+                    ` : `
+                        <button disabled class="w-full block text-center text-slate-400 py-3 rounded-xl font-semibold text-sm bg-slate-700/50 cursor-not-allowed">
+                            ${statusBadge.text}
+                        </button>
+                    `}
                 </div>
             </div>
         `;
