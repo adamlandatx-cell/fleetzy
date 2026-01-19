@@ -408,7 +408,8 @@ const Customers = {
                 : '<i class="fas fa-clipboard-check"></i> Review Application';
         }
         
-        // Show modal
+        // Show modal - clear any inline display:none set by sidebar.closeAllModals()
+        modal.style.display = '';  // Clear inline style so CSS can work
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
     },

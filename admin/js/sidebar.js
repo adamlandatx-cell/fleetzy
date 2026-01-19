@@ -185,10 +185,11 @@ const Sidebar = {
         document.body.style.overflowX = '';
         document.body.style.overflowY = '';
         
-        // Close all modals by removing 'active' class and display
+        // Close all modals by removing 'active' class
+        // Note: CSS uses visibility/opacity for show/hide, NOT display
         document.querySelectorAll('.modal').forEach(modal => {
             modal.classList.remove('active');
-            modal.style.display = 'none';
+            modal.style.display = '';  // Clear any inline style
         });
         
         // Also remove any dynamically created modals
