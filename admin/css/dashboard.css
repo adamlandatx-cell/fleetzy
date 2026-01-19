@@ -4041,6 +4041,7 @@ img {
     flex-direction: column-reverse;
     align-items: center;
     gap: var(--space-sm);
+    pointer-events: none; /* Don't block clicks on elements behind */
 }
 
 .fab {
@@ -4057,6 +4058,7 @@ img {
     font-size: 20px;
     box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
     transition: all 0.3s var(--ease-out);
+    pointer-events: auto; /* But allow clicks on the actual button */
 }
 
 .fab:hover {
@@ -4099,6 +4101,7 @@ img {
     font-size: 13px;
     font-weight: 500;
     transition: all 0.2s;
+    pointer-events: auto; /* Allow clicks on menu items */
 }
 
 .fab-menu-item:hover {
