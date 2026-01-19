@@ -544,6 +544,7 @@ img {
     justify-content: center;
     opacity: 0.5;
     transition: all 0.3s ease;
+    pointer-events: none; /* Don't block clicks */
 }
 
 .stat-card.stat-card-clickable:hover {
@@ -571,6 +572,7 @@ img {
     margin-left: auto;
     opacity: 0;
     transition: opacity 0.3s ease;
+    pointer-events: none; /* Don't block clicks */
 }
 
 .stat-card.stat-card-clickable:hover .stat-header::after {
