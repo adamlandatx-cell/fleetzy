@@ -5731,10 +5731,29 @@ html {
 }
 
 /* ============================================
-   FIX: Make .modal visible inside .modal-overlay.active
+   FIX: Modal inside modal-overlay positioning
+   The .modal class has position:fixed which breaks
+   when it's nested inside .modal-overlay
    ============================================ */
+.modal-overlay .modal {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100%;
+    max-width: 500px;
+    background: var(--card-bg, #1e293b);
+    border: 1px solid var(--card-border, #334155);
+    border-radius: 16px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
 .modal-overlay.active .modal {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1) translateY(0);
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: scale(1) translateY(0) !important;
 }
