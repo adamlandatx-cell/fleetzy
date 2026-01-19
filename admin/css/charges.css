@@ -1,0 +1,454 @@
+/* ============================================
+   FLEETZY - UPCOMING PAYMENTS & CHARGES STYLES
+   ============================================ */
+
+/* ============================================
+   UPCOMING PAYMENTS CARD
+   ============================================ */
+.upcoming-payments-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.upcoming-payments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%);
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.upcoming-payments-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.upcoming-payments-title i {
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.upcoming-mini-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.upcoming-mini-stat {
+    text-align: center;
+}
+
+.upcoming-mini-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.upcoming-mini-stat-value.warning {
+    color: #f59e0b;
+}
+
+.upcoming-mini-stat-label {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Payment Items */
+.upcoming-payment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-primary);
+    transition: background 0.2s;
+}
+
+.upcoming-payment-item:last-child {
+    border-bottom: none;
+}
+
+.upcoming-payment-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.upcoming-payment-item.due-tomorrow {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 3px solid #f59e0b;
+}
+
+.upcoming-payment-item.due-tomorrow:hover {
+    background: rgba(245, 158, 11, 0.15);
+}
+
+.payment-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.payment-item-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.payment-item-vehicle {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.payment-item-due {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.payment-item-due.tomorrow {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.payment-item-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.payment-item-amount {
+    text-align: right;
+}
+
+.payment-amount-base {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.payment-amount-charges {
+    font-size: 11px;
+    color: #f59e0b;
+}
+
+.payment-item-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-icon-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border-primary);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-icon-small:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.btn-icon-small.toll-check {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.btn-icon-small.toll-check:hover {
+    background: #f59e0b;
+    color: white;
+}
+
+/* ============================================
+   ADD CHARGE MODAL
+   ============================================ */
+.charge-type-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 640px) {
+    .charge-type-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.charge-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    border: 2px solid var(--border-primary);
+    border-radius: 10px;
+    background: var(--bg-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.charge-type-btn:hover {
+    border-color: var(--primary);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.charge-type-btn.selected {
+    border-color: var(--primary);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.charge-type-btn i {
+    font-size: 20px;
+    color: var(--text-secondary);
+}
+
+.charge-type-btn.selected i {
+    color: var(--primary);
+}
+
+.charge-type-btn span {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.charge-type-btn.selected span {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Charge type specific colors */
+.charge-type-btn[data-type="toll"] i { color: #3b82f6; }
+.charge-type-btn[data-type="damage"] i { color: #ef4444; }
+.charge-type-btn[data-type="cleaning"] i { color: #8b5cf6; }
+.charge-type-btn[data-type="late_fee"] i { color: #f59e0b; }
+.charge-type-btn[data-type="deposit_replenish"] i { color: #10b981; }
+.charge-type-btn[data-type="mileage_overage"] i { color: #6366f1; }
+.charge-type-btn[data-type="other"] i { color: #6b7280; }
+
+/* Quick Amount Buttons */
+.quick-amounts {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.quick-amount-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border-primary);
+    border-radius: 20px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-amount-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+/* ============================================
+   AI INSIGHTS - TOLL ALERT
+   ============================================ */
+.insight-card.toll-alert {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.insight-card.toll-alert .insight-icon {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.toll-alert-customers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.toll-alert-customer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.toll-alert-customer i {
+    color: #f59e0b;
+    font-size: 10px;
+}
+
+/* ============================================
+   CHARGES LIST (In Payment Modal)
+   ============================================ */
+.charges-list {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.charges-list-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.charge-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.charge-item:last-child {
+    border-bottom: none;
+}
+
+.charge-item-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.charge-item-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.charge-item-icon.toll { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.charge-item-icon.damage { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.charge-item-icon.cleaning { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.charge-item-icon.late_fee { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.charge-item-icon.deposit_replenish { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.charge-item-icon.mileage_overage { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+.charge-item-icon.other { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
+
+.charge-item-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.charge-item-type {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-transform: capitalize;
+}
+
+.charge-item-desc {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.charge-item-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.charge-item-amount {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.charge-status {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+}
+
+.charge-status.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.charge-status.applied {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.charge-status.waived {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.upcoming-empty {
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--text-tertiary);
+}
+
+.upcoming-empty i {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.upcoming-empty p {
+    font-size: 13px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .upcoming-payments-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .upcoming-mini-stats {
+        width: 100%;
+        justify-content: space-around;
+    }
+    
+    .upcoming-payment-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .payment-item-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
