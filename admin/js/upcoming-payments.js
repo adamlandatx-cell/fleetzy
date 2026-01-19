@@ -1,19 +1,34 @@
 /* ============================================
    UPCOMING PAYMENTS - Dashboard Enhancement
-   Add these functions to your dashboard.js
-   OR include this file after dashboard.js
+   FIXED VERSION - Better error handling
    ============================================ */
 
 /**
  * Load and render upcoming payments
- * Call this from your Dashboard.load() function
  */
 async function loadUpcomingPayments() {
     const container = document.getElementById('upcoming-payments-list');
-    if (!container) return;
+    if (!container) {
+        console.warn('Upcoming payments container not found');
+        return;
+    }
+    
+    // Show loading state
+    container.innerHTML = `
+        <div class="upcoming-loading" style="padding: 20px; text-align: center;">
+            <i class="fas fa-spinner fa-spin" style="color: var(--primary); margin-bottom: 8px;"></i>
+            <p style="color: var(--text-secondary); font-size: 13px;">Loading payments...</p>
+        </div>
+    `;
     
     try {
+        // First check if db is available
+        if (typeof db === 'undefined') {
+            throw new Error('Supabase client not initialized. Check if config.js is loaded.');
+        }
+        
         // Get active rentals with next_payment_due
+        console.log('Fetching active rentals...');
         const { data: rentals, error } = await db
             .from('rentals')
             .select(`
@@ -22,25 +37,63 @@ async function loadUpcomingPayments() {
                 weekly_rate,
                 next_payment_due,
                 rental_status,
-                customers (id, first_name, last_name, phone),
-                vehicles (id, make, model, license_plate)
+                customer_id,
+                vehicle_id
             `)
             .eq('rental_status', 'active')
             .not('next_payment_due', 'is', null)
             .order('next_payment_due', { ascending: true });
         
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase query error:', error);
+            throw error;
+        }
+        
+        console.log('Found rentals:', rentals?.length || 0);
         
         if (!rentals || rentals.length === 0) {
             container.innerHTML = `
-                <div class="upcoming-empty">
-                    <i class="fas fa-check-circle"></i>
-                    <p>No upcoming payments</p>
+                <div class="upcoming-empty" style="padding: 30px; text-align: center;">
+                    <i class="fas fa-check-circle" style="font-size: 36px; color: var(--primary); margin-bottom: 12px;"></i>
+                    <p style="color: var(--text-secondary);">No upcoming payments</p>
+                    <p style="color: var(--text-tertiary); font-size: 12px;">Active rentals with due dates will appear here</p>
                 </div>
             `;
             updateUpcomingStats([], []);
             return;
         }
+        
+        // Now fetch customer and vehicle data separately for each rental
+        // This avoids issues with foreign key joins
+        const enrichedRentals = await Promise.all(rentals.map(async (rental) => {
+            // Get customer - NOTE: DB uses full_name, not first_name/last_name
+            let customer = null;
+            if (rental.customer_id) {
+                const { data: custData } = await db
+                    .from('customers')
+                    .select('id, full_name, phone')
+                    .eq('id', rental.customer_id)
+                    .single();
+                customer = custData;
+            }
+            
+            // Get vehicle
+            let vehicle = null;
+            if (rental.vehicle_id) {
+                const { data: vehData } = await db
+                    .from('vehicles')
+                    .select('id, make, model, license_plate')
+                    .eq('id', rental.vehicle_id)
+                    .single();
+                vehicle = vehData;
+            }
+            
+            return {
+                ...rental,
+                customers: customer,
+                vehicles: vehicle
+            };
+        }));
         
         // Calculate dates
         const today = new Date();
@@ -57,7 +110,7 @@ async function loadUpcomingPayments() {
         const dueThisWeek = [];
         const dueLater = [];
         
-        rentals.forEach(rental => {
+        enrichedRentals.forEach(rental => {
             const dueDate = new Date(rental.next_payment_due);
             dueDate.setHours(0, 0, 0, 0);
             
@@ -102,9 +155,10 @@ async function loadUpcomingPayments() {
         // Show message if nothing urgent
         if (dueTomorrow.length === 0 && dueThisWeek.length === 0) {
             html = `
-                <div class="upcoming-empty">
-                    <i class="fas fa-calendar-check" style="color: var(--primary);"></i>
-                    <p>No payments due this week</p>
+                <div class="upcoming-empty" style="padding: 30px; text-align: center;">
+                    <i class="fas fa-calendar-check" style="font-size: 36px; color: var(--primary); margin-bottom: 12px;"></i>
+                    <p style="color: var(--text-secondary);">No payments due this week</p>
+                    <p style="color: var(--text-tertiary); font-size: 12px;">${enrichedRentals.length} active rental(s)</p>
                 </div>
             `;
         }
@@ -119,9 +173,16 @@ async function loadUpcomingPayments() {
     } catch (error) {
         console.error('Error loading upcoming payments:', error);
         container.innerHTML = `
-            <div class="upcoming-empty">
-                <i class="fas fa-exclamation-circle" style="color: var(--danger);"></i>
-                <p>Error loading payments</p>
+            <div class="upcoming-empty" style="padding: 30px; text-align: center;">
+                <i class="fas fa-exclamation-circle" style="font-size: 36px; color: var(--danger); margin-bottom: 12px;"></i>
+                <p style="color: var(--text-secondary);">Error loading payments</p>
+                <p style="color: var(--text-tertiary); font-size: 12px; max-width: 200px; margin: 8px auto 0;">
+                    ${error.message || 'Check console for details'}
+                </p>
+                <button onclick="loadUpcomingPayments()" 
+                    style="margin-top: 12px; padding: 6px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-primary); border-radius: 6px; color: var(--text-secondary); cursor: pointer; font-size: 12px;">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
             </div>
         `;
     }
@@ -131,11 +192,11 @@ async function loadUpcomingPayments() {
  * Render a single upcoming payment item
  */
 function renderUpcomingPaymentItem(rental, isUrgent) {
-    const customerName = rental.customers ? 
-        `${rental.customers.first_name} ${rental.customers.last_name}` : 'Unknown';
+    // DB uses full_name, not first_name/last_name
+    const customerName = rental.customers?.full_name || 'Unknown';
     const vehicleInfo = rental.vehicles ? 
-        `${rental.vehicles.make} ${rental.vehicles.model}` : 'Unknown';
-    const licensePlate = rental.vehicles?.license_plate || '';
+        `${rental.vehicles.make || ''} ${rental.vehicles.model || ''}`.trim() || 'Unknown' : 'Unknown';
+    const licensePlate = rental.vehicles?.license_plate || 'N/A';
     const dueDate = new Date(rental.next_payment_due);
     const dueDateStr = dueDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     
@@ -155,7 +216,7 @@ function renderUpcomingPaymentItem(rental, isUrgent) {
             </div>
             <div class="payment-item-right">
                 <div class="payment-item-amount">
-                    <div class="payment-amount-base">$${parseFloat(rental.weekly_rate).toFixed(0)}</div>
+                    <div class="payment-amount-base">$${parseFloat(rental.weekly_rate || 0).toFixed(0)}</div>
                 </div>
                 <div class="payment-item-actions">
                     ${isUrgent ? `
@@ -186,24 +247,17 @@ function updateUpcomingStats(dueTomorrow, dueThisWeek) {
 }
 
 /**
- * Show toll check alert in AI Insights panel (if it exists)
+ * Show toll check alert in AI Insights panel
  */
 function showTollCheckAlert(urgentRentals) {
-    // Look for an AI insights container
     const insightsContainer = document.getElementById('ai-insights') || 
                               document.querySelector('.ai-insights') ||
                               document.querySelector('[data-insights]');
     
     if (!insightsContainer) {
-        // No AI insights panel, just log
         console.log('Toll Check Alert: ' + urgentRentals.length + ' payments due tomorrow');
         return;
     }
-    
-    // Create alert HTML
-    const customerNames = urgentRentals.map(r => 
-        r.customers ? `${r.customers.first_name} ${r.customers.last_name}` : 'Unknown'
-    ).join(', ');
     
     const alertHtml = `
         <div class="insight-card toll-alert" style="margin-bottom: 12px;">
@@ -219,27 +273,18 @@ function showTollCheckAlert(urgentRentals) {
                         ${urgentRentals.length} payment${urgentRentals.length > 1 ? 's' : ''} due tomorrow. 
                         Check toll charges before collecting.
                     </div>
-                    <div class="toll-alert-customers">
-                        ${urgentRentals.slice(0, 3).map(r => `
-                            <span class="toll-alert-customer">
-                                <i class="fas fa-user"></i>
-                                ${r.customers?.first_name || 'Unknown'}
-                            </span>
-                        `).join('')}
-                        ${urgentRentals.length > 3 ? `<span class="toll-alert-customer">+${urgentRentals.length - 3} more</span>` : ''}
-                    </div>
                 </div>
             </div>
         </div>
     `;
     
-    // Prepend to insights container
+    // Remove existing toll alerts first
+    insightsContainer.querySelectorAll('.toll-alert').forEach(el => el.remove());
     insightsContainer.insertAdjacentHTML('afterbegin', alertHtml);
 }
 
-// Auto-load when DOM is ready (if Dashboard exists, hook into it)
+// Auto-load when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Try to load after a short delay to let other scripts initialize
     setTimeout(() => {
         loadUpcomingPayments();
     }, 500);
