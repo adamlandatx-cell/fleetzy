@@ -99,6 +99,9 @@ const Sidebar = {
             return;
         }
         
+        // IMPORTANT: Close any open modals and reset scroll
+        this.closeAllModals();
+        
         // Update active state
         this.activeSection = section;
         
@@ -170,11 +173,46 @@ const Sidebar = {
      */
     getCurrentSection() {
         return this.activeSection;
+    },
+    
+    /**
+     * Close all open modals and reset body scroll
+     * This prevents the "stuck scroll" bug when navigating with modals open
+     */
+    closeAllModals() {
+        // Reset body overflow (critical fix for stuck scroll)
+        document.body.style.overflow = '';
+        document.body.style.overflowX = '';
+        document.body.style.overflowY = '';
+        
+        // Close all modals by removing 'active' class and display
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        });
+        
+        // Also remove any dynamically created modals
+        const dynamicModals = document.querySelectorAll('#modal-pending-actions, #modal-screenshot-preview');
+        dynamicModals.forEach(modal => modal.remove());
+        
+        console.log('🔄 All modals closed, scroll reset');
     }
 };
 
 // Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => Sidebar.init());
+document.addEventListener('DOMContentLoaded', () => {
+    Sidebar.init();
+    
+    // Reset body scroll on page load (fixes stuck scroll if page was refreshed with modal open)
+    document.body.style.overflow = '';
+    
+    // Add global escape key handler to close modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            Sidebar.closeAllModals();
+        }
+    });
+});
 
 // Export
 window.Sidebar = Sidebar;

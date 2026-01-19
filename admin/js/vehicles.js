@@ -59,6 +59,13 @@ const Vehicles = {
     },
     
     /**
+     * Get the status of a vehicle (handles both 'status' and 'vehicle_status' columns)
+     */
+    getVehicleStatus(vehicle) {
+        return vehicle.status || vehicle.vehicle_status || 'Unknown';
+    },
+    
+    /**
      * Filter vehicles based on search and status
      */
     filter() {
@@ -74,8 +81,9 @@ const Vehicles = {
                 vehicle.vehicle_id?.toLowerCase().includes(searchTerm) ||
                 vehicle.vin?.toLowerCase().includes(searchTerm);
             
-            // Status filter
-            const statusMatch = !statusFilter || vehicle.status === statusFilter;
+            // Status filter - handle both 'status' and 'vehicle_status' columns
+            const vehicleStatus = this.getVehicleStatus(vehicle);
+            const statusMatch = !statusFilter || vehicleStatus === statusFilter;
             
             return searchMatch && statusMatch;
         });
@@ -88,9 +96,9 @@ const Vehicles = {
      */
     updateStats() {
         const total = this.data.length;
-        const available = this.data.filter(v => v.status === 'Available').length;
-        const rented = this.data.filter(v => v.status === 'Rented').length;
-        const maintenance = this.data.filter(v => v.status === 'Maintenance').length;
+        const available = this.data.filter(v => this.getVehicleStatus(v) === 'Available').length;
+        const rented = this.data.filter(v => this.getVehicleStatus(v) === 'Rented').length;
+        const maintenance = this.data.filter(v => this.getVehicleStatus(v) === 'Maintenance').length;
         
         // Update stat elements if they exist
         const totalEl = document.getElementById('vehicles-stat-total');
@@ -133,8 +141,9 @@ const Vehicles = {
      * Render single vehicle row
      */
     renderRow(vehicle) {
-        const statusClass = this.getStatusClass(vehicle.status);
-        const statusLabel = vehicle.status || 'Unknown';
+        const vehicleStatus = this.getVehicleStatus(vehicle);
+        const statusClass = this.getStatusClass(vehicleStatus);
+        const statusLabel = vehicleStatus || 'Unknown';
         
         return `
             <tr data-vehicle-id="${vehicle.id}">
@@ -344,7 +353,7 @@ const Vehicles = {
         
         // Populate the modal with vehicle data
         const imageContainer = document.getElementById('view-vehicle-image');
-        const status = vehicle.status || 'Available';
+        const status = this.getVehicleStatus(vehicle);
         const statusClass = status.toLowerCase().replace(' ', '-');
         
         if (vehicle.image_url) {
@@ -417,7 +426,7 @@ const Vehicles = {
         document.getElementById('edit-vehicle-vin').value = vehicle.vin || '';
         document.getElementById('edit-vehicle-license-plate').value = vehicle.license_plate || '';
         document.getElementById('edit-vehicle-color').value = vehicle.color || '';
-        document.getElementById('edit-vehicle-status').value = vehicle.status || 'Available';
+        document.getElementById('edit-vehicle-status').value = this.getVehicleStatus(vehicle);
         document.getElementById('edit-vehicle-weekly-rate').value = vehicle.weekly_rate || 400;
         document.getElementById('edit-vehicle-mileage').value = vehicle.current_mileage || 0;
         document.getElementById('edit-vehicle-purchase-price').value = vehicle.purchase_price || '';
@@ -451,6 +460,7 @@ const Vehicles = {
             return;
         }
         
+        const statusValue = document.getElementById('edit-vehicle-status')?.value;
         const updateData = {
             vehicle_id: document.getElementById('edit-vehicle-display-id')?.value,
             make: document.getElementById('edit-vehicle-make')?.value,
@@ -459,7 +469,8 @@ const Vehicles = {
             vin: document.getElementById('edit-vehicle-vin')?.value,
             license_plate: document.getElementById('edit-vehicle-license-plate')?.value,
             color: document.getElementById('edit-vehicle-color')?.value,
-            status: document.getElementById('edit-vehicle-status')?.value,
+            status: statusValue,
+            vehicle_status: statusValue, // Update both columns for consistency
             weekly_rate: parseFloat(document.getElementById('edit-vehicle-weekly-rate')?.value) || 400,
             current_mileage: parseInt(document.getElementById('edit-vehicle-mileage')?.value) || 0,
             purchase_price: parseFloat(document.getElementById('edit-vehicle-purchase-price')?.value) || null,
@@ -500,17 +511,30 @@ const Vehicles = {
             return;
         }
         
-        // Cycle through statuses
+        // Cycle through statuses - handle both column names
         const statuses = CONFIG.vehicleStatuses;
-        const currentIndex = statuses.indexOf(vehicle.status);
-        const nextIndex = (currentIndex + 1) % statuses.length;
-        const newStatus = statuses[nextIndex];
+        const currentStatus = this.getVehicleStatus(vehicle);
+        const currentIndex = statuses.findIndex(s => 
+            s.toLowerCase() === currentStatus.toLowerCase()
+        );
+        
+        // If current status not found (including null/empty), start at 'Available'
+        let newStatus;
+        if (currentIndex === -1) {
+            newStatus = statuses[0]; // Default to 'Available'
+            console.log(`⚠️ Vehicle status "${currentStatus}" not recognized, setting to ${newStatus}`);
+        } else {
+            const nextIndex = (currentIndex + 1) % statuses.length;
+            newStatus = statuses[nextIndex];
+        }
         
         try {
+            // Update BOTH status columns to ensure consistency
             const { error } = await db
                 .from('vehicles')
                 .update({ 
                     status: newStatus,
+                    vehicle_status: newStatus,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', vehicleId);
@@ -522,7 +546,7 @@ const Vehicles = {
             
         } catch (error) {
             console.error('Error toggling status:', error);
-            Utils.toastError('Failed to change status');
+            Utils.toastError('Failed to change status: ' + (error.message || 'Unknown error'));
         }
     },
     
