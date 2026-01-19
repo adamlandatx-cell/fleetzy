@@ -253,7 +253,7 @@ const Dashboard = {
         });
         
         // Fleet optimization insight
-        const availableVehicles = vehicles.filter(v => v.status === 'Available').length;
+        const availableVehicles = vehicles.filter(v => v.vehicle_status === 'Available').length;
         if (availableVehicles > 1) {
             insights.push({
                 type: 'info',
