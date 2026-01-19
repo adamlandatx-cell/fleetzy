@@ -227,61 +227,156 @@ const Dashboard = {
      * NEW: Open pending actions modal
      */
     openPendingActionsModal() {
-        const { applications, payments, rentals } = this.pendingData;
+        console.log('🔥 openPendingActionsModal called!');
+        
+        const { applications = [], payments = [], rentals = [] } = this.pendingData || {};
         const total = applications.length + payments.length + rentals.length;
         
+        console.log('📋 Pending data:', { applications: applications.length, payments: payments.length, rentals: rentals.length, total });
+        
+        // Always show modal, even if empty
+        let emptyMessage = '';
         if (total === 0) {
-            Utils.toastSuccess('All caught up! No pending actions.');
-            return;
+            emptyMessage = `
+                <div style="padding: 40px; text-align: center; color: var(--text-muted, #888);">
+                    <i class="fas fa-check-circle" style="font-size: 48px; color: #10b981; margin-bottom: 16px; display: block;"></i>
+                    <h3 style="margin: 0 0 8px 0; color: var(--text-primary, #fff);">All Caught Up!</h3>
+                    <p style="margin: 0;">No pending actions at this time.</p>
+                </div>
+            `;
         }
         
-        // Create modal content
+        // Create modal content with proper inline styles for visibility
         let modalHTML = `
-            <div class="modal" id="modal-pending-actions" style="display: block;">
-                <div class="modal-backdrop" onclick="Dashboard.closePendingActionsModal()"></div>
-                <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
-                    <div class="modal-header">
-                        <h3 class="modal-title">
-                            <i class="fas fa-clock" style="color: var(--accent-amber);"></i>
+            <div id="modal-pending-actions" style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            ">
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    backdrop-filter: blur(4px);
+                " onclick="Dashboard.closePendingActionsModal()"></div>
+                <div style="
+                    position: relative;
+                    background: var(--bg-card-solid, #1a1a2e);
+                    border: 1px solid var(--border-medium, #333);
+                    border-radius: 16px;
+                    width: 100%;
+                    max-width: 500px;
+                    max-height: 80vh;
+                    overflow: hidden;
+                    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+                    animation: modalSlideIn 0.3s ease;
+                ">
+                    <style>
+                        @keyframes modalSlideIn {
+                            from { opacity: 0; transform: scale(0.95) translateY(-20px); }
+                            to { opacity: 1; transform: scale(1) translateY(0); }
+                        }
+                    </style>
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 20px 24px;
+                        border-bottom: 1px solid var(--border-subtle, #2a2a3e);
+                    ">
+                        <h3 style="font-size: 18px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-clock" style="color: #f59e0b;"></i>
                             Pending Actions (${total})
                         </h3>
-                        <button class="modal-close" onclick="Dashboard.closePendingActionsModal()">
+                        <button onclick="Dashboard.closePendingActionsModal()" style="
+                            width: 36px;
+                            height: 36px;
+                            border: none;
+                            background: transparent;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: var(--text-tertiary, #888);
+                            transition: all 0.2s;
+                        " onmouseover="this.style.background='var(--bg-tertiary, #2a2a3e)'" onmouseout="this.style.background='transparent'">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    <div class="modal-body" style="padding: 0;">
+                    <div style="max-height: calc(80vh - 80px); overflow-y: auto;">
         `;
+        
+        // Show empty state if no pending items
+        if (total === 0) {
+            modalHTML += emptyMessage;
+        }
         
         // Pending Applications Section
         if (applications.length > 0) {
             modalHTML += `
-                <div class="pending-section">
-                    <div class="pending-section-header" onclick="Sidebar.navigate('customers'); Dashboard.closePendingActionsModal();">
-                        <span><i class="fas fa-user-plus"></i> New Applications (${applications.length})</span>
-                        <i class="fas fa-chevron-right"></i>
+                <div style="border-bottom: 1px solid var(--border-subtle, #2a2a3e);">
+                    <div onclick="Sidebar.navigate('customers'); Dashboard.closePendingActionsModal();" style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 14px 24px;
+                        background: var(--bg-secondary, #1e1e32);
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='var(--bg-tertiary, #2a2a3e)'" onmouseout="this.style.background='var(--bg-secondary, #1e1e32)'">
+                        <span style="font-weight: 500;"><i class="fas fa-user-plus" style="color: #8b5cf6; margin-right: 8px;"></i> New Applications (${applications.length})</span>
+                        <i class="fas fa-chevron-right" style="color: var(--text-muted, #666); font-size: 12px;"></i>
                     </div>
-                    <div class="pending-items">
+                    <div style="padding: 8px 0;">
             `;
             applications.slice(0, 5).forEach(app => {
                 const name = app.full_name || `${app.first_name || ''} ${app.last_name || ''}`.trim() || 'Unknown';
                 const date = app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A';
                 modalHTML += `
-                    <div class="pending-item" onclick="Sidebar.navigate('customers'); Dashboard.closePendingActionsModal();">
-                        <div class="pending-item-avatar">
+                    <div onclick="Sidebar.navigate('customers'); Dashboard.closePendingActionsModal();" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        padding: 10px 24px;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='var(--bg-secondary, #1e1e32)'" onmouseout="this.style.background='transparent'">
+                        <div style="
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            background: var(--bg-tertiary, #2a2a3e);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            overflow: hidden;
+                            flex-shrink: 0;
+                        ">
                             ${app.selfie_url 
-                                ? `<img src="${app.selfie_url}" alt="${name}">` 
-                                : `<i class="fas fa-user"></i>`}
+                                ? `<img src="${app.selfie_url}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">` 
+                                : `<i class="fas fa-user" style="color: var(--text-muted, #666);"></i>`}
                         </div>
-                        <div class="pending-item-info">
-                            <div class="pending-item-name">${name}</div>
-                            <div class="pending-item-detail">Applied ${date}</div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</div>
+                            <div style="font-size: 12px; color: var(--text-muted, #888);">Applied ${date}</div>
                         </div>
-                        <span class="status-badge pending">Review</span>
+                        <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">Review</span>
                     </div>
                 `;
             });
             if (applications.length > 5) {
-                modalHTML += `<div class="pending-more">+${applications.length - 5} more applications</div>`;
+                modalHTML += `<div style="padding: 10px 24px; text-align: center; color: #8b5cf6; font-size: 13px; cursor: pointer;" onclick="Sidebar.navigate('customers'); Dashboard.closePendingActionsModal();">+${applications.length - 5} more applications</div>`;
             }
             modalHTML += `</div></div>`;
         }
@@ -289,31 +384,56 @@ const Dashboard = {
         // Pending Payments Section
         if (payments.length > 0) {
             modalHTML += `
-                <div class="pending-section">
-                    <div class="pending-section-header" onclick="Sidebar.navigate('payments'); Dashboard.closePendingActionsModal();">
-                        <span><i class="fas fa-credit-card"></i> Pending Payments (${payments.length})</span>
-                        <i class="fas fa-chevron-right"></i>
+                <div style="border-bottom: 1px solid var(--border-subtle, #2a2a3e);">
+                    <div onclick="Sidebar.navigate('payments'); Dashboard.closePendingActionsModal();" style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 14px 24px;
+                        background: var(--bg-secondary, #1e1e32);
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='var(--bg-tertiary, #2a2a3e)'" onmouseout="this.style.background='var(--bg-secondary, #1e1e32)'">
+                        <span style="font-weight: 500;"><i class="fas fa-credit-card" style="color: #10b981; margin-right: 8px;"></i> Pending Payments (${payments.length})</span>
+                        <i class="fas fa-chevron-right" style="color: var(--text-muted, #666); font-size: 12px;"></i>
                     </div>
-                    <div class="pending-items">
+                    <div style="padding: 8px 0;">
             `;
             payments.slice(0, 5).forEach(payment => {
                 const amount = parseFloat(payment.paid_amount || 0).toLocaleString();
                 const date = payment.paid_date ? new Date(payment.paid_date).toLocaleDateString() : 'N/A';
                 modalHTML += `
-                    <div class="pending-item" onclick="Sidebar.navigate('payments'); Dashboard.closePendingActionsModal();">
-                        <div class="pending-item-avatar payment">
+                    <div onclick="Sidebar.navigate('payments'); Dashboard.closePendingActionsModal();" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        padding: 10px 24px;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='var(--bg-secondary, #1e1e32)'" onmouseout="this.style.background='transparent'">
+                        <div style="
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            background: rgba(16, 185, 129, 0.15);
+                            color: #10b981;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            flex-shrink: 0;
+                        ">
                             <i class="fas fa-dollar-sign"></i>
                         </div>
-                        <div class="pending-item-info">
-                            <div class="pending-item-name">$${amount}</div>
-                            <div class="pending-item-detail">Submitted ${date}</div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 500;">$${amount}</div>
+                            <div style="font-size: 12px; color: var(--text-muted, #888);">Submitted ${date}</div>
                         </div>
-                        <span class="status-badge pending">Approve</span>
+                        <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">Approve</span>
                     </div>
                 `;
             });
             if (payments.length > 5) {
-                modalHTML += `<div class="pending-more">+${payments.length - 5} more payments</div>`;
+                modalHTML += `<div style="padding: 10px 24px; text-align: center; color: #8b5cf6; font-size: 13px; cursor: pointer;" onclick="Sidebar.navigate('payments'); Dashboard.closePendingActionsModal();">+${payments.length - 5} more payments</div>`;
             }
             modalHTML += `</div></div>`;
         }
@@ -321,31 +441,56 @@ const Dashboard = {
         // Pending Rentals Section
         if (rentals.length > 0) {
             modalHTML += `
-                <div class="pending-section">
-                    <div class="pending-section-header" onclick="Sidebar.navigate('rentals'); Dashboard.closePendingActionsModal();">
-                        <span><i class="fas fa-file-contract"></i> Rental Approvals (${rentals.length})</span>
-                        <i class="fas fa-chevron-right"></i>
+                <div>
+                    <div onclick="Sidebar.navigate('rentals'); Dashboard.closePendingActionsModal();" style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 14px 24px;
+                        background: var(--bg-secondary, #1e1e32);
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='var(--bg-tertiary, #2a2a3e)'" onmouseout="this.style.background='var(--bg-secondary, #1e1e32)'">
+                        <span style="font-weight: 500;"><i class="fas fa-file-contract" style="color: #3b82f6; margin-right: 8px;"></i> Rental Approvals (${rentals.length})</span>
+                        <i class="fas fa-chevron-right" style="color: var(--text-muted, #666); font-size: 12px;"></i>
                     </div>
-                    <div class="pending-items">
+                    <div style="padding: 8px 0;">
             `;
             rentals.slice(0, 5).forEach(rental => {
                 const customer = rental.customers?.full_name || 'Unknown Customer';
                 const date = rental.created_at ? new Date(rental.created_at).toLocaleDateString() : 'N/A';
                 modalHTML += `
-                    <div class="pending-item" onclick="Sidebar.navigate('rentals'); Dashboard.closePendingActionsModal();">
-                        <div class="pending-item-avatar rental">
+                    <div onclick="Sidebar.navigate('rentals'); Dashboard.closePendingActionsModal();" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 12px;
+                        padding: 10px 24px;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='var(--bg-secondary, #1e1e32)'" onmouseout="this.style.background='transparent'">
+                        <div style="
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            background: rgba(59, 130, 246, 0.15);
+                            color: #3b82f6;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            flex-shrink: 0;
+                        ">
                             <i class="fas fa-key"></i>
                         </div>
-                        <div class="pending-item-info">
-                            <div class="pending-item-name">${customer}</div>
-                            <div class="pending-item-detail">Requested ${date}</div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${customer}</div>
+                            <div style="font-size: 12px; color: var(--text-muted, #888);">Requested ${date}</div>
                         </div>
-                        <span class="status-badge pending">Approve</span>
+                        <span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">Approve</span>
                     </div>
                 `;
             });
             if (rentals.length > 5) {
-                modalHTML += `<div class="pending-more">+${rentals.length - 5} more rentals</div>`;
+                modalHTML += `<div style="padding: 10px 24px; text-align: center; color: #8b5cf6; font-size: 13px; cursor: pointer;" onclick="Sidebar.navigate('rentals'); Dashboard.closePendingActionsModal();">+${rentals.length - 5} more rentals</div>`;
             }
             modalHTML += `</div></div>`;
         }
@@ -362,6 +507,8 @@ const Dashboard = {
         
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         document.body.style.overflow = 'hidden';
+        
+        console.log('✅ Pending actions modal opened');
     },
     
     /**
