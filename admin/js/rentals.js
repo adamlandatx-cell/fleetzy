@@ -1,7 +1,31 @@
 /* ============================================
    FLEETZY ADMIN - RENTALS MODULE
    Full rental management with status workflows
+   TIMEZONE FIX: Jan 18, 2025 - Fixed date calculations
    ============================================ */
+
+/**
+ * Parse a date string as LOCAL time (not UTC)
+ * CRITICAL: "2025-01-16" must mean Jan 16 in Houston, not UTC
+ * Without this fix, Friday becomes Saturday/Sunday due to timezone shift
+ */
+function parseLocalDateForRentals(dateStr) {
+    if (!dateStr) return new Date();
+    // Parse as local time by extracting components
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day); // month is 0-indexed
+}
+
+/**
+ * Format a Date object to YYYY-MM-DD string in LOCAL time
+ * This ensures the date stored matches the date selected
+ */
+function formatLocalDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 const Rentals = {
     // Cached data
@@ -975,8 +999,8 @@ const Rentals = {
         // Get payment method from form (defaults to Zelle if not specified)
         const paymentMethod = document.getElementById('new-rental-payment-method')?.value || 'Zelle';
         
-        // Calculate first payment due date (7 days from start)
-        const firstPaymentDue = new Date(startDate);
+        // Calculate first payment due date (7 days from start) - USE LOCAL DATE
+        const firstPaymentDue = parseLocalDateForRentals(startDate);
         firstPaymentDue.setDate(firstPaymentDue.getDate() + 7);
         
         // Build rental data using ACTUAL column names from database
@@ -999,7 +1023,7 @@ const Rentals = {
             total_amount_due: totalAmountDue,      // Total rent owed (not including deposit)
             total_amount_paid: 0,                  // Nothing paid yet
             balance_remaining: totalAmountDue,     // Full amount still owed
-            next_payment_due: firstPaymentDue.toISOString().split('T')[0], // First payment due in 7 days
+            next_payment_due: formatLocalDate(firstPaymentDue), // First payment due in 7 days - USE LOCAL FORMAT
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
@@ -1129,8 +1153,8 @@ const Rentals = {
         try {
             Utils.toastInfo('Starting rental...');
             
-            // Calculate next payment due date (7 days from start)
-            const nextPaymentDue = new Date(startDate);
+            // Calculate next payment due date (7 days from start) - USE LOCAL DATE
+            const nextPaymentDue = parseLocalDateForRentals(startDate);
             nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
             
             // Calculate initial balance (weekly rate for first week - deposit already collected)
@@ -1148,7 +1172,7 @@ const Rentals = {
                     rental_status: 'active',
                     start_date: startDate,
                     start_mileage: startMileage,
-                    next_payment_due: nextPaymentDue.toISOString().split('T')[0],
+                    next_payment_due: formatLocalDate(nextPaymentDue), // USE LOCAL FORMAT
                     // Set balance tracking
                     total_amount_due: totalAmountDue,
                     total_amount_paid: 0,
@@ -1449,8 +1473,8 @@ const Rentals = {
             
             const newBalance = newTotalDue - newPaid;
             
-            // Calculate next payment due (7 days from this payment)
-            const nextDue = new Date(paymentDate);
+            // Calculate next payment due (7 days from this payment) - USE LOCAL DATE
+            const nextDue = parseLocalDateForRentals(paymentDate);
             nextDue.setDate(nextDue.getDate() + 7);
             
             const { error: updateError } = await db
@@ -1460,7 +1484,7 @@ const Rentals = {
                     total_amount_due: newTotalDue,
                     balance_remaining: Math.max(0, newBalance),
                     last_payment_date: paymentDate,
-                    next_payment_due: nextDue.toISOString().split('T')[0],
+                    next_payment_due: formatLocalDate(nextDue), // USE LOCAL FORMAT
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
