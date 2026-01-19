@@ -36,7 +36,7 @@ const CONFIG = {
         inspectionPhotos: 'inspection_photos'
     },
     // Status configurations
-    vehicleStatuses: ['Available', 'Rented', 'Maintenance', 'Reserved'],
+    vehicleStatuses: ['Available', 'Rented', 'Active', 'Maintenance', 'Reserved'],
     rentalStatuses: ['pending_approval', 'pending_rental', 'active', 'completed', 'cancelled'],
     paymentMethods: ['Zelle', 'CashApp', 'Venmo', 'PayPal', 'Stripe', 'Cash'],
     // Animation settings

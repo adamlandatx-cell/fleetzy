@@ -136,15 +136,14 @@ const Rentals = {
     
     /**
      * Load available vehicles for new rental dropdown
-     * FIXED: Using 'status' column (not 'vehicle_status') and 'Active' value
      */
     async loadAvailableVehicles() {
         try {
-            // Load vehicles with status = 'Active' (available for rent)
+            // Load vehicles with status = 'Available' (available for rent)
             const { data, error } = await db
                 .from('vehicles')
                 .select('*')
-                .eq('vehicle_status', 'Available')
+                .eq('status', 'Available')
                 .order('make');
             
             if (error) {

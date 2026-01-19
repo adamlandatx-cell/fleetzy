@@ -202,6 +202,7 @@ const Vehicles = {
         const classes = {
             'Available': 'status-available',
             'Rented': 'status-rented',
+            'Active': 'status-rented',  // Active uses same styling as Rented
             'Maintenance': 'status-maintenance',
             'Reserved': 'status-reserved'
         };
@@ -470,7 +471,6 @@ const Vehicles = {
             license_plate: document.getElementById('edit-vehicle-license-plate')?.value,
             color: document.getElementById('edit-vehicle-color')?.value,
             status: statusValue,
-            vehicle_status: statusValue, // Update both columns for consistency
             weekly_rate: parseFloat(document.getElementById('edit-vehicle-weekly-rate')?.value) || 400,
             current_mileage: parseInt(document.getElementById('edit-vehicle-mileage')?.value) || 0,
             purchase_price: parseFloat(document.getElementById('edit-vehicle-purchase-price')?.value) || null,
@@ -511,7 +511,7 @@ const Vehicles = {
             return;
         }
         
-        // Cycle through statuses - handle both column names
+        // Cycle through statuses
         const statuses = CONFIG.vehicleStatuses;
         const currentStatus = this.getVehicleStatus(vehicle);
         const currentIndex = statuses.findIndex(s => 
@@ -529,12 +529,11 @@ const Vehicles = {
         }
         
         try {
-            // Update BOTH status columns to ensure consistency
+            // Update only the 'status' column (the column that exists in the database)
             const { error } = await db
                 .from('vehicles')
                 .update({ 
                     status: newStatus,
-                    vehicle_status: newStatus,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', vehicleId);

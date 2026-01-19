@@ -855,12 +855,13 @@ const Reports = {
         const activeRentals = rentals.filter(r => r.rental_status === 'active').length;
         const utilizationRate = totalVehicles > 0 ? Math.round((activeRentals / totalVehicles) * 100) : 0;
         
-        // Vehicles by status
+        // Vehicles by status (handle both 'status' and 'vehicle_status' column names)
+        const getStatus = (v) => v.status || v.vehicle_status;
         const statusCounts = {
-            available: vehicles.filter(v => v.vehicle_status === 'Available').length,
-            rented: vehicles.filter(v => v.vehicle_status === 'Rented' || v.vehicle_status === 'Currently Rented').length,
-            maintenance: vehicles.filter(v => v.vehicle_status === 'Maintenance').length,
-            reserved: vehicles.filter(v => v.vehicle_status === 'Reserved').length
+            available: vehicles.filter(v => getStatus(v) === 'Available').length,
+            rented: vehicles.filter(v => getStatus(v) === 'Rented' || getStatus(v) === 'Currently Rented').length,
+            maintenance: vehicles.filter(v => getStatus(v) === 'Maintenance').length,
+            reserved: vehicles.filter(v => getStatus(v) === 'Reserved').length
         };
         
         // Calculate average mileage
@@ -1346,7 +1347,7 @@ const Reports = {
                 item.total,
                 item.rentalCount,
                 v.weekly_rate || 400,
-                v.vehicle_status || 'Unknown'
+                v.status || v.vehicle_status || 'Unknown'
             ];
         });
         

@@ -555,9 +555,10 @@ const Dashboard = {
         
         container.innerHTML = displayVehicles.map(vehicle => {
             const rental = activeRentalsMap[vehicle.id];
+            const vehicleStatus = vehicle.status || vehicle.vehicle_status; // Handle both column names
             const status = rental ? 'rented' : 
-                          vehicle.vehicle_status === 'Maintenance' ? 'maintenance' :
-                          vehicle.vehicle_status === 'Reserved' ? 'reserved' : 'available';
+                          vehicleStatus === 'Maintenance' ? 'maintenance' :
+                          vehicleStatus === 'Reserved' ? 'reserved' : 'available';
             
             const statusLabel = status === 'rented' ? 'Rented' :
                                status === 'maintenance' ? 'Service' :
@@ -700,7 +701,7 @@ const Dashboard = {
         });
         
         // Fleet optimization insight
-        const availableVehicles = vehicles.filter(v => v.vehicle_status === 'Available').length;
+        const availableVehicles = vehicles.filter(v => (v.status || v.vehicle_status) === 'Available').length;
         if (availableVehicles > 1) {
             insights.push({
                 type: 'info',
