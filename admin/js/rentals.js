@@ -821,7 +821,7 @@ const Rentals = {
         }
         
         // Set defaults
-        document.getElementById('new-rental-start-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('new-rental-start-date').value = formatLocalDate(new Date());
         document.getElementById('new-rental-weeks').value = '4';
         document.getElementById('new-rental-weeks').disabled = false;
         document.getElementById('new-rental-weeks').placeholder = '';
@@ -1094,7 +1094,7 @@ const Rentals = {
         document.getElementById('start-rental-id').value = rentalId;
         document.getElementById('start-rental-customer-name').textContent = customerName;
         document.getElementById('start-rental-vehicle-name').textContent = vehicleName;
-        document.getElementById('start-rental-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('start-rental-date').value = formatLocalDate(new Date());
         document.getElementById('start-rental-mileage').value = rental.vehicle?.current_mileage || '';
         
         modal.classList.add('active');
@@ -1139,7 +1139,7 @@ const Rentals = {
         }
         
         if (!startDate) {
-            startDate = new Date().toISOString().split('T')[0];
+            startDate = formatLocalDate(new Date());
         }
         
         if (!startMileage && rental.vehicle?.current_mileage) {
@@ -1324,7 +1324,7 @@ const Rentals = {
         const balance = parseFloat(rental.balance_remaining) || 0;
         document.getElementById('payment-balance').textContent = Utils.formatCurrency(balance);
         document.getElementById('payment-amount').value = rental.weekly_rate || 400;
-        document.getElementById('payment-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('payment-date').value = formatLocalDate(new Date());
         document.getElementById('payment-method').value = rental.payment_method || 'Zelle';
         document.getElementById('payment-notes').value = '';
         
@@ -1537,7 +1537,7 @@ const Rentals = {
         document.getElementById('end-rental-id').value = rentalId;
         document.getElementById('end-rental-customer-name').textContent = customerName;
         document.getElementById('end-rental-vehicle-name').textContent = vehicleName;
-        document.getElementById('end-rental-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('end-rental-date').value = formatLocalDate(new Date());
         document.getElementById('end-rental-mileage').value = '';
         document.getElementById('end-rental-start-mileage').textContent = (rental.start_mileage || 0).toLocaleString();
         document.getElementById('end-rental-deposit').textContent = `$${parseFloat(rental.deposit_amount || rental.deposit_included || 0).toLocaleString()}`;
