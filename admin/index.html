@@ -3250,6 +3250,120 @@
         </div>
     </div>
 </div>
-<script src="js/charges.js"></script>
+</div>
+
+<div class="modal-overlay" id="modal-add-charge">
+    <div class="modal" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-plus-circle" style="color: var(--primary);"></i>
+                Add Charge
+            </h3>
+            <button class="modal-close" onclick="Charges.closeAddChargeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <!-- Rental Selection -->
+            <div class="form-group">
+                <label class="form-label">Select Rental</label>
+                <select id="charge-rental-select" class="form-input">
+                    <option value="">Loading rentals...</option>
+                </select>
+            </div>
+            
+            <!-- Charge Type -->
+            <div class="form-group">
+                <label class="form-label">Charge Type</label>
+                <div class="charge-type-grid">
+                    <button type="button" class="charge-type-btn" data-type="toll" onclick="Charges.selectChargeType(this)">
+                        <i class="fas fa-road"></i>
+                        <span>Toll</span>
+                    </button>
+                    <button type="button" class="charge-type-btn" data-type="damage" onclick="Charges.selectChargeType(this)">
+                        <i class="fas fa-car-crash"></i>
+                        <span>Damage</span>
+                    </button>
+                    <button type="button" class="charge-type-btn" data-type="cleaning" onclick="Charges.selectChargeType(this)">
+                        <i class="fas fa-broom"></i>
+                        <span>Cleaning</span>
+                    </button>
+                    <button type="button" class="charge-type-btn" data-type="late_fee" onclick="Charges.selectChargeType(this)">
+                        <i class="fas fa-clock"></i>
+                        <span>Late Fee</span>
+                    </button>
+                    <button type="button" class="charge-type-btn" data-type="deposit_replenish" onclick="Charges.selectChargeType(this)">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Deposit</span>
+                    </button>
+                    <button type="button" class="charge-type-btn" data-type="mileage_overage" onclick="Charges.selectChargeType(this)">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Mileage</span>
+                    </button>
+                    <button type="button" class="charge-type-btn" data-type="other" onclick="Charges.selectChargeType(this)">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Other</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Amount -->
+            <div class="form-group">
+                <label class="form-label">Amount</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);">$</span>
+                    <input type="number" id="charge-amount" class="form-input" style="padding-left: 28px;" 
+                           placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="quick-amounts">
+                    <button type="button" class="quick-amount-btn" data-amount="5" onclick="document.getElementById('charge-amount').value='5.00'">$5</button>
+                    <button type="button" class="quick-amount-btn" data-amount="10" onclick="document.getElementById('charge-amount').value='10.00'">$10</button>
+                    <button type="button" class="quick-amount-btn" data-amount="25" onclick="document.getElementById('charge-amount').value='25.00'">$25</button>
+                    <button type="button" class="quick-amount-btn" data-amount="50" onclick="document.getElementById('charge-amount').value='50.00'">$50</button>
+                    <button type="button" class="quick-amount-btn" data-amount="100" onclick="document.getElementById('charge-amount').value='100.00'">$100</button>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <input type="text" id="charge-description" class="form-input" 
+                       placeholder="e.g., Hardy Toll Road - 01/15">
+            </div>
+            
+            <!-- Date -->
+            <div class="form-group">
+                <label class="form-label">Charge Date</label>
+                <input type="date" id="charge-date" class="form-input">
+            </div>
+            
+            <!-- Receipt Upload -->
+            <div class="form-group">
+                <label class="form-label">Receipt (optional)</label>
+                <input type="file" id="charge-receipt" class="form-input" accept="image/*,.pdf">
+                <span class="form-hint" style="font-size: 11px; color: var(--text-tertiary);">Upload photo of toll bill, damage, etc.</span>
+            </div>
+            
+            <!-- Notes -->
+            <div class="form-group">
+                <label class="form-label">Notes (optional)</label>
+                <textarea id="charge-notes" class="form-input" rows="2" 
+                          placeholder="Any additional notes..."></textarea>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="Charges.closeAddChargeModal()">
+                Cancel
+            </button>
+            <button class="btn btn-primary" onclick="Charges.submitAddCharge()">
+                <i class="fas fa-plus"></i>
+                Add Charge
+            </button>
+        </div>
+    </div>
+</div>
+    <script src="js/charges.js"></script>
 </body>
 </html>
