@@ -662,6 +662,103 @@ function capitalize(str) {
 }
 
 // ============================================================================
+// ZELLE PAYMENT HANDLING
+// ============================================================================
+
+function handleZelleClick() {
+    // Update the amount in the modal
+    const zelleAmountEl = document.getElementById('zelleAmount');
+    if (zelleAmountEl && paymentAmount) {
+        zelleAmountEl.textContent = formatCurrency(paymentAmount);
+    }
+    
+    // Show the modal
+    const modal = document.getElementById('zelleModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeZelleModal() {
+    const modal = document.getElementById('zelleModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function copyZelleEmail() {
+    const zelleEmail = 'adam@getfleetzy.com';
+    
+    // Copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(zelleEmail).then(() => {
+            showCopyToast('Email copied! Open your bank app');
+        }).catch(() => {
+            fallbackCopyToClipboard(zelleEmail);
+        });
+    } else {
+        fallbackCopyToClipboard(zelleEmail);
+    }
+}
+
+function fallbackCopyToClipboard(text) {
+    // Fallback for older browsers/iOS
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showCopyToast('Email copied! Open your bank app');
+    } catch (err) {
+        showCopyToast('Tap and hold to copy');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showCopyToast(message) {
+    // Remove any existing toast
+    const existingToast = document.querySelector('.copy-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create and show toast
+    const toast = document.createElement('div');
+    toast.className = 'copy-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Remove after animation
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 2500);
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('zelleModal');
+    if (modal && e.target === modal) {
+        closeZelleModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeZelleModal();
+    }
+});
+
+// ============================================================================
 // ERROR HANDLING
 // ============================================================================
 
