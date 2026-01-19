@@ -547,10 +547,35 @@ const Vehicles = {
         // Position dropdown near the clicked button
         const button = event.currentTarget;
         const rect = button.getBoundingClientRect();
+        const dropdownHeight = 220; // Approximate height of dropdown
+        const dropdownWidth = 180;
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        
         dropdown.style.position = 'fixed';
-        dropdown.style.top = `${rect.bottom + 5}px`;
-        dropdown.style.left = `${rect.left - 100}px`;
         dropdown.style.zIndex = '9999';
+        
+        // Check if there's enough space below, otherwise show above
+        if (rect.bottom + dropdownHeight + 10 > viewportHeight) {
+            // Not enough space below - show above
+            dropdown.style.bottom = `${viewportHeight - rect.top + 5}px`;
+            dropdown.style.top = 'auto';
+        } else {
+            // Enough space below - show below
+            dropdown.style.top = `${rect.bottom + 5}px`;
+            dropdown.style.bottom = 'auto';
+        }
+        
+        // Check horizontal position - don't go off left edge
+        let leftPos = rect.left - 100;
+        if (leftPos < 10) {
+            leftPos = 10;
+        }
+        // Don't go off right edge either
+        if (leftPos + dropdownWidth > viewportWidth - 10) {
+            leftPos = viewportWidth - dropdownWidth - 10;
+        }
+        dropdown.style.left = `${leftPos}px`;
         
         document.body.appendChild(dropdown);
         
