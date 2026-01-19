@@ -5729,3 +5729,12 @@ html {
     background: rgba(16, 185, 129, 0.08);
     border-color: rgba(16, 185, 129, 0.3);
 }
+
+/* ============================================
+   FIX: Make .modal visible inside .modal-overlay.active
+   ============================================ */
+.modal-overlay.active .modal {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
