@@ -46,6 +46,8 @@ const Rentals = {
     /**
      * Load rentals from Supabase with customer and vehicle data
      * FIXED: Using correct column names (full_name instead of first_name/last_name)
+     * FIXED: Jan 19, 2025 - Filter out pending_approval applications from main view
+     *        Those are NEW APPLICATIONS (shown in Customers tab), not actual rentals
      */
     async load() {
         try {
@@ -61,13 +63,25 @@ const Rentals = {
             
             if (error) throw error;
             
-            this.data = rentals || [];
+            // Store ALL rentals for reference
+            this.allData = rentals || [];
+            
+            // FILTER OUT pending_approval - those are NEW APPLICATIONS, not rentals!
+            // They should appear in Customers tab, not Rentals tab
+            // A rental only becomes a "real rental" after admin approves the application
+            this.data = this.allData.filter(r => {
+                // Include all rentals EXCEPT pending_approval (new applications)
+                // pending_approval rentals have no vehicle assigned yet - they're just applications
+                return r.rental_status !== 'pending_approval';
+            });
+            
             this.filtered = [...this.data];
             this.render();
             this.updateStats();
             this.updateSidebarBadge();
             
-            console.log(`✅ Loaded ${this.data.length} rentals`);
+            const excludedCount = this.allData.length - this.data.length;
+            console.log(`✅ Loaded ${this.data.length} rentals (${excludedCount} pending applications excluded - shown in Customers tab)`);
         } catch (error) {
             console.error('❌ Error loading rentals:', error);
             Utils.toastError('Failed to load rentals');
