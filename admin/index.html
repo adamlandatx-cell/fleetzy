@@ -2898,7 +2898,7 @@
             // Fetch pending items
             try {
                 const [customers, payments] = await Promise.all([
-                    db.from('customers').select('*').eq('application_status', 'Pending').limit(5),
+                    db.from('customers').select('*').eq('status', 'pending_verification').limit(5),
                     db.from('payments').select('*, customers(full_name)').eq('payment_status', 'pending').limit(5)
                 ]);
                 
@@ -2976,7 +2976,7 @@
         async function loadNotificationBadges() {
             try {
                 const [customers, payments] = await Promise.all([
-                    db.from('customers').select('id', { count: 'exact' }).eq('application_status', 'Pending'),
+                    db.from('customers').select('id', { count: 'exact' }).eq('status', 'pending_verification'),
                     db.from('payments').select('id', { count: 'exact' }).eq('payment_status', 'pending')
                 ]);
                 
