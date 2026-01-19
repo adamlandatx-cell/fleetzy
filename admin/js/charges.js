@@ -1,7 +1,18 @@
 /* ============================================
    FLEETZY ADMIN - CHARGES MODULE
    Manages tolls, damages, and other charges
+   TIMEZONE FIX: Jan 18, 2025 - Fixed date calculations
    ============================================ */
+
+/**
+ * Format a Date object to YYYY-MM-DD string in LOCAL time
+ */
+function formatLocalDateForCharges(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 const Charges = {
     selectedType: null,
@@ -72,7 +83,7 @@ const Charges = {
         
         if (amountField) amountField.value = '';
         if (descField) descField.value = '';
-        if (dateField) dateField.value = new Date().toISOString().split('T')[0];
+        if (dateField) dateField.value = formatLocalDateForCharges(new Date());
         if (notesField) notesField.value = '';
         if (receiptField) receiptField.value = '';
         
