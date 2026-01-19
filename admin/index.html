@@ -302,7 +302,48 @@
 
                 <!-- Right Column -->
                 <div class="dashboard-column">
-                    
+                    <!-- ============================================
+     UPCOMING PAYMENTS WIDGET
+     Add this in your dashboard section, 
+     ideally in the right column or after the stats cards
+     ============================================ -->
+
+<!-- Upcoming Payments Widget -->
+<div class="card upcoming-payments-card">
+    <div class="upcoming-payments-header">
+        <div class="upcoming-payments-title">
+            <i class="fas fa-calendar-check"></i>
+            <span>Upcoming Payments</span>
+        </div>
+        <div class="upcoming-mini-stats">
+            <div class="upcoming-mini-stat">
+                <div class="upcoming-mini-stat-value" id="stat-expected-week">$0</div>
+                <div class="upcoming-mini-stat-label">This Week</div>
+            </div>
+            <div class="upcoming-mini-stat">
+                <div class="upcoming-mini-stat-value warning" id="stat-due-tomorrow">0</div>
+                <div class="upcoming-mini-stat-label">Due Tomorrow</div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0; max-height: 400px; overflow-y: auto;">
+        <div id="upcoming-payments-list">
+            <!-- Populated by JavaScript -->
+            <div class="upcoming-empty">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading payments...</p>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-primary); display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-ghost btn-sm" onclick="Sidebar.navigate('payments')">
+            View All <i class="fas fa-arrow-right"></i>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="Charges.openAddChargeModal()">
+            <i class="fas fa-plus"></i> Add Charge
+        </button>
+    </div>
+</div>                    
                     <!-- AI Insights -->
                     <div class="card ai-insights">
                         <div class="card-header">
