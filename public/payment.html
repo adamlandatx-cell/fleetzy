@@ -858,6 +858,193 @@
                 font-size: 0.75rem;
             }
         }
+        
+        /* Zelle Modal Styles */
+        .zelle-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        
+        .zelle-modal.hidden {
+            display: none;
+        }
+        
+        .zelle-modal-content {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .zelle-modal-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .zelle-icon-large {
+            width: 60px;
+            height: 60px;
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        
+        .zelle-icon-large i {
+            font-size: 1.5rem;
+            color: #a78bfa;
+        }
+        
+        .zelle-modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .zelle-modal-body {
+            text-align: left;
+        }
+        
+        .zelle-step {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+        
+        .zelle-step strong {
+            color: #a78bfa;
+        }
+        
+        .zelle-copy-box {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .zelle-copy-box:hover {
+            background: rgba(139, 92, 246, 0.25);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+        
+        .zelle-copy-box:active {
+            transform: scale(0.98);
+        }
+        
+        .zelle-copy-box span {
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .zelle-copy-box i {
+            color: #a78bfa;
+        }
+        
+        .zelle-amount {
+            color: white;
+            font-size: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        .zelle-amount strong {
+            color: #10b981;
+            font-size: 1.25rem;
+        }
+        
+        .zelle-sms-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #10b981;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .zelle-sms-link:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        
+        .zelle-close-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            font-weight: 600;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .zelle-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+        
+        /* Toast notification for copy */
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 1001;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+        }
+        
+        @keyframes toastIn {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        
+        @keyframes toastOut {
+            from { opacity: 1; transform: translate(-50%, 0); }
+            to { opacity: 0; transform: translate(-50%, 20px); }
+        }
     </style>
 </head>
 <body>
@@ -1027,14 +1214,14 @@
                 
                 <div class="alt-payments-grid">
                     <!-- Zelle -->
-                    <a href="mailto:adam@getfleetzy.com?subject=Fleetzy%20Payment" class="alt-payment-card preferred">
+                    <div class="alt-payment-card preferred" onclick="handleZelleClick()" style="cursor: pointer;">
                         <div class="alt-payment-icon zelle">
                             <i class="fas fa-bolt"></i>
                         </div>
                         <p class="alt-payment-name">Zelle</p>
-                        <p class="alt-payment-info">adam@getfleetzy.com</p>
+                        <p class="alt-payment-info" id="zelleInfo">adam@getfleetzy.com</p>
                         <span class="alt-payment-badge">⭐ Preferred</span>
-                    </a>
+                    </div>
                     
                     <!-- CashApp -->
                     <a href="https://cash.app/$fleetzycarrentals" target="_blank" class="alt-payment-card">
@@ -1061,6 +1248,33 @@
                         </div>
                         <p class="alt-payment-name">Cash</p>
                         <p class="alt-payment-info">In-person only</p>
+                    </div>
+                </div>
+                
+                <!-- Zelle Instructions Modal -->
+                <div id="zelleModal" class="zelle-modal hidden">
+                    <div class="zelle-modal-content">
+                        <div class="zelle-modal-header">
+                            <div class="zelle-icon-large">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h3>Pay with Zelle</h3>
+                        </div>
+                        <div class="zelle-modal-body">
+                            <p class="zelle-step"><strong>1.</strong> Open your bank app (Chase, Bank of America, Wells Fargo, etc.)</p>
+                            <p class="zelle-step"><strong>2.</strong> Go to "Send with Zelle"</p>
+                            <p class="zelle-step"><strong>3.</strong> Send payment to:</p>
+                            <div class="zelle-copy-box" onclick="copyZelleEmail()">
+                                <span id="zelleEmailDisplay">adam@getfleetzy.com</span>
+                                <i class="fas fa-copy"></i>
+                            </div>
+                            <p class="zelle-amount">Amount: <strong id="zelleAmount">$400.00</strong></p>
+                            <p class="zelle-step"><strong>4.</strong> After sending, text screenshot to:</p>
+                            <a href="sms:+12812713900" class="zelle-sms-link">
+                                <i class="fas fa-comment-sms"></i> (281) 271-3900
+                            </a>
+                        </div>
+                        <button class="zelle-close-btn" onclick="closeZelleModal()">Got it!</button>
                     </div>
                 </div>
                 
