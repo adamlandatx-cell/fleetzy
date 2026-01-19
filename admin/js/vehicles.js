@@ -183,7 +183,7 @@ const Vehicles = {
                         <button class="btn-icon" onclick="Vehicles.edit('${vehicle.id}')" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon" onclick="Vehicles.toggleStatus('${vehicle.id}')" title="Change Status">
+                        <button class="btn-icon" onclick="Vehicles.showStatusPicker('${vehicle.id}', event)" title="Change Status">
                             <i class="fas fa-sync-alt"></i>
                         </button>
                         <button class="btn-icon danger" onclick="Vehicles.delete('${vehicle.id}')" title="Delete">
@@ -502,34 +502,99 @@ const Vehicles = {
     },
     
     /**
-     * Toggle vehicle status
+     * Show status picker dropdown for a vehicle
      */
-    async toggleStatus(vehicleId) {
+    showStatusPicker(vehicleId, event) {
+        event.stopPropagation();
+        
         const vehicle = this.data.find(v => v.id === vehicleId);
         if (!vehicle) {
             Utils.toastError('Vehicle not found');
             return;
         }
         
-        // Cycle through statuses
-        const statuses = CONFIG.vehicleStatuses;
-        const currentStatus = this.getVehicleStatus(vehicle);
-        const currentIndex = statuses.findIndex(s => 
-            s.toLowerCase() === currentStatus.toLowerCase()
-        );
+        // Remove any existing dropdown
+        const existingDropdown = document.querySelector('.status-picker-dropdown');
+        if (existingDropdown) {
+            existingDropdown.remove();
+        }
         
-        // If current status not found (including null/empty), start at 'Available'
-        let newStatus;
-        if (currentIndex === -1) {
-            newStatus = statuses[0]; // Default to 'Available'
-            console.log(`⚠️ Vehicle status "${currentStatus}" not recognized, setting to ${newStatus}`);
-        } else {
-            const nextIndex = (currentIndex + 1) % statuses.length;
-            newStatus = statuses[nextIndex];
+        const currentStatus = this.getVehicleStatus(vehicle);
+        const statuses = ['Available', 'Rented', 'Maintenance', 'Reserved'];
+        
+        // Create dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'status-picker-dropdown';
+        dropdown.innerHTML = `
+            <div class="status-picker-header">
+                <span>Change Status</span>
+                <button class="status-picker-close" onclick="Vehicles.closeStatusPicker()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="status-picker-options">
+                ${statuses.map(status => `
+                    <button class="status-picker-option ${status === currentStatus ? 'current' : ''} status-opt-${status.toLowerCase()}"
+                            onclick="Vehicles.setStatus('${vehicleId}', '${status}')">
+                        <span class="status-dot ${this.getStatusClass(status)}"></span>
+                        <span class="status-name">${status}</span>
+                        ${status === currentStatus ? '<i class="fas fa-check"></i>' : ''}
+                    </button>
+                `).join('')}
+            </div>
+        `;
+        
+        // Position dropdown near the clicked button
+        const button = event.currentTarget;
+        const rect = button.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = `${rect.bottom + 5}px`;
+        dropdown.style.left = `${rect.left - 100}px`;
+        dropdown.style.zIndex = '9999';
+        
+        document.body.appendChild(dropdown);
+        
+        // Close on outside click
+        setTimeout(() => {
+            document.addEventListener('click', this.closeStatusPickerHandler);
+        }, 10);
+    },
+    
+    closeStatusPickerHandler(e) {
+        if (!e.target.closest('.status-picker-dropdown')) {
+            Vehicles.closeStatusPicker();
+        }
+    },
+    
+    closeStatusPicker() {
+        const dropdown = document.querySelector('.status-picker-dropdown');
+        if (dropdown) {
+            dropdown.remove();
+        }
+        document.removeEventListener('click', Vehicles.closeStatusPickerHandler);
+    },
+    
+    /**
+     * Set vehicle status directly
+     */
+    async setStatus(vehicleId, newStatus) {
+        this.closeStatusPicker();
+        
+        const vehicle = this.data.find(v => v.id === vehicleId);
+        if (!vehicle) {
+            Utils.toastError('Vehicle not found');
+            return;
+        }
+        
+        const currentStatus = this.getVehicleStatus(vehicle);
+        if (currentStatus === newStatus) {
+            Utils.toastInfo(`Already set to ${newStatus}`);
+            return;
         }
         
         try {
-            // Update only the 'status' column (the column that exists in the database)
+            Utils.toastInfo(`Changing status to ${newStatus}...`);
+            
             const { error } = await db
                 .from('vehicles')
                 .update({ 
@@ -544,9 +609,43 @@ const Vehicles = {
             await this.load();
             
         } catch (error) {
-            console.error('Error toggling status:', error);
+            console.error('Error changing status:', error);
             Utils.toastError('Failed to change status: ' + (error.message || 'Unknown error'));
         }
+    },
+    
+    /**
+     * Toggle vehicle status (legacy - cycles through statuses)
+     */
+    async toggleStatus(vehicleId, event) {
+        // If event is provided, show the picker dropdown instead
+        if (event) {
+            this.showStatusPicker(vehicleId, event);
+            return;
+        }
+        
+        // Fallback: cycle through statuses
+        const vehicle = this.data.find(v => v.id === vehicleId);
+        if (!vehicle) {
+            Utils.toastError('Vehicle not found');
+            return;
+        }
+        
+        const statuses = ['Available', 'Rented', 'Maintenance', 'Reserved'];
+        const currentStatus = this.getVehicleStatus(vehicle);
+        const currentIndex = statuses.findIndex(s => 
+            s.toLowerCase() === currentStatus.toLowerCase()
+        );
+        
+        let newStatus;
+        if (currentIndex === -1) {
+            newStatus = 'Available';
+        } else {
+            const nextIndex = (currentIndex + 1) % statuses.length;
+            newStatus = statuses[nextIndex];
+        }
+        
+        await this.setStatus(vehicleId, newStatus);
     },
     
     /**
