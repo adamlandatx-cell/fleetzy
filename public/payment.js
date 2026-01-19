@@ -294,12 +294,14 @@ function showPaymentSection() {
         }
     }
     
-    // Calculate payment amounts
+    // Calculate payment amounts - NO processing fee, just flat weekly rate + any additional fees (tolls, etc.)
     const weeklyRate = parseFloat(rentalData.weekly_rate) || 400.00;
     const depositAmount = parseFloat(rentalData.deposit_amount) || 500.00;
-    const processingFee = weeklyRate * 0.03; // 3% processing fee as shown in HTML
-    const weeklyTotal = weeklyRate + processingFee;
-    const depositTotal = depositAmount + (depositAmount * 0.03);
+    const additionalFees = parseFloat(rentalData.additional_fees) || 0; // Tolls, fees manually added by admin
+    
+    // Total = weekly rate + any additional fees (no automatic processing fee)
+    const weeklyTotal = weeklyRate + additionalFees;
+    const depositTotal = depositAmount;
     
     paymentAmount = weeklyTotal;
     
@@ -309,9 +311,14 @@ function showPaymentSection() {
         weeklyRateEl.textContent = formatCurrency(weeklyRate);
     }
     
-    const processingFeeEl = document.getElementById('processingFee');
-    if (processingFeeEl) {
-        processingFeeEl.textContent = formatCurrency(processingFee);
+    // Show additional fees row if there are any
+    const additionalFeesRow = document.getElementById('additionalFeesRow');
+    const additionalFeesEl = document.getElementById('additionalFees');
+    if (additionalFees > 0 && additionalFeesRow && additionalFeesEl) {
+        additionalFeesRow.classList.remove('hidden');
+        additionalFeesEl.textContent = formatCurrency(additionalFees);
+    } else if (additionalFeesRow) {
+        additionalFeesRow.classList.add('hidden');
     }
     
     const totalEl = document.getElementById('totalWithTax');
@@ -323,6 +330,7 @@ function showPaymentSection() {
     window.paymentAmounts = {
         weekly: weeklyTotal,
         deposit: depositTotal,
+        additionalFees: additionalFees,
         custom: 0
     };
     
@@ -338,7 +346,7 @@ function showPaymentSection() {
     console.log('✅ Payment section loaded:', {
         customer: displayName,
         weeklyRate: weeklyRate,
-        processingFee: processingFee,
+        additionalFees: additionalFees,
         total: weeklyTotal
     });
 }
@@ -380,33 +388,44 @@ function selectPaymentType(type) {
             customAmountGroup.classList.add('hidden');
         }
         
-        // Set predefined amounts
+        // Set predefined amounts (no processing fee - flat rates + any additional fees)
+        const additionalFees = window.paymentAmounts.additionalFees || 0;
+        
         if (type === 'weekly') {
-            paymentAmount = window.paymentAmounts.weekly || 400;
+            const weeklyRate = parseFloat(rentalData?.weekly_rate) || 400;
+            paymentAmount = weeklyRate + additionalFees;
+            
+            // Update display
+            const weeklyRateEl = document.getElementById('weeklyRate');
+            if (weeklyRateEl) {
+                weeklyRateEl.textContent = formatCurrency(weeklyRate);
+            }
         } else if (type === 'deposit') {
             paymentAmount = window.paymentAmounts.deposit || 500;
+            
+            // Update display to show deposit
+            const weeklyRateEl = document.getElementById('weeklyRate');
+            if (weeklyRateEl) {
+                weeklyRateEl.textContent = formatCurrency(paymentAmount);
+            }
         }
         
         document.getElementById('submitButtonText').textContent = `Pay ${formatCurrency(paymentAmount)}`;
         
-        // Also update the summary card to show correct total
+        // Update the summary card total
         const totalEl = document.getElementById('totalWithTax');
         if (totalEl) {
             totalEl.textContent = formatCurrency(paymentAmount);
         }
         
-        // Update processing fee display
-        const baseAmount = type === 'deposit' ? (parseFloat(rentalData?.deposit_amount) || 500) : (parseFloat(rentalData?.weekly_rate) || 400);
-        const processingFee = baseAmount * 0.03;
-        const processingFeeEl = document.getElementById('processingFee');
-        if (processingFeeEl) {
-            processingFeeEl.textContent = formatCurrency(processingFee);
-        }
-        
-        // Update weekly rate label based on type
-        const weeklyRateEl = document.getElementById('weeklyRate');
-        if (weeklyRateEl) {
-            weeklyRateEl.textContent = formatCurrency(baseAmount);
+        // Show/hide additional fees row based on payment type and if fees exist
+        const additionalFeesRow = document.getElementById('additionalFeesRow');
+        if (additionalFeesRow) {
+            if (type === 'weekly' && additionalFees > 0) {
+                additionalFeesRow.classList.remove('hidden');
+            } else {
+                additionalFeesRow.classList.add('hidden');
+            }
         }
     }
     
