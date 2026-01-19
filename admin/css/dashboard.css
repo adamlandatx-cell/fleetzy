@@ -524,6 +524,59 @@ img {
     opacity: 1;
 }
 
+/* Clickable stat card - extra visual indicators */
+.stat-card.stat-card-clickable {
+    cursor: pointer;
+    position: relative;
+}
+
+.stat-card.stat-card-clickable::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.stat-card.stat-card-clickable:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent-purple);
+    box-shadow: 0 8px 30px rgba(139, 92, 246, 0.15);
+}
+
+.stat-card.stat-card-clickable:hover::after {
+    opacity: 1;
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.stat-card.stat-card-clickable:active {
+    transform: translateY(-2px);
+}
+
+.stat-card.stat-card-clickable .stat-header::after {
+    content: 'Click to view';
+    font-size: 10px;
+    color: var(--accent-purple);
+    background: rgba(139, 92, 246, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card.stat-card-clickable:hover .stat-header::after {
+    opacity: 1;
+}
+
 .stat-header {
     display: flex;
     justify-content: space-between;
@@ -1283,6 +1336,122 @@ img {
     gap: var(--space-sm);
     padding: var(--space-lg);
     border-top: 1px solid var(--border-subtle);
+}
+
+/* ============================================
+   PENDING ACTIONS MODAL STYLES
+   ============================================ */
+.pending-section {
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.pending-section:last-child {
+    border-bottom: none;
+}
+
+.pending-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.pending-section-header:hover {
+    background: var(--bg-tertiary);
+}
+
+.pending-section-header i:first-child {
+    margin-right: var(--space-sm);
+    color: var(--accent-purple);
+}
+
+.pending-section-header i.fa-chevron-right {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.pending-items {
+    padding: var(--space-sm) 0;
+}
+
+.pending-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-lg);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.pending-item:hover {
+    background: var(--bg-secondary);
+}
+
+.pending-item-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.pending-item-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pending-item-avatar i {
+    color: var(--text-muted);
+}
+
+.pending-item-avatar.payment {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent-green);
+}
+
+.pending-item-avatar.rental {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+}
+
+.pending-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.pending-item-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pending-item-detail {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.pending-more {
+    padding: var(--space-sm) var(--space-lg);
+    text-align: center;
+    color: var(--accent-purple);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.pending-more:hover {
+    text-decoration: underline;
 }
 
 /* ============================================
