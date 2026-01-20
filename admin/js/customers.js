@@ -1173,26 +1173,6 @@ const Customers = {
         
         const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'this customer';
         
-        // Check if customer has active rentals
-        try {
-            const { data: activeRentals, error: rentalError } = await db
-                .from('rentals')
-                .select('id')
-                .eq('customer_id', customerId)
-                .in('rental_status', ['active', 'pending_approval', 'pending_rental']);
-            
-            if (rentalError) {
-                console.warn('Could not check for active rentals:', rentalError);
-            }
-            
-            if (activeRentals && activeRentals.length > 0) {
-                Utils.toastError(`Cannot delete ${fullName} - they have ${activeRentals.length} active rental(s). End the rental first.`);
-                return;
-            }
-        } catch (err) {
-            console.warn('Rental check failed, proceeding with delete confirmation:', err);
-        }
-        
         // Show confirmation dialog
         const confirmed = confirm(
             `⚠️ DELETE CUSTOMER\n\n` +
