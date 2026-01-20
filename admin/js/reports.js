@@ -448,16 +448,16 @@ const Reports = {
                     </div>
                 </div>
                 <div class="card-body no-padding">
-                    <div class="transactions-table-container">
-                        <table class="transactions-table" id="transactions-table">
+                    <div class="transactions-table-container" style="overflow-x:auto;">
+                        <table class="transactions-table" id="transactions-table" style="width:100%;min-width:700px;border-collapse:collapse;">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Customer</th>
-                                    <th>Vehicle</th>
-                                    <th>Amount</th>
-                                    <th>Method</th>
-                                    <th>Status</th>
+                                    <th style="width:80px;padding:14px 16px;text-align:left;background:#18181b;font-size:11px;font-weight:600;text-transform:uppercase;color:#71717a;">Date</th>
+                                    <th style="width:180px;padding:14px 16px;text-align:left;background:#18181b;font-size:11px;font-weight:600;text-transform:uppercase;color:#71717a;">Customer</th>
+                                    <th style="width:140px;padding:14px 16px;text-align:left;background:#18181b;font-size:11px;font-weight:600;text-transform:uppercase;color:#71717a;">Vehicle</th>
+                                    <th style="width:100px;padding:14px 16px;text-align:left;background:#18181b;font-size:11px;font-weight:600;text-transform:uppercase;color:#71717a;">Amount</th>
+                                    <th style="width:100px;padding:14px 16px;text-align:left;background:#18181b;font-size:11px;font-weight:600;text-transform:uppercase;color:#71717a;">Method</th>
+                                    <th style="width:90px;padding:14px 16px;text-align:left;background:#18181b;font-size:11px;font-weight:600;text-transform:uppercase;color:#71717a;">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="transactions-tbody">
@@ -1032,37 +1032,48 @@ const Reports = {
         if (!tbody) return;
         
         if (periodPayments.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="empty-cell">
-                        <div class="empty-state small">
-                            <i class="fas fa-receipt"></i>
-                            <p>No transactions in this period</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#71717a;">No transactions in this period</td></tr>';
             return;
         }
         
-        tbody.innerHTML = periodPayments.map(p => {
+        // Build rows array
+        const rows = [];
+        
+        for (const p of periodPayments) {
             const customer = p.customer;
             const customerName = customer 
-                ? (customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim())
+                ? (customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim()).replace(/[\n\r]/g, ' ')
                 : 'Unknown';
+            
             const rental = this.data.rentals.find(r => r.id === p.rental_id);
             const vehicle = rental?.vehicles;
-            const vehicleName = vehicle 
-                ? `${vehicle.year} ${vehicle.make}` 
-                : 'N/A';
-            const status = (p.payment_status || p.status || 'pending').toLowerCase();
-            const method = p.payment_method || 'Other';
+            const vehicleName = vehicle ? `${vehicle.year} ${vehicle.make}` : 'N/A';
             
-            // Clean method name for CSS class (remove spaces, lowercase)
+            const status = (p.payment_status || p.status || 'pending').toLowerCase();
+            const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+            
+            const method = p.payment_method || 'Other';
             const methodClass = method.toLowerCase().replace(/\s+/g, '');
             
-            return `<tr><td class="date-cell">${Utils.formatDate(p.paid_date, 'short')}</td><td class="customer-cell">${customerName}</td><td class="vehicle-cell">${vehicleName}</td><td class="amount-cell">${Utils.formatCurrency(p.paid_amount || 0)}</td><td class="method-cell"><span class="method-badge method-${methodClass}">${method}</span></td><td class="status-cell"><span class="status-badge status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td></tr>`;
-        }).join('');
+            const dateStr = Utils.formatDate(p.paid_date, 'short');
+            const amountStr = Utils.formatCurrency(p.paid_amount || 0);
+            
+            // Build the row HTML
+            const row = '<tr>' +
+                '<td style="padding:14px 16px;white-space:nowrap;">' + dateStr + '</td>' +
+                '<td style="padding:14px 16px;white-space:nowrap;font-weight:500;">' + customerName + '</td>' +
+                '<td style="padding:14px 16px;white-space:nowrap;color:#a1a1aa;">' + vehicleName + '</td>' +
+                '<td style="padding:14px 16px;white-space:nowrap;font-weight:600;">' + amountStr + '</td>' +
+                '<td style="padding:14px 16px;white-space:nowrap;"><span class="method-badge method-' + methodClass + '">' + method + '</span></td>' +
+                '<td style="padding:14px 16px;white-space:nowrap;"><span class="status-badge status-' + status + '">' + statusLabel + '</span></td>' +
+                '</tr>';
+            
+            rows.push(row);
+        }
+        
+        tbody.innerHTML = rows.join('');
+        
+        console.log('📊 Rendered', rows.length, 'transaction rows');
     },
 
     /**
