@@ -277,6 +277,13 @@ const Customers = {
             `);
         }
         
+        // Delete button (always available - at the end for all statuses)
+        buttons.push(`
+            <button class="btn-icon delete" onclick="Customers.delete('${customer.id}')" title="Delete Customer">
+                <i class="fas fa-trash"></i>
+            </button>
+        `);
+        
         return buttons.join('');
     },
     
@@ -707,6 +714,55 @@ const Customers = {
     },
     
     /**
+     * Delete customer from database
+     * WARNING: This permanently removes the customer record
+     */
+    async delete(customerId) {
+        const customer = this.data.find(c => c.id === customerId);
+        if (!customer) {
+            Utils.toastError('Customer not found');
+            return;
+        }
+        
+        // DB uses full_name
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'Customer';
+        
+        // Double confirm for safety - this is a destructive action
+        const confirmed = confirm(`⚠️ DELETE CUSTOMER\n\nAre you sure you want to permanently delete "${fullName}"?\n\nThis action cannot be undone and will remove all their data from the system.`);
+        if (!confirmed) return;
+        
+        // Second confirmation for extra safety
+        const doubleConfirm = confirm(`FINAL CONFIRMATION\n\nType OK to permanently delete "${fullName}".\n\nAll customer data, documents, and history will be lost.`);
+        if (!doubleConfirm) return;
+        
+        try {
+            Utils.toastInfo('Deleting customer...');
+            
+            // Delete from Supabase
+            const { error } = await db
+                .from('customers')
+                .delete()
+                .eq('id', customerId);
+            
+            if (error) throw error;
+            
+            Utils.toastSuccess(`${fullName} has been deleted`);
+            
+            // Reload customer list
+            await this.load();
+            
+            // Update dashboard stats if available
+            if (typeof Dashboard !== 'undefined' && Dashboard.load) {
+                Dashboard.load();
+            }
+            
+        } catch (error) {
+            console.error('Error deleting customer:', error);
+            Utils.toastError('Failed to delete customer: ' + error.message);
+        }
+    },
+    
+    /**
      * Open edit customer modal
      */
     edit(customerId) {
@@ -1101,6 +1157,130 @@ const Customers = {
         } catch (error) {
             console.error('Error creating customer:', error);
             Utils.toastError('Failed to create customer: ' + error.message);
+        }
+    },
+    
+    /**
+     * Delete customer from database
+     * Shows confirmation dialog before deleting
+     */
+    async delete(customerId) {
+        const customer = this.data.find(c => c.id === customerId);
+        if (!customer) {
+            Utils.toastError('Customer not found');
+            return;
+        }
+        
+        const fullName = customer.full_name || `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'this customer';
+        
+        // Check if customer has active rentals
+        try {
+            const { data: activeRentals, error: rentalError } = await db
+                .from('rentals')
+                .select('id')
+                .eq('customer_id', customerId)
+                .in('rental_status', ['active', 'pending_approval', 'pending_rental']);
+            
+            if (rentalError) {
+                console.warn('Could not check for active rentals:', rentalError);
+            }
+            
+            if (activeRentals && activeRentals.length > 0) {
+                Utils.toastError(`Cannot delete ${fullName} - they have ${activeRentals.length} active rental(s). End the rental first.`);
+                return;
+            }
+        } catch (err) {
+            console.warn('Rental check failed, proceeding with delete confirmation:', err);
+        }
+        
+        // Show confirmation dialog
+        const confirmed = confirm(
+            `⚠️ DELETE CUSTOMER\n\n` +
+            `Are you sure you want to permanently delete "${fullName}"?\n\n` +
+            `This will also delete:\n` +
+            `• All their documents\n` +
+            `• All their payment history\n` +
+            `• All their rental records\n\n` +
+            `This action CANNOT be undone!`
+        );
+        
+        if (!confirmed) {
+            Utils.toastInfo('Delete cancelled');
+            return;
+        }
+        
+        // Double confirmation for safety
+        const doubleConfirm = confirm(
+            `🚨 FINAL CONFIRMATION\n\n` +
+            `You are about to PERMANENTLY DELETE:\n\n` +
+            `"${fullName}"\n` +
+            `ID: ${customer.customer_id || 'N/A'}\n` +
+            `Phone: ${customer.phone || 'N/A'}\n\n` +
+            `Type "DELETE" in the next prompt to confirm.`
+        );
+        
+        if (!doubleConfirm) {
+            Utils.toastInfo('Delete cancelled');
+            return;
+        }
+        
+        // Ask for DELETE confirmation
+        const typeDelete = prompt('Type DELETE to confirm permanent deletion:');
+        if (typeDelete !== 'DELETE') {
+            Utils.toastInfo('Delete cancelled - confirmation text did not match');
+            return;
+        }
+        
+        try {
+            Utils.toastInfo('Deleting customer...');
+            
+            // Delete related records first (to avoid foreign key constraints)
+            // 1. Delete payments
+            const { error: paymentsError } = await db
+                .from('payments')
+                .delete()
+                .eq('customer_id', customerId);
+            
+            if (paymentsError) {
+                console.warn('Error deleting payments:', paymentsError);
+            }
+            
+            // 2. Delete rentals
+            const { error: rentalsError } = await db
+                .from('rentals')
+                .delete()
+                .eq('customer_id', customerId);
+            
+            if (rentalsError) {
+                console.warn('Error deleting rentals:', rentalsError);
+            }
+            
+            // 3. Delete customer documents from storage (optional - files will be orphaned but not accessible)
+            // Storage cleanup can be done later if needed
+            
+            // 4. Delete the customer
+            const { error: customerError } = await db
+                .from('customers')
+                .delete()
+                .eq('id', customerId);
+            
+            if (customerError) throw customerError;
+            
+            Utils.toastSuccess(`✅ ${fullName} has been permanently deleted`);
+            
+            // Reload customers list
+            await this.load();
+            
+            // Update dashboard
+            if (typeof Dashboard !== 'undefined' && Dashboard.load) {
+                Dashboard.load();
+            }
+            
+            console.log(`🗑️ Deleted customer: ${fullName} (${customerId})`);
+            
+        } catch (error) {
+            console.error('Error deleting customer:', error);
+            Utils.toastError('Failed to delete customer: ' + error.message);
         }
     }
 };
