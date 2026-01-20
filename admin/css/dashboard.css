@@ -3854,14 +3854,32 @@ img {
 .transactions-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .transactions-table th,
 .transactions-table td {
-    padding: var(--space-md) var(--space-lg);
+    padding: 14px 16px;
     text-align: left;
     border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
+/* Column widths */
+.transactions-table th:nth-child(1),
+.transactions-table td:nth-child(1) { width: 80px; } /* Date */
+.transactions-table th:nth-child(2),
+.transactions-table td:nth-child(2) { width: 22%; } /* Customer */
+.transactions-table th:nth-child(3),
+.transactions-table td:nth-child(3) { width: 18%; } /* Vehicle */
+.transactions-table th:nth-child(4),
+.transactions-table td:nth-child(4) { width: 100px; } /* Amount */
+.transactions-table th:nth-child(5),
+.transactions-table td:nth-child(5) { width: 100px; } /* Method */
+.transactions-table th:nth-child(6),
+.transactions-table td:nth-child(6) { width: 90px; } /* Status */
 
 .transactions-table th {
     background: var(--bg-secondary);
@@ -3885,7 +3903,7 @@ img {
     color: var(--text-secondary);
 }
 
-.transactions-table .customer-cell .primary {
+.transactions-table .customer-cell {
     font-weight: 500;
     color: var(--text-primary);
 }
@@ -3900,6 +3918,14 @@ img {
     color: var(--text-primary);
 }
 
+.transactions-table .method-cell .method-badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+}
+
 .transactions-table .status-badge {
     padding: 4px 10px;
     border-radius: var(--radius-full);
@@ -3907,7 +3933,8 @@ img {
     font-weight: 500;
 }
 
-.transactions-table .status-confirmed {
+.transactions-table .status-confirmed,
+.transactions-table .status-paid {
     background: rgba(16, 185, 129, 0.15);
     color: var(--accent-green);
 }
