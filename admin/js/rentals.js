@@ -33,6 +33,7 @@ const Rentals = {
     filtered: [],
     customers: [],
     vehicles: [],
+    pendingChargesForPayment: [], // Store charges for payment modal
     
     /**
      * Initialize rentals tab
@@ -526,9 +527,7 @@ const Rentals = {
             
             // Build ledger entries
             const ledgerEntries = [];
-            const originalRate = parseFloat(rental.weekly_rate) || 400;
-            const currentRate = parseFloat(rental.current_weekly_rate) || originalRate;
-            const rateChangeDate = rental.rate_change_date ? parseLocalDateForRentals(rental.rate_change_date) : null;
+            const weeklyRate = parseFloat(rental.weekly_rate) || 400;
             const depositAmount = parseFloat(rental.deposit_amount || rental.deposit_included) || 250;
             const startDate = rental.start_date ? parseLocalDateForRentals(rental.start_date) : new Date();
             
@@ -545,12 +544,6 @@ const Rentals = {
                 // Skip if this week hasn't started yet
                 if (weekDate > today) break;
                 
-                // Determine which rate to use for this week
-                // Use original rate if: no rate change, OR week is before rate change date
-                // Use current rate if: week is on or after rate change date
-                const useOriginalRate = !rateChangeDate || weekDate < rateChangeDate;
-                const weeklyRate = useOriginalRate ? originalRate : currentRate;
-                
                 // First week includes deposit
                 if (week === 0) {
                     ledgerEntries.push({
@@ -561,12 +554,10 @@ const Rentals = {
                         isDebit: true
                     });
                 } else {
-                    // Show rate indicator if rate changed for this week
-                    const rateNote = (!useOriginalRate && originalRate !== currentRate) ? ' ✓' : '';
                     ledgerEntries.push({
                         type: 'rent',
                         date: weekDate,
-                        description: `Week ${week + 1} Rent${rateNote}`,
+                        description: `Week ${week + 1} Rent`,
                         amount: weeklyRate,
                         isDebit: true
                     });
@@ -753,11 +744,7 @@ const Rentals = {
                         <h4><i class="fas fa-dollar-sign"></i> Account Summary</h4>
                         <div class="detail-row">
                             <span class="detail-label">Weekly Rate</span>
-                            <span class="detail-value">${
-                                originalRate !== currentRate 
-                                    ? `<span style="text-decoration: line-through; color: var(--text-tertiary);">$${originalRate.toFixed(2)}</span> → <span style="color: var(--success);">$${currentRate.toFixed(2)}</span>`
-                                    : `$${originalRate.toFixed(2)}`
-                            }</span>
+                            <span class="detail-value">$${weeklyRate.toFixed(2)}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Total Paid</span>
@@ -1625,7 +1612,7 @@ const Rentals = {
     /**
      * Open record payment modal
      */
-    openRecordPaymentModal(rentalId) {
+    async openRecordPaymentModal(rentalId) {
         const rental = this.data.find(r => r.id === rentalId);
         if (!rental) {
             Utils.toastError('Rental not found');
@@ -1638,28 +1625,317 @@ const Rentals = {
             return;
         }
         
-        const customerName = rental.customer 
-            ? rental.customer?.full_name || 'Customer'
-            : 'Customer';
+        const customerName = rental.customer?.full_name || 'Customer';
+        const currentRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate) || 400;
         
+        // Set basic info
         document.getElementById('payment-rental-id').value = rentalId;
         document.getElementById('payment-customer-id').value = rental.customer_id || '';
         document.getElementById('payment-customer-name').textContent = customerName;
-        document.getElementById('payment-rental-rate').textContent = `$${rental.weekly_rate}/wk`;
-        // Show actual balance_remaining
-        const balance = parseFloat(rental.balance_remaining) || 0;
-        document.getElementById('payment-balance').textContent = Utils.formatCurrency(balance);
-        document.getElementById('payment-amount').value = rental.weekly_rate || 400;
+        document.getElementById('payment-rental-rate').textContent = `$${currentRate}/wk`;
         document.getElementById('payment-date').value = formatLocalDate(new Date());
         document.getElementById('payment-method').value = rental.payment_method || 'Zelle';
         document.getElementById('payment-notes').value = '';
         
-        // Clear any previous screenshot
+        // Clear screenshot preview
         const screenshotPreview = document.getElementById('payment-screenshot-preview');
         if (screenshotPreview) screenshotPreview.innerHTML = '';
         
+        // Load and display charges breakdown
+        await this.loadPaymentChargesBreakdown(rental);
+        
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+    },
+    
+    /**
+     * Load charges breakdown for payment modal
+     */
+    async loadPaymentChargesBreakdown(rental) {
+        const container = document.getElementById('payment-charges-list');
+        if (!container) {
+            // Fallback to simple mode if container doesn't exist
+            const balance = parseFloat(rental.balance_remaining) || 0;
+            const el = document.getElementById('payment-balance');
+            if (el) el.textContent = Utils.formatCurrency(balance);
+            const amountEl = document.getElementById('payment-amount');
+            if (amountEl) amountEl.value = rental.current_weekly_rate || rental.weekly_rate || 400;
+            return;
+        }
+        
+        container.innerHTML = '<div class="loading-charges"><i class="fas fa-spinner fa-spin"></i> Loading charges...</div>';
+        
+        try {
+            // Calculate unpaid rent weeks
+            const unpaidRentItems = this.calculateUnpaidRent(rental);
+            
+            // Load pending charges from rental_charges table
+            let pendingCharges = [];
+            try {
+                const { data, error } = await db
+                    .from('rental_charges')
+                    .select('*')
+                    .eq('rental_id', rental.id)
+                    .eq('status', 'pending')
+                    .order('charge_date', { ascending: true });
+                
+                if (!error && data) {
+                    pendingCharges = data;
+                }
+            } catch (e) {
+                console.log('Could not load rental_charges:', e.message);
+            }
+            
+            // Store for submitPayment
+            this.pendingChargesForPayment = pendingCharges;
+            
+            // Build the charges display
+            let html = '';
+            let totalDue = 0;
+            
+            // Unpaid Rent Section
+            if (unpaidRentItems.length > 0) {
+                html += `<div class="charges-section">
+                    <div class="charges-section-header">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="select-all-rent" onchange="Rentals.toggleAllRent(this.checked)" checked>
+                            <span>Weekly Rent Due</span>
+                        </label>
+                    </div>
+                    <div class="charges-items">`;
+                
+                unpaidRentItems.forEach((item, index) => {
+                    totalDue += item.amount;
+                    html += `
+                        <div class="charge-select-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" 
+                                       class="rent-checkbox" 
+                                       data-amount="${item.amount}" 
+                                       data-week="${item.week}"
+                                       data-type="rent"
+                                       onchange="Rentals.updatePaymentTotal()"
+                                       checked>
+                                <span class="charge-details">
+                                    <span class="charge-name">${item.description}</span>
+                                    <span class="charge-date">${item.dateStr}</span>
+                                </span>
+                            </label>
+                            <span class="charge-amount">$${item.amount.toFixed(2)}</span>
+                        </div>`;
+                });
+                
+                html += `</div></div>`;
+            }
+            
+            // Other Charges Section
+            if (pendingCharges.length > 0) {
+                html += `<div class="charges-section">
+                    <div class="charges-section-header">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="select-all-charges" onchange="Rentals.toggleAllCharges(this.checked)" checked>
+                            <span>Other Charges</span>
+                        </label>
+                    </div>
+                    <div class="charges-items">`;
+                
+                const typeIcons = {
+                    toll: 'fa-road',
+                    damage: 'fa-car-crash',
+                    cleaning: 'fa-broom',
+                    late_fee: 'fa-clock',
+                    deposit_replenish: 'fa-piggy-bank',
+                    mileage_overage: 'fa-tachometer-alt',
+                    other: 'fa-file-invoice-dollar'
+                };
+                
+                pendingCharges.forEach(charge => {
+                    totalDue += parseFloat(charge.amount);
+                    const icon = typeIcons[charge.charge_type] || 'fa-dollar-sign';
+                    const chargeDate = charge.charge_date 
+                        ? new Date(charge.charge_date).toLocaleDateString() 
+                        : 'N/A';
+                    
+                    html += `
+                        <div class="charge-select-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" 
+                                       class="charge-checkbox" 
+                                       data-charge-id="${charge.id}" 
+                                       data-amount="${charge.amount}"
+                                       data-type="charge"
+                                       onchange="Rentals.updatePaymentTotal()"
+                                       checked>
+                                <span class="charge-details">
+                                    <i class="fas ${icon} charge-icon"></i>
+                                    <span class="charge-name">${charge.description || charge.charge_type.replace('_', ' ')}</span>
+                                    <span class="charge-date">${chargeDate}</span>
+                                </span>
+                            </label>
+                            <span class="charge-amount">$${parseFloat(charge.amount).toFixed(2)}</span>
+                        </div>`;
+                });
+                
+                html += `</div></div>`;
+            }
+            
+            // No charges message
+            if (unpaidRentItems.length === 0 && pendingCharges.length === 0) {
+                html = `<div class="no-charges">
+                    <i class="fas fa-check-circle"></i>
+                    <p>No outstanding charges found</p>
+                    <p class="text-muted">You can still record a payment below</p>
+                </div>`;
+            }
+            
+            // Add total section
+            html += `
+                <div class="charges-total">
+                    <span>Selected Total:</span>
+                    <span id="selected-charges-total">$${totalDue.toFixed(2)}</span>
+                </div>`;
+            
+            container.innerHTML = html;
+            
+            // Update payment amount and balance display
+            document.getElementById('payment-amount').value = totalDue.toFixed(2);
+            document.getElementById('payment-balance').textContent = Utils.formatCurrency(totalDue);
+            
+        } catch (error) {
+            console.error('Error loading charges:', error);
+            container.innerHTML = '<div class="error-message">Error loading charges</div>';
+        }
+    },
+    
+    /**
+     * Calculate unpaid rent weeks
+     */
+    calculateUnpaidRent(rental) {
+        const unpaidItems = [];
+        
+        if (!rental.start_date) return unpaidItems;
+        
+        const startDate = parseLocalDateForRentals(rental.start_date);
+        const today = new Date();
+        const originalRate = parseFloat(rental.weekly_rate) || 400;
+        const currentRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate) || 400;
+        const depositAmount = parseFloat(rental.deposit_amount || rental.deposit_included) || 250;
+        const rateChangeDate = rental.rate_change_date ? parseLocalDateForRentals(rental.rate_change_date) : null;
+        
+        // Calculate weeks since start
+        const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        const weeksSinceStart = Math.max(0, Math.ceil(daysSinceStart / 7));
+        
+        // Get total paid (from rental record)
+        const totalPaid = parseFloat(rental.total_amount_paid) || 0;
+        
+        // Calculate what should have been paid by now
+        let totalDue = 0;
+        const weeklyBreakdown = [];
+        
+        for (let week = 0; week <= weeksSinceStart; week++) {
+            const weekDate = new Date(startDate);
+            weekDate.setDate(weekDate.getDate() + (week * 7));
+            
+            if (weekDate > today) break;
+            
+            // Determine rate for this week
+            const useOriginalRate = !rateChangeDate || weekDate < rateChangeDate;
+            const weekRate = useOriginalRate ? originalRate : currentRate;
+            
+            if (week === 0) {
+                // First week includes deposit
+                const amount = weekRate + depositAmount;
+                totalDue += amount;
+                weeklyBreakdown.push({
+                    week: 1,
+                    description: `Deposit + Week 1${!useOriginalRate ? ' ✓' : ''}`,
+                    amount: amount,
+                    date: weekDate,
+                    dateStr: weekDate.toLocaleDateString()
+                });
+            } else {
+                totalDue += weekRate;
+                weeklyBreakdown.push({
+                    week: week + 1,
+                    description: `Week ${week + 1} Rent${!useOriginalRate ? ' ✓' : ''}`,
+                    amount: weekRate,
+                    date: weekDate,
+                    dateStr: weekDate.toLocaleDateString()
+                });
+            }
+        }
+        
+        // Find unpaid weeks by comparing total due vs total paid
+        let remainingPaid = totalPaid;
+        const paidWeeks = [];
+        
+        for (const week of weeklyBreakdown) {
+            if (remainingPaid >= week.amount) {
+                remainingPaid -= week.amount;
+                paidWeeks.push(week.week);
+            } else {
+                break;
+            }
+        }
+        
+        // Return only unpaid weeks
+        return weeklyBreakdown.filter(w => !paidWeeks.includes(w.week));
+    },
+    
+    /**
+     * Toggle all rent checkboxes
+     */
+    toggleAllRent(checked) {
+        document.querySelectorAll('.rent-checkbox').forEach(cb => {
+            cb.checked = checked;
+        });
+        this.updatePaymentTotal();
+    },
+    
+    /**
+     * Toggle all charge checkboxes
+     */
+    toggleAllCharges(checked) {
+        document.querySelectorAll('.charge-checkbox').forEach(cb => {
+            cb.checked = checked;
+        });
+        this.updatePaymentTotal();
+    },
+    
+    /**
+     * Update payment total based on selected charges
+     */
+    updatePaymentTotal() {
+        let total = 0;
+        
+        // Sum checked rent items
+        document.querySelectorAll('.rent-checkbox:checked').forEach(cb => {
+            total += parseFloat(cb.dataset.amount) || 0;
+        });
+        
+        // Sum checked charge items
+        document.querySelectorAll('.charge-checkbox:checked').forEach(cb => {
+            total += parseFloat(cb.dataset.amount) || 0;
+        });
+        
+        // Update displays
+        const totalEl = document.getElementById('selected-charges-total');
+        if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
+        
+        const amountEl = document.getElementById('payment-amount');
+        if (amountEl) amountEl.value = total.toFixed(2);
+        
+        // Update select-all checkbox states
+        const allRentChecked = document.querySelectorAll('.rent-checkbox').length === 
+                              document.querySelectorAll('.rent-checkbox:checked').length;
+        const selectAllRent = document.getElementById('select-all-rent');
+        if (selectAllRent) selectAllRent.checked = allRentChecked;
+        
+        const allChargesChecked = document.querySelectorAll('.charge-checkbox').length === 
+                                  document.querySelectorAll('.charge-checkbox:checked').length;
+        const selectAllCharges = document.getElementById('select-all-charges');
+        if (selectAllCharges) selectAllCharges.checked = allChargesChecked;
     },
     
     /**
@@ -1711,6 +1987,13 @@ const Rentals = {
             return;
         }
         
+        // Get selected charges to mark as paid
+        const selectedChargeIds = [];
+        document.querySelectorAll('.charge-checkbox:checked').forEach(cb => {
+            const chargeId = cb.dataset.chargeId;
+            if (chargeId) selectedChargeIds.push(chargeId);
+        });
+        
         try {
             Utils.toastInfo('Recording payment...');
             
@@ -1753,19 +2036,19 @@ const Rentals = {
             const daysLate = isLate 
                 ? Math.floor((paidDateObj - dueDate) / (1000 * 60 * 60 * 24))
                 : 0;
-            const lateFee = isLate ? daysLate * 10 : 0; // $10/day late fee
+            const lateFee = isLate ? Math.min(daysLate * 10, 100) : 0; // $10/day, max $100
             
             // Insert payment record with ACTUAL column names from payments table
             const paymentData = {
                 payment_id: paymentId,
                 rental_id: rentalId,
                 customer_id: customerId,
-                due_date: rental.next_payment_due || paymentDate,  // NOT NULL
-                amount_due: amount,                                 // NOT NULL
+                due_date: rental.next_payment_due || paymentDate,
+                amount_due: amount,
                 toll_charges: 0,
                 damage_charges: 0,
                 late_fees: lateFee,
-                total_amount: amount + lateFee,                     // NOT NULL
+                total_amount: amount + lateFee,
                 paid_amount: amount,
                 paid_date: paymentDate,
                 payment_method: paymentMethod,
@@ -1774,16 +2057,40 @@ const Rentals = {
                 is_late: isLate,
                 days_late: daysLate,
                 notes: notes || null,
+                screenshot_url: screenshotUrl,
                 approved_by: 'Admin',
                 approved_at: new Date().toISOString(),
                 created_at: new Date().toISOString()
             };
             
-            const { error: paymentError } = await db
+            const { data: newPayment, error: paymentError } = await db
                 .from('payments')
-                .insert([paymentData]);
+                .insert([paymentData])
+                .select()
+                .single();
             
             if (paymentError) throw paymentError;
+            
+            // Mark selected charges as paid (if any were selected)
+            if (selectedChargeIds.length > 0 && newPayment) {
+                try {
+                    const { error: chargeUpdateError } = await db
+                        .from('rental_charges')
+                        .update({
+                            status: 'paid',
+                            applied_to_payment_id: newPayment.id,
+                            applied_at: new Date().toISOString()
+                        })
+                        .in('id', selectedChargeIds);
+                    
+                    if (chargeUpdateError) {
+                        console.error('Error updating charges:', chargeUpdateError);
+                        // Don't fail the whole operation, just log it
+                    }
+                } catch (e) {
+                    console.error('Could not update charges:', e);
+                }
+            }
             
             // Update rental balance tracking
             const currentPaid = parseFloat(rental.total_amount_paid) || 0;
@@ -1792,22 +2099,20 @@ const Rentals = {
             
             // For ongoing rentals, add another week to total_amount_due
             let newTotalDue = totalDue;
+            const currentRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate) || 400;
             if (!rental.weeks_count) {
-                // Ongoing rental - add another week
-                newTotalDue = totalDue + parseFloat(rental.weekly_rate || 400);
+                // Ongoing rental - add another week at current rate
+                newTotalDue = totalDue + currentRate;
             }
             
             const newBalance = newTotalDue - newPaid;
             
-            // FIX: Calculate next payment due based on CURRENT due date, not payment date
-            // This keeps rentals on their proper weekly schedule
+            // Calculate next payment due based on CURRENT due date
             let nextDue;
             if (rental.next_payment_due) {
-                // Parse current due date and add 7 days
                 nextDue = parseLocalDateForRentals(rental.next_payment_due);
                 nextDue.setDate(nextDue.getDate() + 7);
             } else {
-                // Fallback: use payment date + 7 if no current due date
                 nextDue = parseLocalDateForRentals(paymentDate);
                 nextDue.setDate(nextDue.getDate() + 7);
             }
@@ -1819,21 +2124,30 @@ const Rentals = {
                     total_amount_due: newTotalDue,
                     balance_remaining: Math.max(0, newBalance),
                     last_payment_date: paymentDate,
-                    next_payment_due: formatLocalDate(nextDue), // USE LOCAL FORMAT
+                    next_payment_due: formatLocalDate(nextDue),
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
             
             if (updateError) throw updateError;
             
-            if (updateError) throw updateError;
+            // Success message with charge info
+            const chargesPaid = selectedChargeIds.length;
+            let message = `Payment of ${Utils.formatCurrency(amount)} recorded!`;
+            if (chargesPaid > 0) {
+                message += ` (${chargesPaid} charge${chargesPaid > 1 ? 's' : ''} marked paid)`;
+            }
             
-            Utils.toastSuccess('Payment recorded successfully!');
+            Utils.toastSuccess(message);
             this.closeRecordPaymentModal();
             await this.load();
             
+            // Refresh related modules
             if (typeof Dashboard !== 'undefined' && Dashboard.load) {
                 Dashboard.load();
+            }
+            if (typeof Payments !== 'undefined' && Payments.load) {
+                Payments.load();
             }
             
         } catch (error) {
@@ -2067,9 +2381,8 @@ const Rentals = {
             ongoingCheckbox.checked = true;
         }
         
-        // Rate and deposit - use current_weekly_rate if available (for rate changes)
-        const currentRate = parseFloat(rental.current_weekly_rate) || parseFloat(rental.weekly_rate) || 400;
-        document.getElementById('edit-rental-weekly-rate').value = currentRate;
+        // Rate and deposit
+        document.getElementById('edit-rental-weekly-rate').value = parseFloat(rental.weekly_rate) || 400;
         document.getElementById('edit-rental-deposit').value = parseFloat(rental.deposit_amount || rental.deposit_included) || 500;
         
         // Next payment due
@@ -2244,10 +2557,6 @@ const Rentals = {
         const oldVehicleId = rental.vehicle_id;
         const vehicleChanged = newVehicleId !== oldVehicleId;
         
-        // Detect rate change
-        const oldRate = parseFloat(rental.current_weekly_rate) || parseFloat(rental.weekly_rate) || 400;
-        const rateChanged = weeklyRate !== oldRate;
-        
         // Confirm changes
         let confirmMsg = 'Save changes to this rental?';
         if (vehicleChanged) {
@@ -2257,31 +2566,22 @@ const Rentals = {
                 : 'selected vehicle';
             confirmMsg = `Change vehicle to ${newVehicleName}?\n\nThe previous vehicle will become available again.`;
         }
-        if (rateChanged) {
-            confirmMsg += `\n\n⚠️ Rate Change: $${oldRate} → $${weeklyRate}\nThis will apply to FUTURE weeks only.\nPast charges are not affected.`;
-        }
         
         if (!confirm(confirmMsg)) return;
         
         try {
             Utils.toastInfo('Saving changes...');
             
-            // Update rental record - use current_weekly_rate for rate changes
+            // Update rental record - only use columns that exist in your schema
             const updateData = {
                 vehicle_id: newVehicleId,
                 start_date: startDate,
                 start_mileage: startMileage,
-                current_weekly_rate: weeklyRate, // Save to current_weekly_rate (not weekly_rate)
+                weekly_rate: weeklyRate,
                 deposit_amount: deposit,
                 next_payment_due: nextPaymentDue,
                 updated_at: new Date().toISOString()
             };
-            
-            // If rate changed, record when it changed
-            if (rateChanged) {
-                updateData.rate_change_date = new Date().toISOString().split('T')[0];
-                updateData.rate_change_notes = `Rate changed from $${oldRate} to $${weeklyRate}`;
-            }
             
             const { error: updateError } = await db
                 .from('rentals')
@@ -2314,9 +2614,7 @@ const Rentals = {
                     .eq('id', newVehicleId);
             }
             
-            Utils.toastSuccess(rateChanged 
-                ? `Rental updated! New rate of $${weeklyRate}/week will apply to future charges.`
-                : 'Rental updated successfully!');
+            Utils.toastSuccess('Rental updated successfully!');
             this.closeEditRentalModal();
             await this.load();
             
