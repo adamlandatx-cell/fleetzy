@@ -593,17 +593,47 @@ const Rentals = {
     /**
      * View contract PDF
      */
-    viewContract(rentalId) {
+    async viewContract(rentalId) {
         const rental = this.data.find(r => r.id === rentalId);
         if (!rental) {
             Utils.toastError('Rental not found');
             return;
         }
         
+        // First check if rental has contract_id
+        if (rental.contract_id) {
+            try {
+                // Fetch contract details from contracts table
+                const { data: contract, error } = await db
+                    .from('contracts')
+                    .select('contract_pdf_url')
+                    .eq('id', rental.contract_id)
+                    .single();
+                
+                if (error) throw error;
+                
+                if (contract?.contract_pdf_url) {
+                    window.open(contract.contract_pdf_url, '_blank');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error fetching contract:', error);
+            }
+        }
+        
+        // Fallback to legacy contract_url field
         if (rental.contract_url) {
             window.open(rental.contract_url, '_blank');
-        } else {
-            Utils.toastInfo('No contract available for this rental');
+            return;
+        }
+        
+        // No contract found - offer to generate one
+        const confirmed = confirm('No contract found for this rental.\n\nWould you like to generate one now?');
+        if (confirmed) {
+            const customerName = rental.customer?.full_name || 'Customer';
+            await this.generateContract(rentalId, customerName);
+            // Reload to get updated data
+            await this.load();
         }
     },
     
@@ -654,6 +684,10 @@ const Rentals = {
             }
             
             Utils.toastSuccess(`Rental for ${customerName} approved!`);
+            
+            // Generate contract PDF
+            await this.generateContract(rentalId, customerName);
+            
             await this.load();
             
             // Refresh dashboard
@@ -664,6 +698,53 @@ const Rentals = {
         } catch (error) {
             console.error('Error approving rental:', error);
             Utils.toastError('Failed to approve rental: ' + error.message);
+        }
+    },
+    
+    /**
+     * Generate contract PDF via n8n webhook
+     * Called after rental is approved or created
+     */
+    async generateContract(rentalId, customerName = 'Customer') {
+        const webhookUrl = CONFIG.webhooks?.contractGeneration;
+        
+        if (!webhookUrl || webhookUrl === 'YOUR_N8N_WEBHOOK_URL_HERE') {
+            console.warn('⚠️ Contract generation webhook not configured');
+            Utils.toastInfo('Contract generation not yet configured - skipping');
+            return null;
+        }
+        
+        try {
+            Utils.toastInfo('Generating contract PDF...');
+            
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    rental_id: rentalId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.pdf_url) {
+                console.log('✅ Contract generated:', result.contract_id);
+                Utils.toastSuccess(`Contract ready for ${customerName}!`);
+                return result;
+            } else {
+                throw new Error(result.message || 'Contract generation failed');
+            }
+            
+        } catch (error) {
+            console.error('❌ Contract generation error:', error);
+            Utils.toastError('Contract generation failed - you can generate it manually later');
+            return null;
         }
     },
     
@@ -1047,9 +1128,11 @@ const Rentals = {
         try {
             Utils.toastInfo('Creating rental...');
             
-            const { error } = await db
+            const { data: insertedRental, error } = await db
                 .from('rentals')
-                .insert([rentalData]);
+                .insert([rentalData])
+                .select()
+                .single();
             
             if (error) throw error;
             
@@ -1063,6 +1146,15 @@ const Rentals = {
                 .eq('id', vehicleId);
             
             Utils.toastSuccess('Rental created successfully!');
+            
+            // Generate contract PDF for the new rental
+            if (insertedRental?.id) {
+                // Get customer name for the toast message
+                const customer = this.customers.find(c => c.id === customerId);
+                const customerName = customer?.full_name || 'Customer';
+                await this.generateContract(insertedRental.id, customerName);
+            }
+            
             this.closeNewRentalModal();
             await this.load();
             
