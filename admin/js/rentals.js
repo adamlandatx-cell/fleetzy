@@ -458,7 +458,11 @@ const Rentals = {
     /**
      * View rental details
      */
-    view(rentalId) {
+    /**
+     * View rental details with full ledger
+     * Enhanced to show payments, charges, and running balance
+     */
+    async view(rentalId) {
         const rental = this.data.find(r => r.id === rentalId);
         if (!rental) {
             Utils.toastError('Rental not found');
@@ -481,6 +485,198 @@ const Rentals = {
         
         const content = document.getElementById('view-rental-content');
         if (content) {
+            // Show loading first
+            content.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+                    <p style="margin-top: 12px; color: var(--text-secondary);">Loading rental details...</p>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Fetch payments and charges
+            let payments = [];
+            let charges = [];
+            
+            try {
+                const [paymentsRes, chargesRes] = await Promise.all([
+                    db.from('payments')
+                        .select('*')
+                        .eq('rental_id', rentalId)
+                        .order('paid_date', { ascending: true }),
+                    db.from('rental_charges')
+                        .select('*')
+                        .eq('rental_id', rentalId)
+                        .order('charge_date', { ascending: true })
+                ]);
+                
+                payments = paymentsRes.data || [];
+                charges = chargesRes.data || [];
+            } catch (err) {
+                console.log('Could not fetch ledger data:', err);
+            }
+            
+            // Build ledger entries
+            const ledgerEntries = [];
+            const weeklyRate = parseFloat(rental.weekly_rate) || 400;
+            const depositAmount = parseFloat(rental.deposit_amount || rental.deposit_included) || 250;
+            const startDate = rental.start_date ? parseLocalDateForRentals(rental.start_date) : new Date();
+            
+            // Calculate weeks since start
+            const today = new Date();
+            const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+            const weeksSinceStart = Math.max(0, Math.ceil(daysSinceStart / 7));
+            
+            // Add weekly rent due entries
+            for (let week = 0; week <= weeksSinceStart; week++) {
+                const weekDate = new Date(startDate);
+                weekDate.setDate(weekDate.getDate() + (week * 7));
+                
+                // Skip if this week hasn't started yet
+                if (weekDate > today) break;
+                
+                // First week includes deposit
+                if (week === 0) {
+                    ledgerEntries.push({
+                        type: 'rent',
+                        date: weekDate,
+                        description: 'Deposit + Week 1',
+                        amount: weeklyRate + depositAmount,
+                        isDebit: true
+                    });
+                } else {
+                    ledgerEntries.push({
+                        type: 'rent',
+                        date: weekDate,
+                        description: `Week ${week + 1} Rent`,
+                        amount: weeklyRate,
+                        isDebit: true
+                    });
+                }
+            }
+            
+            // Add charges
+            for (const charge of charges) {
+                const chargeDate = charge.charge_date ? parseLocalDateForRentals(charge.charge_date) : new Date(charge.created_at);
+                ledgerEntries.push({
+                    type: 'charge',
+                    date: chargeDate,
+                    description: charge.description || charge.charge_type.replace('_', ' '),
+                    amount: parseFloat(charge.amount),
+                    isDebit: true,
+                    chargeType: charge.charge_type,
+                    status: charge.status,
+                    id: charge.id
+                });
+            }
+            
+            // Add payments
+            for (const payment of payments) {
+                if (payment.payment_status === 'paid' && payment.paid_amount) {
+                    const paidDate = payment.paid_date ? new Date(payment.paid_date) : new Date(payment.created_at);
+                    ledgerEntries.push({
+                        type: 'payment',
+                        date: paidDate,
+                        description: `Payment - ${payment.payment_method || 'Unknown'}`,
+                        amount: parseFloat(payment.paid_amount),
+                        isDebit: false,
+                        paymentType: payment.payment_type
+                    });
+                }
+            }
+            
+            // Sort by date
+            ledgerEntries.sort((a, b) => a.date - b.date);
+            
+            // Calculate running balance
+            let runningBalance = 0;
+            for (const entry of ledgerEntries) {
+                if (entry.isDebit) {
+                    runningBalance += entry.amount;
+                } else {
+                    runningBalance -= entry.amount;
+                }
+                entry.balance = runningBalance;
+            }
+            
+            // Calculate totals
+            const totalPaid = payments.filter(p => p.payment_status === 'paid')
+                .reduce((sum, p) => sum + parseFloat(p.paid_amount || 0), 0);
+            const totalCharges = charges.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+            const pendingCharges = charges.filter(c => c.status === 'pending');
+            const pendingChargesTotal = pendingCharges.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+            
+            // Format balance display
+            const balanceClass = runningBalance > 0 ? 'danger' : 'success';
+            const balanceLabel = runningBalance > 0 ? 'Balance Due' : (runningBalance < 0 ? 'Credit' : 'Balanced');
+            
+            // Generate ledger HTML
+            const ledgerHTML = ledgerEntries.length > 0 ? `
+                <div class="ledger-table-container" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-primary); border-radius: 8px; margin-top: 8px;">
+                    <table class="ledger-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <thead style="position: sticky; top: 0; background: var(--bg-secondary);">
+                            <tr>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-primary); font-weight: 600;">Date</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border-primary); font-weight: 600;">Description</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-primary); font-weight: 600;">Amount</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 1px solid var(--border-primary); font-weight: 600;">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${ledgerEntries.map(entry => {
+                                const dateStr = entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                const icon = entry.type === 'payment' ? 'fa-check-circle' : 
+                                             entry.type === 'charge' ? 'fa-exclamation-circle' : 
+                                             'fa-calendar-week';
+                                const iconColor = entry.type === 'payment' ? 'var(--success)' : 
+                                                  entry.type === 'charge' ? 'var(--warning)' : 
+                                                  'var(--primary)';
+                                const amountColor = entry.isDebit ? 'var(--text-primary)' : 'var(--success)';
+                                const amountPrefix = entry.isDebit ? '+' : '-';
+                                const balColor = entry.balance > 0 ? 'var(--danger)' : 'var(--success)';
+                                const statusBadge = entry.status === 'pending' ? '<span style="background: var(--warning); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px;">PENDING</span>' : '';
+                                
+                                return `
+                                    <tr style="border-bottom: 1px solid var(--border-primary);">
+                                        <td style="padding: 10px; color: var(--text-secondary);">${dateStr}</td>
+                                        <td style="padding: 10px;">
+                                            <i class="fas ${icon}" style="color: ${iconColor}; margin-right: 6px;"></i>
+                                            ${entry.description}${statusBadge}
+                                        </td>
+                                        <td style="padding: 10px; text-align: right; font-weight: 500; color: ${amountColor};">${amountPrefix}$${entry.amount.toFixed(2)}</td>
+                                        <td style="padding: 10px; text-align: right; font-weight: 600; color: ${balColor};">
+                                            ${entry.balance >= 0 ? '' : '-'}$${Math.abs(entry.balance).toFixed(2)}
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : '<p style="color: var(--text-secondary); padding: 20px; text-align: center;">No transactions yet</p>';
+            
+            // Generate pending charges HTML
+            const pendingChargesHTML = pendingCharges.length > 0 ? `
+                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                    <div style="font-weight: 600; color: var(--warning); margin-bottom: 8px;">
+                        <i class="fas fa-exclamation-triangle"></i> Pending Charges
+                    </div>
+                    ${pendingCharges.map(charge => `
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(245, 158, 11, 0.2);">
+                            <span>${charge.description || charge.charge_type.replace('_', ' ')}</span>
+                            <div>
+                                <span style="font-weight: 600; color: var(--warning);">$${parseFloat(charge.amount).toFixed(2)}</span>
+                                <button onclick="Charges.waiveCharge('${charge.id}')" style="margin-left: 8px; background: none; border: none; color: var(--text-tertiary); cursor: pointer;" title="Waive">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
+            
             content.innerHTML = `
                 <div class="detail-grid">
                     <div class="detail-section">
@@ -497,15 +693,11 @@ const Rentals = {
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Start Date</span>
-                            <span class="detail-value">${rental.start_date ? new Date(rental.start_date).toLocaleDateString() : 'Not started'}</span>
+                            <span class="detail-value">${rental.start_date ? new Date(rental.start_date + 'T00:00:00').toLocaleDateString() : 'Not started'}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">End Date</span>
-                            <span class="detail-value">${rental.end_date ? new Date(rental.end_date).toLocaleDateString() : 'Ongoing'}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Weeks</span>
-                            <span class="detail-value">${rental.weeks_count || 'Ongoing'}</span>
+                            <span class="detail-value">${rental.end_date ? new Date(rental.end_date + 'T00:00:00').toLocaleDateString() : 'Ongoing'}</span>
                         </div>
                     </div>
                     
@@ -539,31 +731,43 @@ const Rentals = {
                             <span class="detail-label">Start Mileage</span>
                             <span class="detail-value">${rental.start_mileage?.toLocaleString() || '-'} mi</span>
                         </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Current/End Mileage</span>
-                            <span class="detail-value">${rental.end_mileage?.toLocaleString() || '-'} mi</span>
-                        </div>
                     </div>
                     
                     <div class="detail-section">
-                        <h4><i class="fas fa-dollar-sign"></i> Financials</h4>
+                        <h4><i class="fas fa-dollar-sign"></i> Account Summary</h4>
                         <div class="detail-row">
                             <span class="detail-label">Weekly Rate</span>
-                            <span class="detail-value">$${parseFloat(rental.weekly_rate || 0).toLocaleString()}</span>
+                            <span class="detail-value">$${weeklyRate.toFixed(2)}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Deposit</span>
-                            <span class="detail-value">$${parseFloat(rental.deposit_amount || rental.deposit_included || 0).toLocaleString()}</span>
+                            <span class="detail-label">Total Paid</span>
+                            <span class="detail-value" style="color: var(--success);">$${totalPaid.toFixed(2)}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Initial Payment</span>
-                            <span class="detail-value">$${parseFloat(rental.initial_payment || 0).toLocaleString()}</span>
+                            <span class="detail-label">Total Charges</span>
+                            <span class="detail-value" style="color: var(--warning);">$${totalCharges.toFixed(2)}</span>
                         </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Deposit Status</span>
-                            <span class="detail-value">${rental.deposit_status || 'N/A'}</span>
+                        <div class="detail-row" style="border-top: 1px solid var(--border-primary); padding-top: 8px; margin-top: 8px;">
+                            <span class="detail-label" style="font-weight: 600;">${balanceLabel}</span>
+                            <span class="detail-value" style="font-weight: 700; font-size: 18px; color: var(--${balanceClass});">
+                                ${runningBalance >= 0 ? '' : '-'}$${Math.abs(runningBalance).toFixed(2)}
+                            </span>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Pending Charges Section -->
+                ${pendingChargesHTML}
+                
+                <!-- Transaction Ledger -->
+                <div class="detail-section full-width" style="margin-top: 16px;">
+                    <h4 style="display: flex; justify-content: space-between; align-items: center;">
+                        <span><i class="fas fa-list-alt"></i> Transaction Ledger</span>
+                        <button class="btn btn-sm btn-secondary" onclick="Charges.openAddChargeModal('${rental.id}')" style="font-size: 12px;">
+                            <i class="fas fa-plus"></i> Add Charge
+                        </button>
+                    </h4>
+                    ${ledgerHTML}
                 </div>
                 
                 ${rental.pickup_inspection_notes ? `
@@ -574,9 +778,6 @@ const Rentals = {
                 ` : ''}
             `;
         }
-        
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
     },
     
     /**

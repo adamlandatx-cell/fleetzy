@@ -74,7 +74,7 @@ async function loadUpcomingPayments() {
             return;
         }
         
-        // Now fetch customer and vehicle data separately for each rental
+        // Now fetch customer, vehicle, and pending charges for each rental
         // This avoids issues with foreign key joins
         const enrichedRentals = await Promise.all(rentals.map(async (rental) => {
             // Get customer - NOTE: DB uses full_name, not first_name/last_name
@@ -99,10 +99,32 @@ async function loadUpcomingPayments() {
                 vehicle = vehData;
             }
             
+            // Get pending charges for this rental
+            let pendingCharges = [];
+            let pendingChargesTotal = 0;
+            try {
+                const { data: chargesData } = await db
+                    .from('rental_charges')
+                    .select('id, charge_type, amount, description')
+                    .eq('rental_id', rental.id)
+                    .eq('status', 'pending');
+                
+                if (chargesData && chargesData.length > 0) {
+                    pendingCharges = chargesData;
+                    pendingChargesTotal = chargesData.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+                }
+            } catch (err) {
+                // Silently handle if rental_charges table doesn't exist
+                console.log('Could not fetch charges for rental:', rental.id);
+            }
+            
             return {
                 ...rental,
                 customers: customer,
-                vehicles: vehicle
+                vehicles: vehicle,
+                pendingCharges: pendingCharges,
+                pendingChargesTotal: pendingChargesTotal,
+                totalDue: parseFloat(rental.weekly_rate || 0) + pendingChargesTotal
             };
         }));
         
@@ -203,6 +225,7 @@ async function loadUpcomingPayments() {
 
 /**
  * Render a single upcoming payment item
+ * Now includes pending charges in total
  */
 function renderUpcomingPaymentItem(rental, isUrgent) {
     // DB uses full_name, not first_name/last_name
@@ -220,6 +243,22 @@ function renderUpcomingPaymentItem(rental, isUrgent) {
     today.setHours(0, 0, 0, 0);
     const isOverdue = dueDate && dueDate < today;
     
+    // Calculate totals
+    const weeklyRate = parseFloat(rental.weekly_rate || 0);
+    const chargesTotal = rental.pendingChargesTotal || 0;
+    const totalDue = rental.totalDue || weeklyRate;
+    const hasCharges = chargesTotal > 0;
+    
+    // Build charges breakdown HTML
+    let chargesBreakdown = '';
+    if (hasCharges && rental.pendingCharges) {
+        chargesBreakdown = `
+            <div class="payment-charges-breakdown" style="font-size: 11px; color: var(--warning); margin-top: 2px;">
+                + $${chargesTotal.toFixed(2)} charges
+            </div>
+        `;
+    }
+    
     return `
         <div class="upcoming-payment-item ${isUrgent ? 'due-tomorrow' : ''}">
             <div class="payment-item-info">
@@ -231,7 +270,13 @@ function renderUpcomingPaymentItem(rental, isUrgent) {
             </div>
             <div class="payment-item-right">
                 <div class="payment-item-amount">
-                    <div class="payment-amount-base">$${parseFloat(rental.weekly_rate || 0).toFixed(0)}</div>
+                    ${hasCharges ? `
+                        <div class="payment-amount-base" style="font-size: 11px; color: var(--text-tertiary); text-decoration: line-through;">$${weeklyRate.toFixed(0)}</div>
+                        <div class="payment-amount-total" style="font-size: 16px; font-weight: 700; color: ${hasCharges ? 'var(--warning)' : 'var(--text-primary)'};">$${totalDue.toFixed(0)}</div>
+                    ` : `
+                        <div class="payment-amount-base">$${weeklyRate.toFixed(0)}</div>
+                    `}
+                    ${chargesBreakdown}
                 </div>
                 <div class="payment-item-actions">
                     ${isUrgent ? `
@@ -250,9 +295,11 @@ function renderUpcomingPaymentItem(rental, isUrgent) {
 
 /**
  * Update the stats in the widget header
+ * Now includes charges in totals
  */
 function updateUpcomingStats(dueTomorrow, dueThisWeek) {
-    const weekTotal = [...dueTomorrow, ...dueThisWeek].reduce((sum, r) => sum + parseFloat(r.weekly_rate || 0), 0);
+    // Calculate total including charges
+    const weekTotal = [...dueTomorrow, ...dueThisWeek].reduce((sum, r) => sum + parseFloat(r.totalDue || r.weekly_rate || 0), 0);
     
     const statWeek = document.getElementById('stat-expected-week');
     const statTomorrow = document.getElementById('stat-due-tomorrow');
