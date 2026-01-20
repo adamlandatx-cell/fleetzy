@@ -1578,9 +1578,18 @@ const Rentals = {
             
             const newBalance = newTotalDue - newPaid;
             
-            // Calculate next payment due (7 days from this payment) - USE LOCAL DATE
-            const nextDue = parseLocalDateForRentals(paymentDate);
-            nextDue.setDate(nextDue.getDate() + 7);
+            // FIX: Calculate next payment due based on CURRENT due date, not payment date
+            // This keeps rentals on their proper weekly schedule
+            let nextDue;
+            if (rental.next_payment_due) {
+                // Parse current due date and add 7 days
+                nextDue = parseLocalDateForRentals(rental.next_payment_due);
+                nextDue.setDate(nextDue.getDate() + 7);
+            } else {
+                // Fallback: use payment date + 7 if no current due date
+                nextDue = parseLocalDateForRentals(paymentDate);
+                nextDue.setDate(nextDue.getDate() + 7);
+            }
             
             const { error: updateError } = await db
                 .from('rentals')
