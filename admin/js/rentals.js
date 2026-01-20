@@ -2057,7 +2057,7 @@ const Rentals = {
                 is_late: isLate,
                 days_late: daysLate,
                 notes: notes || null,
-                screenshot_url: screenshotUrl,
+                payment_screenshot_url: screenshotUrl,
                 approved_by: 'Admin',
                 approved_at: new Date().toISOString(),
                 created_at: new Date().toISOString()
