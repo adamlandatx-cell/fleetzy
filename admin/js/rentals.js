@@ -2210,7 +2210,6 @@ const Rentals = {
         const weeklyRate = parseFloat(document.getElementById('edit-rental-weekly-rate')?.value) || 400;
         const deposit = parseFloat(document.getElementById('edit-rental-deposit')?.value) || 500;
         const nextPaymentDue = document.getElementById('edit-rental-next-payment')?.value || null;
-        const notes = document.getElementById('edit-rental-notes')?.value || '';
         
         // Validation
         if (!newVehicleId) {
@@ -2250,16 +2249,7 @@ const Rentals = {
             // Calculate new amounts
             let totalAmountDue = isOngoing ? weeklyRate : (weeks * weeklyRate);
             
-            // Prepare existing notes
-            let existingNotes = rental.notes || '';
-            if (notes) {
-                const timestamp = new Date().toLocaleString();
-                existingNotes = existingNotes 
-                    ? `${existingNotes}\n\n[${timestamp}] ${notes}`
-                    : `[${timestamp}] ${notes}`;
-            }
-            
-            // Update rental record
+            // Update rental record (without notes field - doesn't exist in schema)
             const updateData = {
                 vehicle_id: newVehicleId,
                 start_date: startDate,
@@ -2269,7 +2259,6 @@ const Rentals = {
                 deposit_amount: deposit,
                 total_amount_due: totalAmountDue,
                 next_payment_due: nextPaymentDue,
-                notes: existingNotes,
                 updated_at: new Date().toISOString()
             };
             
