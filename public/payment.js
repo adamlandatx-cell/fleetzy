@@ -264,8 +264,9 @@ async function handleAuth(e) {
 
 // Global state for selected payment type
 let selectedPaymentType = 'weekly';
+let pendingCharges = []; // Store pending charges globally
 
-function showPaymentSection() {
+async function showPaymentSection() {
     // Hide auth, show payment
     authSection.classList.add('hidden');
     paymentSection.classList.remove('hidden');
@@ -294,13 +295,34 @@ function showPaymentSection() {
         }
     }
     
-    // Calculate payment amounts - NO processing fee, just flat weekly rate + any additional fees (tolls, etc.)
+    // Fetch pending charges from rental_charges table
+    let chargesTotal = 0;
+    pendingCharges = [];
+    try {
+        const { data: charges, error: chargesError } = await supabaseClient
+            .from('rental_charges')
+            .select('*')
+            .eq('rental_id', rentalData.id)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+        
+        if (!chargesError && charges && charges.length > 0) {
+            pendingCharges = charges;
+            chargesTotal = charges.reduce((sum, charge) => sum + parseFloat(charge.amount || 0), 0);
+            console.log('📋 Pending charges found:', charges.length, 'Total:', chargesTotal);
+        }
+    } catch (err) {
+        console.log('⚠️ Could not fetch charges:', err.message);
+    }
+    
+    // Calculate payment amounts - NO processing fee, just flat weekly rate + charges
     const weeklyRate = parseFloat(rentalData.weekly_rate) || 400.00;
     const depositAmount = parseFloat(rentalData.deposit_amount) || 500.00;
-    const additionalFees = parseFloat(rentalData.additional_fees) || 0; // Tolls, fees manually added by admin
+    const additionalFees = parseFloat(rentalData.additional_fees) || 0; // Legacy field
     
-    // Total = weekly rate + any additional fees (no automatic processing fee)
-    const weeklyTotal = weeklyRate + additionalFees;
+    // Total = weekly rate + pending charges from rental_charges table
+    const totalCharges = chargesTotal + additionalFees;
+    const weeklyTotal = weeklyRate + totalCharges;
     const depositTotal = depositAmount;
     
     paymentAmount = weeklyTotal;
@@ -311,13 +333,51 @@ function showPaymentSection() {
         weeklyRateEl.textContent = formatCurrency(weeklyRate);
     }
     
-    // Show additional fees row if there are any
+    // Build charges display - insert after weekly rate row
+    const chargesContainer = document.getElementById('chargesContainer');
+    if (chargesContainer) {
+        chargesContainer.remove(); // Remove old container if exists
+    }
+    
+    // Create charges section if there are pending charges
+    if (pendingCharges.length > 0 || additionalFees > 0) {
+        const weeklyRateRow = weeklyRateEl?.closest('.summary-row');
+        if (weeklyRateRow) {
+            let chargesHTML = '<div id="chargesContainer">';
+            
+            // Display each individual charge
+            pendingCharges.forEach(charge => {
+                const chargeType = charge.charge_type ? charge.charge_type.replace('_', ' ') : 'Fee';
+                const chargeLabel = charge.description || chargeType.charAt(0).toUpperCase() + chargeType.slice(1);
+                chargesHTML += `
+                    <div class="summary-row charge-item">
+                        <span class="summary-label" style="color: var(--accent-amber);">
+                            <i class="fas fa-${getChargeIcon(charge.charge_type)}" style="margin-right: 6px;"></i>
+                            ${chargeLabel}
+                        </span>
+                        <span class="summary-value" style="color: var(--accent-amber);">+${formatCurrency(charge.amount)}</span>
+                    </div>
+                `;
+            });
+            
+            // Add legacy additional fees if any
+            if (additionalFees > 0) {
+                chargesHTML += `
+                    <div class="summary-row charge-item">
+                        <span class="summary-label" style="color: var(--accent-amber);">Additional Fees</span>
+                        <span class="summary-value" style="color: var(--accent-amber);">+${formatCurrency(additionalFees)}</span>
+                    </div>
+                `;
+            }
+            
+            chargesHTML += '</div>';
+            weeklyRateRow.insertAdjacentHTML('afterend', chargesHTML);
+        }
+    }
+    
+    // Hide legacy additional fees row (now using individual charge items)
     const additionalFeesRow = document.getElementById('additionalFeesRow');
-    const additionalFeesEl = document.getElementById('additionalFees');
-    if (additionalFees > 0 && additionalFeesRow && additionalFeesEl) {
-        additionalFeesRow.classList.remove('hidden');
-        additionalFeesEl.textContent = formatCurrency(additionalFees);
-    } else if (additionalFeesRow) {
+    if (additionalFeesRow) {
         additionalFeesRow.classList.add('hidden');
     }
     
@@ -330,7 +390,8 @@ function showPaymentSection() {
     window.paymentAmounts = {
         weekly: weeklyTotal,
         deposit: depositTotal,
-        additionalFees: additionalFees,
+        additionalFees: totalCharges,
+        chargesTotal: chargesTotal,
         custom: 0
     };
     
@@ -346,6 +407,7 @@ function showPaymentSection() {
     console.log('✅ Payment section loaded:', {
         customer: displayName,
         weeklyRate: weeklyRate,
+        chargesTotal: chargesTotal,
         additionalFees: additionalFees,
         total: weeklyTotal
     });
@@ -659,6 +721,22 @@ function formatPhone(phone) {
 function capitalize(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Get Font Awesome icon for charge type
+ */
+function getChargeIcon(chargeType) {
+    const icons = {
+        'toll': 'road',
+        'damage': 'car-crash',
+        'cleaning': 'broom',
+        'late_fee': 'clock',
+        'deposit_replenish': 'piggy-bank',
+        'mileage_overage': 'tachometer-alt',
+        'other': 'file-invoice-dollar'
+    };
+    return icons[chargeType] || 'dollar-sign';
 }
 
 // ============================================================================
