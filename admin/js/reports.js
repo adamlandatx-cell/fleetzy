@@ -1058,24 +1058,17 @@ const Reports = {
             const status = (p.payment_status || p.status || 'pending').toLowerCase();
             const method = p.payment_method || 'Other';
             
-            return `
-                <tr>
-                    <td class="date-cell">${Utils.formatDate(p.paid_date, 'short')}</td>
-                    <td class="customer-cell">
-                        <div class="cell-content">
-                            <span class="primary">${customerName}</span>
-                        </div>
-                    </td>
-                    <td class="vehicle-cell">${vehicleName}</td>
-                    <td class="amount-cell">${Utils.formatCurrency(p.paid_amount || 0)}</td>
-                    <td class="method-cell">
-                        <span class="method-badge method-${method.toLowerCase()}">${method}</span>
-                    </td>
-                    <td class="status-cell">
-                        <span class="status-badge status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
-                    </td>
-                </tr>
-            `;
+            // Clean method name for CSS class (remove spaces, lowercase)
+            const methodClass = method.toLowerCase().replace(/\s+/g, '');
+            
+            return `<tr>
+<td class="date-cell">${Utils.formatDate(p.paid_date, 'short')}</td>
+<td class="customer-cell">${customerName}</td>
+<td class="vehicle-cell">${vehicleName}</td>
+<td class="amount-cell">${Utils.formatCurrency(p.paid_amount || 0)}</td>
+<td class="method-cell"><span class="method-badge method-${methodClass}">${method}</span></td>
+<td class="status-cell"><span class="status-badge status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+</tr>`;
         }).join('');
     },
 
