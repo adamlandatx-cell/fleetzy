@@ -514,7 +514,7 @@
             </div>
             <div class="stat-item">
                 <div id="stat-charges" class="stat-value amber">$0</div>
-                <div class="stat-label">Charges</div>
+                <div class="stat-label">Extra Fees</div>
             </div>
             <div class="stat-item">
                 <div id="stat-payments" class="stat-value blue">0</div>
@@ -522,11 +522,11 @@
             </div>
         </div>
         
-        <!-- Pending Charges (if any) -->
+        <!-- Amount Due Breakdown (shows when there's a balance) -->
         <div id="pending-charges-section" class="pending-charges hidden">
             <div class="pending-charges-header">
                 <i class="fas fa-exclamation-triangle"></i>
-                <span>Pending Charges</span>
+                <span>Amount Due Breakdown</span>
             </div>
             <div id="pending-charges-list"></div>
         </div>
@@ -804,11 +804,47 @@
                 const totalCharges = charges?.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0) || 0;
                 const paymentCount = payments?.filter(p => p.payment_status === 'paid').length || 0;
                 
-                // Get pending charges
+                // Calculate total rent owed (from ledger rent entries)
+                const totalRentOwed = ledgerEntries
+                    .filter(e => e.type === 'rent')
+                    .reduce((sum, e) => sum + e.amount, 0);
+                
+                // Get pending charges from charges table
                 const pendingCharges = charges?.filter(c => c.status === 'pending') || [];
                 
-                // Update UI
-                updateUI(ledgerEntries, runningBalance, totalPaid, totalCharges, paymentCount, pendingCharges);
+                // Build amount due breakdown (what makes up the current balance)
+                const amountDueBreakdown = [];
+                
+                // If there's a positive balance (customer owes money), show breakdown
+                if (runningBalance > 0) {
+                    // Unpaid rent = balance minus any pending charges
+                    const pendingChargesTotal = pendingCharges.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+                    const unpaidRent = runningBalance - pendingChargesTotal;
+                    
+                    if (unpaidRent > 0) {
+                        // Figure out how many weeks of rent this represents
+                        const weeksUnpaid = Math.ceil(unpaidRent / weeklyRate);
+                        amountDueBreakdown.push({
+                            type: 'rent',
+                            description: weeksUnpaid === 1 ? 'Weekly Rental Due' : `Rental Due (${weeksUnpaid} weeks)`,
+                            amount: unpaidRent,
+                            icon: 'fa-car'
+                        });
+                    }
+                    
+                    // Add pending charges
+                    for (const charge of pendingCharges) {
+                        amountDueBreakdown.push({
+                            type: 'charge',
+                            description: charge.description || charge.charge_type.replace('_', ' '),
+                            amount: parseFloat(charge.amount),
+                            icon: getChargeIcon(charge.charge_type)
+                        });
+                    }
+                }
+                
+                // Update UI with breakdown
+                updateUI(ledgerEntries, runningBalance, totalPaid, totalCharges, paymentCount, amountDueBreakdown, weeklyRate);
                 
             } catch (err) {
                 console.error('Error loading ledger:', err);
@@ -817,7 +853,7 @@
         }
         
         // Update UI
-        function updateUI(entries, balance, totalPaid, totalCharges, paymentCount, pendingCharges) {
+        function updateUI(entries, balance, totalPaid, totalCharges, paymentCount, amountDueBreakdown, weeklyRate) {
             // Hide loading, show content
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
@@ -847,18 +883,18 @@
             document.getElementById('stat-charges').textContent = formatCurrency(totalCharges);
             document.getElementById('stat-payments').textContent = paymentCount;
             
-            // Show pending charges if any
-            if (pendingCharges.length > 0) {
+            // Show amount due breakdown if there's a balance
+            if (balance > 0 && amountDueBreakdown.length > 0) {
                 const pendingSection = document.getElementById('pending-charges-section');
                 const pendingList = document.getElementById('pending-charges-list');
                 
-                pendingList.innerHTML = pendingCharges.map(charge => `
+                pendingList.innerHTML = amountDueBreakdown.map(item => `
                     <div class="pending-charge-item">
                         <span class="charge-desc">
-                            <i class="fas ${getChargeIcon(charge.charge_type)}"></i>
-                            ${charge.description || charge.charge_type.replace('_', ' ')}
+                            <i class="fas ${item.icon}"></i>
+                            ${item.description}
                         </span>
-                        <span class="charge-amount">${formatCurrency(charge.amount)}</span>
+                        <span class="charge-amount">${formatCurrency(item.amount)}</span>
                     </div>
                 `).join('');
                 
