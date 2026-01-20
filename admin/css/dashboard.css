@@ -3849,10 +3849,12 @@ img {
 
 .transactions-table-container {
     overflow-x: auto;
+    min-width: 100%;
 }
 
 .transactions-table {
     width: 100%;
+    min-width: 700px;
     border-collapse: collapse;
     table-layout: fixed;
 }
@@ -3862,24 +3864,25 @@ img {
     padding: 14px 16px;
     text-align: left;
     border-bottom: 1px solid var(--border-subtle);
-    white-space: nowrap;
+    white-space: nowrap !important;
     overflow: hidden;
     text-overflow: ellipsis;
+    vertical-align: middle;
 }
 
 /* Column widths */
 .transactions-table th:nth-child(1),
-.transactions-table td:nth-child(1) { width: 80px; } /* Date */
+.transactions-table td:nth-child(1) { width: 70px; min-width: 70px; } /* Date */
 .transactions-table th:nth-child(2),
-.transactions-table td:nth-child(2) { width: 22%; } /* Customer */
+.transactions-table td:nth-child(2) { width: 160px; min-width: 140px; } /* Customer */
 .transactions-table th:nth-child(3),
-.transactions-table td:nth-child(3) { width: 18%; } /* Vehicle */
+.transactions-table td:nth-child(3) { width: 120px; min-width: 100px; } /* Vehicle */
 .transactions-table th:nth-child(4),
-.transactions-table td:nth-child(4) { width: 100px; } /* Amount */
+.transactions-table td:nth-child(4) { width: 90px; min-width: 80px; } /* Amount */
 .transactions-table th:nth-child(5),
-.transactions-table td:nth-child(5) { width: 100px; } /* Method */
+.transactions-table td:nth-child(5) { width: 100px; min-width: 90px; } /* Method */
 .transactions-table th:nth-child(6),
-.transactions-table td:nth-child(6) { width: 90px; } /* Status */
+.transactions-table td:nth-child(6) { width: 80px; min-width: 70px; } /* Status */
 
 .transactions-table th {
     background: var(--bg-secondary);
@@ -3892,6 +3895,7 @@ img {
 
 .transactions-table tbody tr {
     transition: background var(--transition-fast);
+    height: 52px;
 }
 
 .transactions-table tbody tr:hover {
