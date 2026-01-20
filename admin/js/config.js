@@ -44,6 +44,12 @@ const CONFIG = {
         countUpDuration: 2000,
         chartAnimationDelay: 50,
         staggerDelay: 100
+    },
+    // n8n Webhook URLs
+    webhooks: {
+        // Contract generation webhook - UPDATE THIS after creating the workflow in n8n
+        // Format: https://your-n8n-instance.app.n8n.cloud/webhook/generate-contract
+        contractGeneration: 'YOUR_N8N_WEBHOOK_URL_HERE'
     }
 };
 
