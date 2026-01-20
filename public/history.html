@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Payment History - Fleetzy</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#09090b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fleetzy">
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="shortcut icon" href="/icons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-primary: #09090b;
+            --bg-secondary: #18181b;
+            --bg-tertiary: #27272a;
+            --bg-card: rgba(39, 39, 42, 0.5);
+            
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.15);
+            
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --text-muted: #52525b;
+            
+            --accent-green: #10b981;
+            --accent-emerald: #34d399;
+            --accent-teal: #14b8a6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+            padding-bottom: 100px;
+        }
+        
+        .hidden { display: none !important; }
+        
+        /* Ambient Glow */
+        .ambient-glow {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .header-content {
+            max-width: 28rem;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-logo {
+            height: 2rem;
+        }
+        
+        .header-back {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+        }
+        
+        .header-back:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        /* Loading */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--bg-tertiary);
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 28rem;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+        
+        /* Page Title */
+        .page-title {
+            margin-bottom: 1.5rem;
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .page-title p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
+            border: 1px solid var(--border-medium);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .balance-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .balance-amount.credit {
+            color: var(--accent-green);
+        }
+        
+        .balance-amount.debit {
+            color: var(--accent-red);
+        }
+        
+        .balance-note {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+        
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 0.75rem;
+            padding: 1rem 0.75rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-value.green { color: var(--accent-green); }
+        .stat-value.amber { color: var(--accent-amber); }
+        .stat-value.blue { color: var(--accent-blue); }
+        
+        .stat-label {
+            font-size: 0.625rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+        }
+        
+        /* Section */
+        .section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .section-title i {
+            color: var(--accent-green);
+        }
+        
+        /* Ledger Table */
+        .ledger-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        
+        .ledger-header {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            font-size: 0.625rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            font-weight: 600;
+        }
+        
+        .ledger-header span:last-child {
+            text-align: right;
+        }
+        
+        .ledger-item {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            align-items: center;
+        }
+        
+        .ledger-item:last-child {
+            border-bottom: none;
+        }
+        
+        .ledger-info {
+            min-width: 0;
+        }
+        
+        .ledger-type {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .ledger-type i {
+            font-size: 0.75rem;
+        }
+        
+        .ledger-type.payment i { color: var(--accent-green); }
+        .ledger-type.charge i { color: var(--accent-amber); }
+        .ledger-type.rent i { color: var(--accent-blue); }
+        
+        .ledger-date {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+        
+        .ledger-amount {
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .ledger-amount.credit {
+            color: var(--accent-green);
+        }
+        
+        .ledger-amount.debit {
+            color: var(--text-primary);
+        }
+        
+        .ledger-balance {
+            font-size: 0.875rem;
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .ledger-balance.positive {
+            color: var(--accent-red);
+        }
+        
+        .ledger-balance.negative {
+            color: var(--accent-green);
+        }
+        
+        /* Pending Charges */
+        .pending-charges {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .pending-charges-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-amber);
+        }
+        
+        .pending-charge-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .pending-charge-item:last-child {
+            border-bottom: none;
+        }
+        
+        .charge-desc {
+            font-size: 0.875rem;
+        }
+        
+        .charge-amount {
+            font-weight: 600;
+            color: var(--accent-amber);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+        
+        .empty-state p {
+            font-size: 0.875rem;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: rgba(9, 9, 11, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-subtle);
+            padding: env(safe-area-inset-bottom);
+        }
+        
+        .bottom-nav-content {
+            max-width: 28rem;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 1rem;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            text-decoration: none;
+            color: var(--text-tertiary);
+            font-size: 0.625rem;
+            transition: color var(--transition-base);
+            padding: 0.25rem 0.75rem;
+        }
+        
+        .nav-item i {
+            font-size: 1.25rem;
+        }
+        
+        .nav-item.active {
+            color: var(--accent-green);
+        }
+        
+        .nav-item:hover {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+    
+    <!-- Loading Screen -->
+    <div id="loading" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Loading history...</p>
+    </div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/dashboard" class="header-back">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <img src="/fleetzy-logo.png" alt="Fleetzy" class="header-logo">
+            <div style="width: 40px;"></div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main id="main-content" class="main-content hidden">
+        
+        <!-- Page Title -->
+        <div class="page-title">
+            <h1>Payment History</h1>
+            <p>Your complete transaction history</p>
+        </div>
+        
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Current Balance</div>
+            <div id="balance-amount" class="balance-amount credit">$0.00</div>
+            <div id="balance-note" class="balance-note">You're all caught up!</div>
+        </div>
+        
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-item">
+                <div id="stat-paid" class="stat-value green">$0</div>
+                <div class="stat-label">Total Paid</div>
+            </div>
+            <div class="stat-item">
+                <div id="stat-charges" class="stat-value amber">$0</div>
+                <div class="stat-label">Charges</div>
+            </div>
+            <div class="stat-item">
+                <div id="stat-payments" class="stat-value blue">0</div>
+                <div class="stat-label">Payments</div>
+            </div>
+        </div>
+        
+        <!-- Pending Charges (if any) -->
+        <div id="pending-charges-section" class="pending-charges hidden">
+            <div class="pending-charges-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Pending Charges</span>
+            </div>
+            <div id="pending-charges-list"></div>
+        </div>
+        
+        <!-- Ledger Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-list-alt"></i>
+                    Transaction Ledger
+                </h2>
+            </div>
+            
+            <div class="ledger-container">
+                <div class="ledger-header">
+                    <span>Transaction</span>
+                    <span>Amount</span>
+                    <span>Balance</span>
+                </div>
+                <div id="ledger-body">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+        
+    </main>
+    
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-content">
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/payment" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Pay</span>
+            </a>
+            <a href="/history" class="nav-item active">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </a>
+            <a href="/documents" class="nav-item">
+                <i class="fas fa-folder"></i>
+                <span>Docs</span>
+            </a>
+        </div>
+    </nav>
+    
+    <script>
+        // ============================================================================
+        // FLEETZY PAYMENT HISTORY
+        // ============================================================================
+        
+        const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Normalize phone
+        function normalizePhone(phone) {
+            if (!phone) return '';
+            return phone.replace(/\D/g, '');
+        }
+        
+        // Parse date as local
+        function parseLocalDate(dateStr) {
+            if (!dateStr) return null;
+            if (dateStr.includes('T')) {
+                return new Date(dateStr);
+            }
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+        
+        // Format date
+        function formatDate(date) {
+            return new Intl.DateTimeFormat('en-US', {
+                month: 'short',
+                day: 'numeric'
+            }).format(date);
+        }
+        
+        // Get charge icon
+        function getChargeIcon(chargeType) {
+            const icons = {
+                'toll': 'fa-road',
+                'damage': 'fa-car-crash',
+                'cleaning': 'fa-broom',
+                'late_fee': 'fa-clock',
+                'deposit_replenish': 'fa-piggy-bank',
+                'mileage_overage': 'fa-tachometer-alt',
+                'other': 'fa-file-invoice-dollar'
+            };
+            return icons[chargeType] || 'fa-dollar-sign';
+        }
+        
+        // Initialize
+        async function init() {
+            console.log('🚀 History page initializing...');
+            
+            const rawPhone = localStorage.getItem('fleetzy_phone');
+            const customerId = localStorage.getItem('fleetzy_customer_id');
+            
+            if (!rawPhone && !customerId) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            try {
+                // Get customer
+                let customer = null;
+                
+                if (customerId) {
+                    const { data } = await db
+                        .from('customers')
+                        .select('*')
+                        .eq('id', customerId)
+                        .single();
+                    customer = data;
+                }
+                
+                if (!customer && rawPhone) {
+                    const normalizedPhone = normalizePhone(rawPhone);
+                    const { data: customers } = await db
+                        .from('customers')
+                        .select('*');
+                    customer = customers?.find(c => normalizePhone(c.phone) === normalizedPhone);
+                }
+                
+                if (!customer) {
+                    console.log('❌ Customer not found');
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                // Get active rental
+                const { data: rental } = await db
+                    .from('rentals')
+                    .select('*, vehicles(*)')
+                    .eq('customer_id', customer.id)
+                    .eq('rental_status', 'active')
+                    .single();
+                
+                if (!rental) {
+                    showEmpty('No active rental found');
+                    return;
+                }
+                
+                // Load all data for this rental
+                await loadLedger(rental, customer);
+                
+            } catch (err) {
+                console.error('Error:', err);
+                showEmpty('Error loading history');
+            }
+        }
+        
+        // Load ledger data
+        async function loadLedger(rental, customer) {
+            try {
+                // Get all payments for this rental
+                const { data: payments } = await db
+                    .from('payments')
+                    .select('*')
+                    .eq('rental_id', rental.id)
+                    .order('paid_date', { ascending: true });
+                
+                // Get all charges for this rental
+                const { data: charges } = await db
+                    .from('rental_charges')
+                    .select('*')
+                    .eq('rental_id', rental.id)
+                    .order('charge_date', { ascending: true });
+                
+                // Build ledger entries
+                const ledgerEntries = [];
+                const weeklyRate = parseFloat(rental.weekly_rate) || 400;
+                const depositAmount = parseFloat(rental.deposit_amount) || 250;
+                const startDate = parseLocalDate(rental.start_date);
+                
+                // Calculate weeks since start
+                const today = new Date();
+                const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+                const weeksSinceStart = Math.ceil(daysSinceStart / 7);
+                
+                // Add initial payment entry (deposit + first week)
+                // This should be the first payment in the payments array with type 'initial'
+                const initialPayment = payments?.find(p => p.payment_type === 'initial');
+                
+                // Add weekly rent due entries
+                for (let week = 0; week <= weeksSinceStart; week++) {
+                    const weekDate = new Date(startDate);
+                    weekDate.setDate(weekDate.getDate() + (week * 7));
+                    
+                    // Skip if this week hasn't started yet
+                    if (weekDate > today) break;
+                    
+                    // First week includes deposit
+                    if (week === 0) {
+                        ledgerEntries.push({
+                            type: 'rent',
+                            date: weekDate,
+                            description: `Deposit + Week 1`,
+                            amount: weeklyRate + depositAmount,
+                            isDebit: true
+                        });
+                    } else {
+                        ledgerEntries.push({
+                            type: 'rent',
+                            date: weekDate,
+                            description: `Week ${week + 1} Rent`,
+                            amount: weeklyRate,
+                            isDebit: true
+                        });
+                    }
+                }
+                
+                // Add charges
+                if (charges) {
+                    for (const charge of charges) {
+                        const chargeDate = parseLocalDate(charge.charge_date) || parseLocalDate(charge.created_at);
+                        ledgerEntries.push({
+                            type: 'charge',
+                            date: chargeDate,
+                            description: charge.description || charge.charge_type.replace('_', ' '),
+                            amount: parseFloat(charge.amount),
+                            isDebit: true,
+                            chargeType: charge.charge_type,
+                            status: charge.status
+                        });
+                    }
+                }
+                
+                // Add payments
+                if (payments) {
+                    for (const payment of payments) {
+                        if (payment.payment_status === 'paid' && payment.paid_amount) {
+                            const paidDate = parseLocalDate(payment.paid_date);
+                            ledgerEntries.push({
+                                type: 'payment',
+                                date: paidDate,
+                                description: `Payment - ${payment.payment_method || 'Unknown'}`,
+                                amount: parseFloat(payment.paid_amount),
+                                isDebit: false
+                            });
+                        }
+                    }
+                }
+                
+                // Sort by date
+                ledgerEntries.sort((a, b) => a.date - b.date);
+                
+                // Calculate running balance
+                let runningBalance = 0;
+                for (const entry of ledgerEntries) {
+                    if (entry.isDebit) {
+                        runningBalance += entry.amount;
+                    } else {
+                        runningBalance -= entry.amount;
+                    }
+                    entry.balance = runningBalance;
+                }
+                
+                // Calculate stats
+                const totalPaid = payments?.filter(p => p.payment_status === 'paid')
+                    .reduce((sum, p) => sum + parseFloat(p.paid_amount || 0), 0) || 0;
+                const totalCharges = charges?.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0) || 0;
+                const paymentCount = payments?.filter(p => p.payment_status === 'paid').length || 0;
+                
+                // Get pending charges
+                const pendingCharges = charges?.filter(c => c.status === 'pending') || [];
+                
+                // Update UI
+                updateUI(ledgerEntries, runningBalance, totalPaid, totalCharges, paymentCount, pendingCharges);
+                
+            } catch (err) {
+                console.error('Error loading ledger:', err);
+                showEmpty('Error loading transaction history');
+            }
+        }
+        
+        // Update UI
+        function updateUI(entries, balance, totalPaid, totalCharges, paymentCount, pendingCharges) {
+            // Hide loading, show content
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            
+            // Update balance
+            const balanceEl = document.getElementById('balance-amount');
+            const balanceNoteEl = document.getElementById('balance-note');
+            
+            if (balance > 0) {
+                // Customer owes money
+                balanceEl.textContent = formatCurrency(balance);
+                balanceEl.className = 'balance-amount debit';
+                balanceNoteEl.textContent = 'Amount due';
+            } else if (balance < 0) {
+                // Customer has credit
+                balanceEl.textContent = formatCurrency(Math.abs(balance));
+                balanceEl.className = 'balance-amount credit';
+                balanceNoteEl.textContent = 'Credit on account';
+            } else {
+                balanceEl.textContent = '$0.00';
+                balanceEl.className = 'balance-amount credit';
+                balanceNoteEl.textContent = 'You\'re all caught up!';
+            }
+            
+            // Update stats
+            document.getElementById('stat-paid').textContent = formatCurrency(totalPaid);
+            document.getElementById('stat-charges').textContent = formatCurrency(totalCharges);
+            document.getElementById('stat-payments').textContent = paymentCount;
+            
+            // Show pending charges if any
+            if (pendingCharges.length > 0) {
+                const pendingSection = document.getElementById('pending-charges-section');
+                const pendingList = document.getElementById('pending-charges-list');
+                
+                pendingList.innerHTML = pendingCharges.map(charge => `
+                    <div class="pending-charge-item">
+                        <span class="charge-desc">
+                            <i class="fas ${getChargeIcon(charge.charge_type)}"></i>
+                            ${charge.description || charge.charge_type.replace('_', ' ')}
+                        </span>
+                        <span class="charge-amount">${formatCurrency(charge.amount)}</span>
+                    </div>
+                `).join('');
+                
+                pendingSection.classList.remove('hidden');
+            }
+            
+            // Render ledger (newest first for display)
+            const ledgerBody = document.getElementById('ledger-body');
+            const reversedEntries = [...entries].reverse();
+            
+            if (reversedEntries.length === 0) {
+                ledgerBody.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <p>No transactions yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            ledgerBody.innerHTML = reversedEntries.map(entry => {
+                const typeClass = entry.type;
+                const icon = entry.type === 'payment' ? 'fa-check-circle' : 
+                             entry.type === 'charge' ? getChargeIcon(entry.chargeType) : 
+                             'fa-calendar-week';
+                
+                const amountClass = entry.isDebit ? 'debit' : 'credit';
+                const amountPrefix = entry.isDebit ? '+' : '-';
+                
+                const balanceClass = entry.balance > 0 ? 'positive' : 'negative';
+                
+                return `
+                    <div class="ledger-item">
+                        <div class="ledger-info">
+                            <div class="ledger-type ${typeClass}">
+                                <i class="fas ${icon}"></i>
+                                ${entry.description}
+                            </div>
+                            <div class="ledger-date">${formatDate(entry.date)}</div>
+                        </div>
+                        <div class="ledger-amount ${amountClass}">
+                            ${amountPrefix}${formatCurrency(entry.amount)}
+                        </div>
+                        <div class="ledger-balance ${balanceClass}">
+                            ${entry.balance >= 0 ? '' : '-'}${formatCurrency(Math.abs(entry.balance))}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Show empty state
+        function showEmpty(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            document.getElementById('ledger-body').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+        
+        // Start
+        init();
+    </script>
+</body>
+</html>
