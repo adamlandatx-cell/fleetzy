@@ -657,7 +657,7 @@ const Payments = {
             
             // Update rental totals if we have a rental
             if (payment.rental_id) {
-                await this.updateRentalAfterPayment(payment.rental_id, payment.paid_amount);
+                await this.updateRentalAfterPayment(payment.rental_id, payment.paid_amount, payment.paid_date);
             }
             
             Utils.toastSuccess('Payment approved successfully');
@@ -682,7 +682,17 @@ const Payments = {
     /**
      * Update rental after payment approval
      */
-    async updateRentalAfterPayment(rentalId, paidAmount) {
+    /**
+     * Update rental after payment - FIXED: next_payment_due calculation
+     * BUG FIX: Was using "today + 7 days" instead of "current due date + 7 days"
+     * 
+     * The correct logic:
+     * - next_payment_due should be CURRENT next_payment_due + 7 days
+     * - This ensures payments stay on their weekly schedule regardless of when recorded
+     * 
+     * Example: If payment was due Jan 14, next due is Jan 21 (not Jan 27 because recorded Jan 20)
+     */
+    async updateRentalAfterPayment(rentalId, paidAmount, paidDate = null) {
         try {
             // Get current rental
             const { data: rental, error: fetchError } = await db
@@ -707,10 +717,37 @@ const Payments = {
             
             const newBalance = newTotalDue - newPaid;
             
-            // Calculate next payment date (7 days from now)
-            const lastPayment = new Date();
-            const nextPaymentDue = new Date(lastPayment);
-            nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
+            // FIX: Calculate next payment date based on CURRENT due date, not today
+            // This keeps rentals on their proper weekly schedule
+            let nextPaymentDue;
+            
+            if (rental.next_payment_due) {
+                // Parse current due date and add 7 days
+                const [year, month, day] = rental.next_payment_due.split('-').map(Number);
+                nextPaymentDue = new Date(year, month - 1, day);
+                nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
+            } else if (paidDate) {
+                // Fallback: use paid date + 7 if no current due date
+                const [year, month, day] = paidDate.split('-').map(Number);
+                nextPaymentDue = new Date(year, month - 1, day);
+                nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
+            } else {
+                // Last resort: use start_date based calculation
+                const startDate = rental.start_date ? new Date(rental.start_date + 'T00:00:00') : new Date();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Calculate weeks since start
+                const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+                const weeksSinceStart = Math.floor(daysSinceStart / 7);
+                
+                // Next due = start + (weeks + 1) * 7 days
+                nextPaymentDue = new Date(startDate);
+                nextPaymentDue.setDate(nextPaymentDue.getDate() + ((weeksSinceStart + 1) * 7));
+            }
+            
+            // Record when payment was actually made
+            const lastPaymentDate = paidDate || formatLocalDateForPayments(new Date());
             
             // Update rental
             const { error: updateError } = await db
@@ -719,7 +756,7 @@ const Payments = {
                     total_amount_paid: newPaid,
                     total_amount_due: newTotalDue,
                     balance_remaining: Math.max(0, newBalance),
-                    last_payment_date: formatLocalDateForPayments(lastPayment),
+                    last_payment_date: lastPaymentDate,
                     next_payment_due: formatLocalDateForPayments(nextPaymentDue),
                     updated_at: new Date().toISOString()
                 })
@@ -727,7 +764,7 @@ const Payments = {
             
             if (updateError) throw updateError;
             
-            console.log(`✅ Updated rental ${rentalId}: paid=$${newPaid}, due=$${newTotalDue}, balance=$${newBalance}`);
+            console.log(`✅ Updated rental ${rentalId}: paid=$${newPaid}, due=$${newTotalDue}, balance=$${newBalance}, next_due=${formatLocalDateForPayments(nextPaymentDue)}`);
             
         } catch (error) {
             console.error('Error updating rental:', error);
@@ -1072,7 +1109,7 @@ const Payments = {
             
             // Update rental totals (only for weekly/initial payments)
             if (paymentType === 'weekly' || paymentType === 'initial') {
-                await this.updateRentalAfterPayment(rentalId, amount);
+                await this.updateRentalAfterPayment(rentalId, amount, date);
             }
             
             Utils.toastSuccess('Payment recorded successfully');
