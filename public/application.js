@@ -274,10 +274,12 @@ function validateStep(step) {
         case 2:
             return validateVehicleSelection();
         case 3:
-            return validateSelfie();
+            return validateRentalDates();
         case 4:
-            return validateLicense();
+            return validateSelfie();
         case 5:
+            return validateLicense();
+        case 6:
             return validateIncome();
         default:
             return true;
@@ -373,6 +375,40 @@ function validateVehicleSelection() {
     if (errorEl) {
         errorEl.style.display = 'none';
     }
+    return true;
+}
+
+function validateRentalDates() {
+    const startDate = document.getElementById('rentalStartDate')?.value;
+    const durationRadios = document.querySelectorAll('input[name="rentalDuration"]');
+    
+    // Check start date is selected
+    if (!startDate) {
+        alert('Please select a start date for your rental.');
+        return false;
+    }
+    
+    // Validate start date is in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(startDate + 'T00:00:00');
+    
+    if (selectedDate < today) {
+        alert('Please select a start date that is today or in the future.');
+        return false;
+    }
+    
+    // Check duration is selected
+    let durationSelected = false;
+    durationRadios.forEach(radio => {
+        if (radio.checked) durationSelected = true;
+    });
+    
+    if (!durationSelected) {
+        alert('Please select a rental duration.');
+        return false;
+    }
+    
     return true;
 }
 
@@ -579,6 +615,11 @@ function collectFormData() {
         // Vehicle
         vehicleId: document.getElementById('selectedVehicleId')?.value || '',
         
+        // Rental Dates
+        rentalStartDate: document.getElementById('rentalStartDate')?.value || '',
+        rentalDuration: document.querySelector('input[name="rentalDuration"]:checked')?.value || '2',
+        isOngoingRental: document.querySelector('input[name="rentalDuration"]:checked')?.value === 'ongoing',
+        
         // Selfie
         selfie: document.getElementById('selfieData')?.value || '',
         
@@ -727,19 +768,43 @@ async function createRentalApplication(customerId, formData) {
     const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const rentalId = `R-${dateStr}-${randomSuffix}`;
     
+    // Calculate end date based on duration (if not ongoing)
+    let endDate = null;
+    let weeksCount = null;
+    
+    if (formData.isOngoingRental) {
+        // Ongoing rentals have no fixed end date, but minimum 2 weeks
+        weeksCount = null; // null indicates ongoing
+    } else {
+        const weeks = parseInt(formData.rentalDuration) || 2;
+        weeksCount = weeks;
+        const startDate = new Date(formData.rentalStartDate + 'T00:00:00');
+        const calculatedEndDate = new Date(startDate);
+        calculatedEndDate.setDate(calculatedEndDate.getDate() + (weeks * 7));
+        endDate = calculatedEndDate.toISOString().split('T')[0];
+    }
+    
+    // Calculate first payment due date (7 days after start)
+    const startDateObj = new Date(formData.rentalStartDate + 'T00:00:00');
+    const nextPaymentDue = new Date(startDateObj);
+    nextPaymentDue.setDate(nextPaymentDue.getDate() + 7);
+    
     const rentalData = {
         rental_id: rentalId,
         customer_id: customerId,
         vehicle_id: formData.vehicleId,
-        start_date: new Date().toISOString().split('T')[0], // Today's date as YYYY-MM-DD
+        start_date: formData.rentalStartDate,
+        end_date: endDate,
+        weeks_count: weeksCount,
         rental_status: 'pending_approval',
         weekly_rate: weeklyRate,
-        initial_payment: 0, // Will be set when first payment is made
-        deposit_included: 500, // Standard deposit
+        initial_payment: 0,
+        deposit_included: 500,
         deposit_amount: 500,
         deposit_status: 'pending',
-        payment_method: 'pending', // Will be set when payment method chosen
-        start_mileage: 0 // Will be set at vehicle pickup
+        payment_method: 'pending',
+        next_payment_due: nextPaymentDue.toISOString().split('T')[0],
+        start_mileage: 0
     };
     
     const response = await fetch(`${SUPABASE_URL}/rest/v1/rentals`, {
