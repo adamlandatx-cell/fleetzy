@@ -380,6 +380,9 @@ const Rentals = {
                     <button class="btn-icon success" onclick="Rentals.openStartRentalModal('${rental.id}')" title="Start Rental">
                         <i class="fas fa-play"></i>
                     </button>
+                    <button class="btn-icon" onclick="Rentals.openEditRentalModal('${rental.id}')" title="Edit Rental">
+                        <i class="fas fa-edit"></i>
+                    </button>
                     <button class="btn-icon" onclick="Rentals.viewContract('${rental.id}')" title="View Contract">
                         <i class="fas fa-file-pdf"></i>
                     </button>
@@ -392,6 +395,9 @@ const Rentals = {
                 return `
                     <button class="btn-icon success" onclick="Rentals.openRecordPaymentModal('${rental.id}')" title="Record Payment">
                         <i class="fas fa-dollar-sign"></i>
+                    </button>
+                    <button class="btn-icon" onclick="Rentals.openEditRentalModal('${rental.id}')" title="Edit Rental">
+                        <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn-icon warning" onclick="Rentals.openEndRentalModal('${rental.id}')" title="End Rental">
                         <i class="fas fa-stop"></i>
@@ -1973,6 +1979,346 @@ const Rentals = {
         } catch (error) {
             console.error('Error ending rental:', error);
             Utils.toastError('Failed to end rental: ' + error.message);
+        }
+    },
+    
+    /* ============================================
+       EDIT RENTAL
+    ============================================ */
+    
+    /**
+     * Open edit rental modal
+     * Allows changing vehicle, dates, rates, etc.
+     */
+    async openEditRentalModal(rentalId) {
+        const rental = this.data.find(r => r.id === rentalId);
+        if (!rental) {
+            Utils.toastError('Rental not found');
+            return;
+        }
+        
+        const modal = document.getElementById('modal-edit-rental');
+        if (!modal) {
+            Utils.toastInfo('Edit rental modal not available');
+            return;
+        }
+        
+        // Show loading state
+        Utils.toastInfo('Loading rental details...');
+        
+        // Load all vehicles (both available and the currently assigned one)
+        await this.loadAllVehiclesForEdit(rental.vehicle_id);
+        
+        // Populate the form
+        document.getElementById('edit-rental-id').value = rentalId;
+        document.getElementById('edit-rental-display-id').textContent = rental.rental_id || 'N/A';
+        
+        // Customer name
+        const customerName = rental.customer?.full_name || 'Unknown Customer';
+        document.getElementById('edit-rental-customer-name').textContent = customerName;
+        
+        // Current vehicle info
+        const currentVehicle = rental.vehicle 
+            ? `${rental.vehicle.year} ${rental.vehicle.make} ${rental.vehicle.model} (${rental.vehicle.license_plate})`
+            : 'No vehicle assigned';
+        document.getElementById('edit-rental-current-vehicle').textContent = `Current: ${currentVehicle}`;
+        
+        // Set vehicle selection
+        const vehicleSelect = document.getElementById('edit-rental-vehicle');
+        if (vehicleSelect && rental.vehicle_id) {
+            vehicleSelect.value = rental.vehicle_id;
+        }
+        
+        // Dates
+        if (rental.start_date) {
+            document.getElementById('edit-rental-start-date').value = rental.start_date;
+        }
+        
+        // Mileage
+        document.getElementById('edit-rental-start-mileage').value = rental.start_mileage || '';
+        
+        // Weeks and ongoing
+        const weeksInput = document.getElementById('edit-rental-weeks');
+        const ongoingCheckbox = document.getElementById('edit-rental-ongoing');
+        
+        if (rental.weeks_contracted) {
+            weeksInput.value = rental.weeks_contracted;
+            weeksInput.disabled = false;
+            ongoingCheckbox.checked = false;
+        } else {
+            // Ongoing rental
+            weeksInput.value = '';
+            weeksInput.placeholder = 'Ongoing';
+            weeksInput.disabled = true;
+            ongoingCheckbox.checked = true;
+        }
+        
+        // Rate and deposit
+        document.getElementById('edit-rental-weekly-rate').value = parseFloat(rental.weekly_rate) || 400;
+        document.getElementById('edit-rental-deposit').value = parseFloat(rental.deposit_amount || rental.deposit_included) || 500;
+        
+        // Next payment due
+        if (rental.next_payment_due) {
+            document.getElementById('edit-rental-next-payment').value = rental.next_payment_due;
+        } else {
+            document.getElementById('edit-rental-next-payment').value = '';
+        }
+        
+        // Notes
+        document.getElementById('edit-rental-notes').value = '';
+        
+        // Calculate total
+        this.calculateEditRentalTotal();
+        
+        // Show modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    },
+    
+    /**
+     * Load all vehicles for edit dropdown
+     * Includes available vehicles AND the currently assigned vehicle
+     */
+    async loadAllVehiclesForEdit(currentVehicleId) {
+        try {
+            // Get available vehicles
+            const { data: availableVehicles, error: availError } = await db
+                .from('vehicles')
+                .select('*')
+                .eq('status', 'Available')
+                .order('make');
+            
+            if (availError) throw availError;
+            
+            let allVehicles = availableVehicles || [];
+            
+            // If there's a current vehicle and it's not in the available list, add it
+            if (currentVehicleId) {
+                const currentInList = allVehicles.find(v => v.id === currentVehicleId);
+                if (!currentInList) {
+                    const { data: currentVehicle, error: currError } = await db
+                        .from('vehicles')
+                        .select('*')
+                        .eq('id', currentVehicleId)
+                        .single();
+                    
+                    if (!currError && currentVehicle) {
+                        // Add current vehicle at the top with indicator
+                        currentVehicle._isCurrent = true;
+                        allVehicles.unshift(currentVehicle);
+                    }
+                }
+            }
+            
+            // Populate dropdown
+            const vehicleSelect = document.getElementById('edit-rental-vehicle');
+            if (vehicleSelect) {
+                vehicleSelect.innerHTML = '<option value="">Select a vehicle...</option>' +
+                    allVehicles.map(v => {
+                        const name = `${v.year || ''} ${v.make || ''} ${v.model || ''}`.trim();
+                        const plate = v.license_plate || 'No plate';
+                        const status = v._isCurrent ? ' (Currently Assigned)' : '';
+                        const statusColor = v._isCurrent ? ' style="background: rgba(16, 185, 129, 0.1);"' : '';
+                        return `<option value="${v.id}"${statusColor}>${name} - ${plate}${status}</option>`;
+                    }).join('');
+            }
+            
+            this.editVehicles = allVehicles;
+            console.log('✅ Loaded vehicles for edit:', allVehicles.length);
+            
+        } catch (error) {
+            console.error('Error loading vehicles for edit:', error);
+            Utils.toastError('Failed to load vehicles');
+        }
+    },
+    
+    /**
+     * Close edit rental modal
+     */
+    closeEditRentalModal() {
+        const modal = document.getElementById('modal-edit-rental');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    },
+    
+    /**
+     * Toggle ongoing checkbox in edit modal
+     */
+    toggleEditOngoing() {
+        const isOngoing = document.getElementById('edit-rental-ongoing')?.checked;
+        const weeksInput = document.getElementById('edit-rental-weeks');
+        
+        if (weeksInput) {
+            weeksInput.disabled = isOngoing;
+            if (isOngoing) {
+                weeksInput.value = '';
+                weeksInput.placeholder = 'Ongoing';
+            } else {
+                weeksInput.value = '4';
+                weeksInput.placeholder = '';
+            }
+        }
+        
+        this.calculateEditRentalTotal();
+    },
+    
+    /**
+     * Calculate total for edit rental form
+     */
+    calculateEditRentalTotal() {
+        const isOngoing = document.getElementById('edit-rental-ongoing')?.checked;
+        const weeks = parseInt(document.getElementById('edit-rental-weeks')?.value) || 0;
+        const rate = parseFloat(document.getElementById('edit-rental-weekly-rate')?.value) || 0;
+        const deposit = parseFloat(document.getElementById('edit-rental-deposit')?.value) || 0;
+        
+        const totalEl = document.getElementById('edit-rental-total');
+        const noteEl = document.getElementById('edit-rental-total-note');
+        
+        if (isOngoing) {
+            const pickupAmount = deposit + rate;
+            if (totalEl) totalEl.textContent = '$' + pickupAmount.toLocaleString();
+            if (noteEl) {
+                noteEl.innerHTML = `$${deposit.toLocaleString()} deposit + $${rate.toLocaleString()}/week ongoing`;
+            }
+        } else {
+            const total = (weeks * rate) + deposit;
+            if (totalEl) totalEl.textContent = '$' + total.toLocaleString();
+            if (noteEl) {
+                noteEl.innerHTML = `$${deposit.toLocaleString()} deposit + ${weeks} weeks × $${rate.toLocaleString()}/week`;
+            }
+        }
+    },
+    
+    /**
+     * Submit edit rental changes
+     */
+    async submitEditRental() {
+        const rentalId = document.getElementById('edit-rental-id')?.value;
+        if (!rentalId) {
+            Utils.toastError('Rental ID not found');
+            return;
+        }
+        
+        // Get form values
+        const newVehicleId = document.getElementById('edit-rental-vehicle')?.value;
+        const startDate = document.getElementById('edit-rental-start-date')?.value;
+        const startMileage = parseInt(document.getElementById('edit-rental-start-mileage')?.value) || null;
+        const isOngoing = document.getElementById('edit-rental-ongoing')?.checked;
+        const weeks = isOngoing ? null : (parseInt(document.getElementById('edit-rental-weeks')?.value) || null);
+        const weeklyRate = parseFloat(document.getElementById('edit-rental-weekly-rate')?.value) || 400;
+        const deposit = parseFloat(document.getElementById('edit-rental-deposit')?.value) || 500;
+        const nextPaymentDue = document.getElementById('edit-rental-next-payment')?.value || null;
+        const notes = document.getElementById('edit-rental-notes')?.value || '';
+        
+        // Validation
+        if (!newVehicleId) {
+            Utils.toastError('Please select a vehicle');
+            return;
+        }
+        if (!startDate) {
+            Utils.toastError('Please enter a start date');
+            return;
+        }
+        
+        // Get current rental data
+        const rental = this.data.find(r => r.id === rentalId);
+        if (!rental) {
+            Utils.toastError('Rental not found');
+            return;
+        }
+        
+        const oldVehicleId = rental.vehicle_id;
+        const vehicleChanged = newVehicleId !== oldVehicleId;
+        
+        // Confirm changes
+        let confirmMsg = 'Save changes to this rental?';
+        if (vehicleChanged) {
+            const newVehicle = this.editVehicles?.find(v => v.id === newVehicleId);
+            const newVehicleName = newVehicle 
+                ? `${newVehicle.year} ${newVehicle.make} ${newVehicle.model}`
+                : 'selected vehicle';
+            confirmMsg = `Change vehicle to ${newVehicleName}?\n\nThe previous vehicle will become available again.`;
+        }
+        
+        if (!confirm(confirmMsg)) return;
+        
+        try {
+            Utils.toastInfo('Saving changes...');
+            
+            // Calculate new amounts
+            let totalAmountDue = isOngoing ? weeklyRate : (weeks * weeklyRate);
+            
+            // Prepare existing notes
+            let existingNotes = rental.notes || '';
+            if (notes) {
+                const timestamp = new Date().toLocaleString();
+                existingNotes = existingNotes 
+                    ? `${existingNotes}\n\n[${timestamp}] ${notes}`
+                    : `[${timestamp}] ${notes}`;
+            }
+            
+            // Update rental record
+            const updateData = {
+                vehicle_id: newVehicleId,
+                start_date: startDate,
+                start_mileage: startMileage,
+                weeks_contracted: weeks,
+                weekly_rate: weeklyRate,
+                deposit_amount: deposit,
+                total_amount_due: totalAmountDue,
+                next_payment_due: nextPaymentDue,
+                notes: existingNotes,
+                updated_at: new Date().toISOString()
+            };
+            
+            const { error: updateError } = await db
+                .from('rentals')
+                .update(updateData)
+                .eq('id', rentalId);
+            
+            if (updateError) throw updateError;
+            
+            // If vehicle changed, update vehicle statuses
+            if (vehicleChanged) {
+                // Make old vehicle available (if it exists)
+                if (oldVehicleId) {
+                    await db
+                        .from('vehicles')
+                        .update({ 
+                            status: 'Available',
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', oldVehicleId);
+                }
+                
+                // Mark new vehicle as rented/reserved based on rental status
+                const newVehicleStatus = rental.rental_status === 'active' ? 'Currently Rented' : 'Reserved';
+                await db
+                    .from('vehicles')
+                    .update({ 
+                        status: newVehicleStatus,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', newVehicleId);
+            }
+            
+            Utils.toastSuccess('Rental updated successfully!');
+            this.closeEditRentalModal();
+            await this.load();
+            
+            // Refresh vehicles list
+            if (typeof Vehicles !== 'undefined' && Vehicles.load) {
+                Vehicles.load();
+            }
+            if (typeof Dashboard !== 'undefined' && Dashboard.load) {
+                Dashboard.load();
+            }
+            
+        } catch (error) {
+            console.error('Error updating rental:', error);
+            Utils.toastError('Failed to update rental: ' + error.message);
         }
     },
     
