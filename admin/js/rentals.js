@@ -2205,8 +2205,6 @@ const Rentals = {
         const newVehicleId = document.getElementById('edit-rental-vehicle')?.value;
         const startDate = document.getElementById('edit-rental-start-date')?.value;
         const startMileage = parseInt(document.getElementById('edit-rental-start-mileage')?.value) || null;
-        const isOngoing = document.getElementById('edit-rental-ongoing')?.checked;
-        const weeks = isOngoing ? null : (parseInt(document.getElementById('edit-rental-weeks')?.value) || null);
         const weeklyRate = parseFloat(document.getElementById('edit-rental-weekly-rate')?.value) || 400;
         const deposit = parseFloat(document.getElementById('edit-rental-deposit')?.value) || 500;
         const nextPaymentDue = document.getElementById('edit-rental-next-payment')?.value || null;
@@ -2246,18 +2244,13 @@ const Rentals = {
         try {
             Utils.toastInfo('Saving changes...');
             
-            // Calculate new amounts
-            let totalAmountDue = isOngoing ? weeklyRate : (weeks * weeklyRate);
-            
-            // Update rental record (without notes field - doesn't exist in schema)
+            // Update rental record - only use columns that exist in your schema
             const updateData = {
                 vehicle_id: newVehicleId,
                 start_date: startDate,
                 start_mileage: startMileage,
-                weeks_contracted: weeks,
                 weekly_rate: weeklyRate,
                 deposit_amount: deposit,
-                total_amount_due: totalAmountDue,
                 next_payment_due: nextPaymentDue,
                 updated_at: new Date().toISOString()
             };
