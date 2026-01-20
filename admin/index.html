@@ -2044,6 +2044,125 @@
         </div>
 
         <!-- ============================================
+             EDIT RENTAL MODAL
+        ============================================ -->
+        <div class="modal" id="modal-edit-rental">
+            <div class="modal-backdrop" onclick="Rentals.closeEditRentalModal()"></div>
+            <div class="modal-content modal-md">
+                <div class="modal-header">
+                    <h3><i class="fas fa-edit"></i> Edit Rental</h3>
+                    <button class="modal-close" onclick="Rentals.closeEditRentalModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-edit-rental" onsubmit="event.preventDefault(); Rentals.submitEditRental();">
+                        <input type="hidden" id="edit-rental-id">
+                        
+                        <!-- Current Rental Info (Read-only) -->
+                        <div class="info-banner" style="background: var(--bg-secondary); padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--text-primary);" id="edit-rental-display-id">R001</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary);" id="edit-rental-customer-name">Customer Name</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Vehicle Selection -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit-rental-vehicle">Vehicle <span class="required">*</span></label>
+                                <select id="edit-rental-vehicle" required>
+                                    <option value="">Select a vehicle...</option>
+                                </select>
+                                <small class="form-help" id="edit-rental-current-vehicle" style="color: var(--text-secondary); margin-top: 4px;">
+                                    Current: Loading...
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Dates -->
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label for="edit-rental-start-date">Start Date <span class="required">*</span></label>
+                                <input type="date" id="edit-rental-start-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-rental-start-mileage">Start Mileage</label>
+                                <input type="number" id="edit-rental-start-mileage" min="0" placeholder="Odometer at pickup">
+                            </div>
+                        </div>
+                        
+                        <!-- Weeks and Rate -->
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label for="edit-rental-weeks">Weeks Contracted</label>
+                                <div class="input-with-checkbox">
+                                    <input type="number" id="edit-rental-weeks" min="1" oninput="Rentals.calculateEditRentalTotal()">
+                                    <label class="checkbox-label ongoing-checkbox">
+                                        <input type="checkbox" id="edit-rental-ongoing" onchange="Rentals.toggleEditOngoing()">
+                                        <span class="checkmark"></span>
+                                        Ongoing
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-rental-weekly-rate">Weekly Rate ($)</label>
+                                <input type="number" id="edit-rental-weekly-rate" min="0" step="0.01" oninput="Rentals.calculateEditRentalTotal()">
+                            </div>
+                        </div>
+                        
+                        <!-- Deposit and Next Payment -->
+                        <div class="form-row two-col">
+                            <div class="form-group">
+                                <label for="edit-rental-deposit">Deposit ($)</label>
+                                <input type="number" id="edit-rental-deposit" min="0" step="0.01" oninput="Rentals.calculateEditRentalTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-rental-next-payment">Next Payment Due</label>
+                                <input type="date" id="edit-rental-next-payment">
+                            </div>
+                        </div>
+                        
+                        <!-- Total Display -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Total Contract Value</label>
+                                <div class="calculated-value" id="edit-rental-total" style="font-size: 24px; color: var(--primary);">$0</div>
+                                <div class="calculated-note" id="edit-rental-total-note" style="font-size: 12px; color: var(--text-secondary);"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit-rental-notes">Notes</label>
+                                <textarea id="edit-rental-notes" rows="2" placeholder="Add notes about this change..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Warning Box -->
+                        <div class="warning-box" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px; margin-top: 12px;">
+                            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-top: 2px;"></i>
+                                <div style="font-size: 13px; color: var(--text-secondary);">
+                                    <strong style="color: var(--text-primary);">Note:</strong> Changing the vehicle will update the reservation. The previous vehicle will become available again.
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Rentals.closeEditRentalModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="Rentals.submitEditRental()">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
              PAYMENTS SECTION
         ============================================ -->
         <section id="section-payments" class="content-section" style="display: none;">
