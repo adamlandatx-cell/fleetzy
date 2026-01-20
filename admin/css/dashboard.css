@@ -5934,6 +5934,7 @@ html {
     opacity: 1 !important;
     visibility: visible !important;
     transform: scale(1) translateY(0) !important;
+    pointer-events: auto !important; /* CRITICAL: Allow clicks on modal content */
 }
 
 /* ============================================
