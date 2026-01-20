@@ -526,7 +526,9 @@ const Rentals = {
             
             // Build ledger entries
             const ledgerEntries = [];
-            const weeklyRate = parseFloat(rental.weekly_rate) || 400;
+            const originalRate = parseFloat(rental.weekly_rate) || 400;
+            const currentRate = parseFloat(rental.current_weekly_rate) || originalRate;
+            const rateChangeDate = rental.rate_change_date ? parseLocalDateForRentals(rental.rate_change_date) : null;
             const depositAmount = parseFloat(rental.deposit_amount || rental.deposit_included) || 250;
             const startDate = rental.start_date ? parseLocalDateForRentals(rental.start_date) : new Date();
             
@@ -543,6 +545,12 @@ const Rentals = {
                 // Skip if this week hasn't started yet
                 if (weekDate > today) break;
                 
+                // Determine which rate to use for this week
+                // Use original rate if: no rate change, OR week is before rate change date
+                // Use current rate if: week is on or after rate change date
+                const useOriginalRate = !rateChangeDate || weekDate < rateChangeDate;
+                const weeklyRate = useOriginalRate ? originalRate : currentRate;
+                
                 // First week includes deposit
                 if (week === 0) {
                     ledgerEntries.push({
@@ -553,10 +561,12 @@ const Rentals = {
                         isDebit: true
                     });
                 } else {
+                    // Show rate indicator if rate changed for this week
+                    const rateNote = (!useOriginalRate && originalRate !== currentRate) ? ' ✓' : '';
                     ledgerEntries.push({
                         type: 'rent',
                         date: weekDate,
-                        description: `Week ${week + 1} Rent`,
+                        description: `Week ${week + 1} Rent${rateNote}`,
                         amount: weeklyRate,
                         isDebit: true
                     });
@@ -743,7 +753,11 @@ const Rentals = {
                         <h4><i class="fas fa-dollar-sign"></i> Account Summary</h4>
                         <div class="detail-row">
                             <span class="detail-label">Weekly Rate</span>
-                            <span class="detail-value">$${weeklyRate.toFixed(2)}</span>
+                            <span class="detail-value">${
+                                originalRate !== currentRate 
+                                    ? `<span style="text-decoration: line-through; color: var(--text-tertiary);">$${originalRate.toFixed(2)}</span> → <span style="color: var(--success);">$${currentRate.toFixed(2)}</span>`
+                                    : `$${originalRate.toFixed(2)}`
+                            }</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Total Paid</span>
@@ -2053,8 +2067,9 @@ const Rentals = {
             ongoingCheckbox.checked = true;
         }
         
-        // Rate and deposit
-        document.getElementById('edit-rental-weekly-rate').value = parseFloat(rental.weekly_rate) || 400;
+        // Rate and deposit - use current_weekly_rate if available (for rate changes)
+        const currentRate = parseFloat(rental.current_weekly_rate) || parseFloat(rental.weekly_rate) || 400;
+        document.getElementById('edit-rental-weekly-rate').value = currentRate;
         document.getElementById('edit-rental-deposit').value = parseFloat(rental.deposit_amount || rental.deposit_included) || 500;
         
         // Next payment due
@@ -2229,6 +2244,10 @@ const Rentals = {
         const oldVehicleId = rental.vehicle_id;
         const vehicleChanged = newVehicleId !== oldVehicleId;
         
+        // Detect rate change
+        const oldRate = parseFloat(rental.current_weekly_rate) || parseFloat(rental.weekly_rate) || 400;
+        const rateChanged = weeklyRate !== oldRate;
+        
         // Confirm changes
         let confirmMsg = 'Save changes to this rental?';
         if (vehicleChanged) {
@@ -2238,22 +2257,31 @@ const Rentals = {
                 : 'selected vehicle';
             confirmMsg = `Change vehicle to ${newVehicleName}?\n\nThe previous vehicle will become available again.`;
         }
+        if (rateChanged) {
+            confirmMsg += `\n\n⚠️ Rate Change: $${oldRate} → $${weeklyRate}\nThis will apply to FUTURE weeks only.\nPast charges are not affected.`;
+        }
         
         if (!confirm(confirmMsg)) return;
         
         try {
             Utils.toastInfo('Saving changes...');
             
-            // Update rental record - only use columns that exist in your schema
+            // Update rental record - use current_weekly_rate for rate changes
             const updateData = {
                 vehicle_id: newVehicleId,
                 start_date: startDate,
                 start_mileage: startMileage,
-                weekly_rate: weeklyRate,
+                current_weekly_rate: weeklyRate, // Save to current_weekly_rate (not weekly_rate)
                 deposit_amount: deposit,
                 next_payment_due: nextPaymentDue,
                 updated_at: new Date().toISOString()
             };
+            
+            // If rate changed, record when it changed
+            if (rateChanged) {
+                updateData.rate_change_date = new Date().toISOString().split('T')[0];
+                updateData.rate_change_notes = `Rate changed from $${oldRate} to $${weeklyRate}`;
+            }
             
             const { error: updateError } = await db
                 .from('rentals')
@@ -2286,7 +2314,9 @@ const Rentals = {
                     .eq('id', newVehicleId);
             }
             
-            Utils.toastSuccess('Rental updated successfully!');
+            Utils.toastSuccess(rateChanged 
+                ? `Rental updated! New rate of $${weeklyRate}/week will apply to future charges.`
+                : 'Rental updated successfully!');
             this.closeEditRentalModal();
             await this.load();
             
