@@ -919,6 +919,10 @@ const Customers = {
         }
     },
     
+    /**
+     * Refresh customers data
+     */
+    async refresh() {
         Utils.toastInfo('Refreshing...');
         await this.load();
         Utils.toastSuccess('Customers refreshed');
