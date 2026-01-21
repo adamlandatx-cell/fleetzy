@@ -893,7 +893,7 @@ const Customers = {
             dl_number: dlNumber || null,
             dl_state: dlState || null,
             dl_expiry_date: dlExpiry,
-            notes: notes || null,
+            // notes: notes || null,  // Column doesn't exist in DB
             updated_at: new Date().toISOString()
         };
         
