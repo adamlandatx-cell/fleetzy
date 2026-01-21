@@ -764,6 +764,7 @@ const Customers = {
     
     /**
      * Open edit customer modal
+     * FIXED: Uses actual DB columns (full_name, address, dl_number, etc.)
      */
     edit(customerId) {
         const customer = this.data.find(c => c.id === customerId);
@@ -778,22 +779,56 @@ const Customers = {
             return;
         }
         
-        // Populate form
+        // Parse full_name into first/last for form display
+        const fullName = customer.full_name || '';
+        const nameParts = fullName.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+        
+        // Parse address into components (format: "Street, City, State ZIP" or just "Street")
+        const addressStr = customer.address || customer.current_address || '';
+        let street = '', city = '', state = '', zip = '';
+        
+        if (addressStr) {
+            // Try to parse "8615 Doris Oaks Circle, Houston, TX 77028" format
+            const parts = addressStr.split(',').map(p => p.trim());
+            if (parts.length >= 3) {
+                street = parts[0];
+                city = parts[1];
+                // Last part might be "TX 77028"
+                const stateZip = parts[2].trim().split(' ');
+                state = stateZip[0] || '';
+                zip = stateZip[1] || '';
+            } else if (parts.length === 2) {
+                street = parts[0];
+                const cityStateZip = parts[1].trim().split(' ');
+                city = cityStateZip[0] || '';
+                state = cityStateZip[1] || '';
+                zip = cityStateZip[2] || '';
+            } else {
+                street = addressStr;
+            }
+        }
+        
+        // Populate form with correct field mappings
         document.getElementById('edit-customer-id').value = customer.id;
         document.getElementById('edit-customer-display-id').value = customer.customer_id || '';
-        document.getElementById('edit-customer-first-name').value = customer.first_name || '';
-        document.getElementById('edit-customer-last-name').value = customer.last_name || '';
+        document.getElementById('edit-customer-first-name').value = firstName;
+        document.getElementById('edit-customer-last-name').value = lastName;
         document.getElementById('edit-customer-phone').value = customer.phone || '';
         document.getElementById('edit-customer-email').value = customer.email || '';
         document.getElementById('edit-customer-dob').value = customer.date_of_birth || '';
-        document.getElementById('edit-customer-address').value = customer.address_street || '';
-        document.getElementById('edit-customer-city').value = customer.address_city || '';
-        document.getElementById('edit-customer-state').value = customer.address_state || '';
-        document.getElementById('edit-customer-zip').value = customer.address_zip || '';
-        document.getElementById('edit-customer-dl-number').value = customer.drivers_license_number || '';
-        document.getElementById('edit-customer-dl-state').value = customer.drivers_license_state || '';
-        document.getElementById('edit-customer-dl-expiry').value = customer.drivers_license_expiry || '';
+        document.getElementById('edit-customer-address').value = street;
+        document.getElementById('edit-customer-city').value = city;
+        document.getElementById('edit-customer-state').value = state;
+        document.getElementById('edit-customer-zip').value = zip;
+        // DB uses dl_number, dl_state, dl_expiry_date (not drivers_license_*)
+        document.getElementById('edit-customer-dl-number').value = customer.dl_number || '';
+        document.getElementById('edit-customer-dl-state').value = customer.dl_state || '';
+        document.getElementById('edit-customer-dl-expiry').value = customer.dl_expiry_date || '';
         document.getElementById('edit-customer-notes').value = customer.notes || '';
+        
+        console.log('📝 Editing customer:', customer.id, 'Full name:', fullName, 'Address:', addressStr);
         
         // Show modal
         modal.classList.add('active');
@@ -813,6 +848,7 @@ const Customers = {
     
     /**
      * Update customer
+     * FIXED: Uses actual DB columns (full_name, address, dl_number, etc.)
      */
     async update() {
         const customerId = document.getElementById('edit-customer-id')?.value;
@@ -821,28 +857,47 @@ const Customers = {
             return;
         }
         
-        const updateData = {
-            first_name: document.getElementById('edit-customer-first-name')?.value,
-            last_name: document.getElementById('edit-customer-last-name')?.value,
-            phone: document.getElementById('edit-customer-phone')?.value,
-            email: document.getElementById('edit-customer-email')?.value,
-            date_of_birth: document.getElementById('edit-customer-dob')?.value || null,
-            address_street: document.getElementById('edit-customer-address')?.value,
-            address_city: document.getElementById('edit-customer-city')?.value,
-            address_state: document.getElementById('edit-customer-state')?.value,
-            address_zip: document.getElementById('edit-customer-zip')?.value,
-            drivers_license_number: document.getElementById('edit-customer-dl-number')?.value,
-            drivers_license_state: document.getElementById('edit-customer-dl-state')?.value,
-            drivers_license_expiry: document.getElementById('edit-customer-dl-expiry')?.value || null,
-            notes: document.getElementById('edit-customer-notes')?.value,
-            updated_at: new Date().toISOString()
-        };
+        // Get form values
+        const firstName = document.getElementById('edit-customer-first-name')?.value?.trim() || '';
+        const lastName = document.getElementById('edit-customer-last-name')?.value?.trim() || '';
+        const phone = document.getElementById('edit-customer-phone')?.value?.trim() || '';
+        const email = document.getElementById('edit-customer-email')?.value?.trim() || '';
+        const dob = document.getElementById('edit-customer-dob')?.value || null;
+        const street = document.getElementById('edit-customer-address')?.value?.trim() || '';
+        const city = document.getElementById('edit-customer-city')?.value?.trim() || '';
+        const state = document.getElementById('edit-customer-state')?.value?.trim() || '';
+        const zip = document.getElementById('edit-customer-zip')?.value?.trim() || '';
+        const dlNumber = document.getElementById('edit-customer-dl-number')?.value?.trim() || '';
+        const dlState = document.getElementById('edit-customer-dl-state')?.value?.trim() || '';
+        const dlExpiry = document.getElementById('edit-customer-dl-expiry')?.value || null;
+        const notes = document.getElementById('edit-customer-notes')?.value?.trim() || '';
         
         // Validate required fields
-        if (!updateData.first_name || !updateData.last_name || !updateData.phone) {
+        if (!firstName || !lastName || !phone) {
             Utils.toastError('First name, last name, and phone are required');
             return;
         }
+        
+        // Combine name and address for DB columns
+        const fullName = `${firstName} ${lastName}`.trim();
+        const fullAddress = [street, city, `${state} ${zip}`.trim()].filter(Boolean).join(', ');
+        
+        // Build update object with CORRECT column names
+        const updateData = {
+            full_name: fullName,
+            phone: phone,
+            email: email || null,
+            date_of_birth: dob,
+            address: fullAddress,
+            current_address: fullAddress,
+            dl_number: dlNumber || null,
+            dl_state: dlState || null,
+            dl_expiry_date: dlExpiry,
+            notes: notes || null,
+            updated_at: new Date().toISOString()
+        };
+        
+        console.log('📤 Updating customer with:', updateData);
         
         try {
             Utils.toastInfo('Updating customer...');
@@ -864,10 +919,6 @@ const Customers = {
         }
     },
     
-    /**
-     * Refresh customers data
-     */
-    async refresh() {
         Utils.toastInfo('Refreshing...');
         await this.load();
         Utils.toastSuccess('Customers refreshed');
