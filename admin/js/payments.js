@@ -19,6 +19,7 @@ const Payments = {
     // Cached data
     data: [],
     filtered: [],
+    isLoading: false,  // Prevent multiple simultaneous loads
     
     /**
      * Initialize payments tab
@@ -33,6 +34,13 @@ const Payments = {
      * Load payments from Supabase with customer and rental data
      */
     async load() {
+        // Prevent multiple simultaneous loads (fixes flickering)
+        if (this.isLoading) {
+            console.log('⏳ Load already in progress, skipping...');
+            return;
+        }
+        this.isLoading = true;
+        
         try {
             // Load payments with related data - using full_name (not first_name/last_name)
             const { data: payments, error } = await db
@@ -56,6 +64,8 @@ const Payments = {
         } catch (error) {
             console.error('❌ Error loading payments:', error);
             Utils.toastError('Failed to load payments');
+        } finally {
+            this.isLoading = false;  // Reset loading flag
         }
     },
     
@@ -318,6 +328,7 @@ const Payments = {
             'pending': 'status-payment-pending',
             'confirmed': 'status-payment-confirmed',
             'approved': 'status-payment-confirmed',
+            'paid': 'status-payment-confirmed',
             'failed': 'status-payment-failed',
             'rejected': 'status-payment-failed'
         };
