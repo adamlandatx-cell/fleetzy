@@ -1,0 +1,693 @@
+/* ============================================
+   FLEETZY ADMIN - EXPENSES & VEHICLE SWAP CSS
+   Created: January 22, 2025
+   ============================================ */
+
+/* ============================================
+   EXPENSES SECTION
+   ============================================ */
+
+/* Stats Cards */
+.expenses-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.expense-stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.expense-stat-card .stat-label {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.expense-stat-card .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.expense-stat-card .stat-value.negative {
+    color: var(--accent-red);
+}
+
+/* Expenses Grid Layout */
+.expenses-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 24px;
+}
+
+@media (max-width: 1200px) {
+    .expenses-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Expenses Table */
+.expenses-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.expenses-table th,
+.expenses-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.expenses-table th {
+    background: var(--bg-tertiary);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-tertiary);
+}
+
+.expenses-table tbody tr:hover {
+    background: var(--bg-hover);
+}
+
+/* Expense Type Cell */
+.expense-type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.expense-icon {
+    font-size: 18px;
+}
+
+.expense-label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Expense Date Cell */
+.expense-date {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.expense-date .date-main {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.expense-date .badge-sm {
+    font-size: 10px;
+    padding: 2px 6px;
+}
+
+/* Amount Cell */
+.expenses-table .amount {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.expenses-table .amount.customer-responsible {
+    color: var(--accent-orange);
+}
+
+.expenses-table .amount i {
+    font-size: 12px;
+    margin-left: 4px;
+}
+
+/* Vendor and Description */
+.expenses-table .vendor {
+    color: var(--text-secondary);
+}
+
+.expenses-table .description {
+    color: var(--text-tertiary);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Vehicle Cell Mini */
+.vehicle-cell-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vehicle-cell-mini .vehicle-code {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--accent-green);
+}
+
+.vehicle-cell-mini .vehicle-name {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+/* ============================================
+   RECURRING EXPENSES SIDEBAR
+   ============================================ */
+
+.recurring-expenses-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.recurring-expenses-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recurring-expenses-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recurring-expenses-header h3 i {
+    color: var(--accent-blue);
+}
+
+.recurring-expenses-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+#recurring-expenses-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.recurring-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-primary);
+    transition: background 0.2s;
+}
+
+.recurring-item:hover {
+    background: var(--bg-hover);
+}
+
+.recurring-item:last-child {
+    border-bottom: none;
+}
+
+.recurring-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.recurring-icon {
+    font-size: 20px;
+}
+
+.recurring-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.recurring-type {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.recurring-vehicle {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.recurring-amount {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.recurring-amount .amount {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.recurring-amount .frequency {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.recurring-schedule {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    min-width: 80px;
+}
+
+.recurring-schedule .day {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.recurring-schedule .since {
+    font-size: 11px;
+    color: var(--text-tertiary);
+}
+
+.empty-recurring {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-tertiary);
+}
+
+.empty-recurring i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.empty-recurring p {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.empty-recurring small {
+    font-size: 12px;
+}
+
+/* ============================================
+   ADD EXPENSE MODAL
+   ============================================ */
+
+.expense-form-toggle {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+}
+
+.expense-form-toggle label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.expense-form-toggle input[type="radio"] {
+    display: none;
+}
+
+.expense-form-toggle input[type="radio"]:checked + label,
+.expense-form-toggle label.active {
+    background: var(--accent-green);
+    color: white;
+}
+
+#recurring-expense-fields,
+#onetime-expense-fields {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Expense Type Select with Icons */
+.expense-type-select optgroup {
+    font-weight: 600;
+    font-style: normal;
+    padding: 8px 0;
+}
+
+/* ============================================
+   VEHICLE SWAP MODAL
+   ============================================ */
+
+.swap-customer-info {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.customer-badge,
+.rental-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.customer-badge i,
+.rental-badge i {
+    color: var(--accent-green);
+}
+
+.swap-section {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.swap-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.swap-section h3 i {
+    color: var(--accent-blue);
+}
+
+.swap-section.current-vehicle {
+    border-left: 4px solid var(--accent-orange);
+}
+
+.swap-section.new-vehicle {
+    border-left: 4px solid var(--accent-green);
+}
+
+.vehicle-card-swap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+
+.vehicle-info-swap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vehicle-info-swap .vehicle-code {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--accent-green);
+}
+
+.vehicle-info-swap .vehicle-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.vehicle-info-swap .vehicle-plate {
+    font-size: 13px;
+    color: var(--text-tertiary);
+}
+
+.vehicle-stats-swap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.vehicle-stats-swap .stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.vehicle-stats-swap .stat i {
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
+
+.swap-arrow {
+    display: flex;
+    justify-content: center;
+    margin: -8px 0;
+    position: relative;
+    z-index: 1;
+}
+
+.swap-arrow i {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-green);
+    color: white;
+    border-radius: 50%;
+    font-size: 18px;
+}
+
+.no-vehicles-warning {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--accent-orange);
+}
+
+.no-vehicles-warning i {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.no-vehicles-warning p {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.no-vehicles-warning small {
+    color: var(--text-tertiary);
+}
+
+/* ============================================
+   SWAP HISTORY TIMELINE
+   ============================================ */
+
+.swap-history-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.swap-history-timeline::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-primary);
+}
+
+.history-item {
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.history-item:last-child {
+    padding-bottom: 0;
+}
+
+.history-marker {
+    position: absolute;
+    left: -30px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-primary);
+    border-radius: 50%;
+    color: var(--text-tertiary);
+    font-size: 12px;
+}
+
+.history-item.current .history-marker {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: white;
+}
+
+.history-content {
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.history-vehicle {
+    margin-bottom: 8px;
+}
+
+.history-vehicle strong {
+    color: var(--accent-green);
+    font-size: 15px;
+}
+
+.history-vehicle span {
+    color: var(--text-secondary);
+    margin-left: 8px;
+}
+
+.history-dates {
+    display: flex;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+
+.history-dates .current-label {
+    background: var(--accent-green);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.history-mileage {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+}
+
+.history-reason {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-primary);
+}
+
+.reason-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.reason-notes {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    font-style: italic;
+}
+
+.history-rate {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+/* ============================================
+   FORM HELPERS
+   ============================================ */
+
+.input-with-prefix {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-primary);
+}
+
+.input-with-prefix .prefix {
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+    font-weight: 500;
+    border-right: 1px solid var(--border-primary);
+}
+
+.input-with-prefix input {
+    flex: 1;
+    border: none;
+    padding: 10px 12px;
+    background: transparent;
+    outline: none;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .expenses-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .recurring-expenses-card {
+        order: -1;
+    }
+    
+    .swap-customer-info {
+        flex-direction: column;
+    }
+    
+    .vehicle-card-swap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .vehicle-stats-swap {
+        align-items: flex-start;
+        flex-direction: row;
+        gap: 16px;
+    }
+}
