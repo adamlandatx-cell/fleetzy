@@ -788,8 +788,22 @@ const Payments = {
         const oldAmount = parseFloat(this.editingPayment.paid_amount) || 0;
         const amountDiff = amount - oldAmount;
         
+        // Recalculate late status based on new paid_date vs due_date
+        let isLate = false;
+        let daysLate = 0;
+        
+        if (this.editingPayment.due_date && paidDate) {
+            const dueDate = new Date(this.editingPayment.due_date + 'T00:00:00');
+            const paidDateObj = new Date(paidDate + 'T00:00:00');
+            
+            if (paidDateObj > dueDate) {
+                isLate = true;
+                daysLate = Math.floor((paidDateObj - dueDate) / (1000 * 60 * 60 * 24));
+            }
+        }
+        
         try {
-            // Update payment record
+            // Update payment record including late status
             const { error: updateError } = await db
                 .from('payments')
                 .update({
@@ -798,6 +812,8 @@ const Payments = {
                     payment_method: method,
                     payment_status: status,
                     notes: notes,
+                    is_late: isLate,
+                    days_late: daysLate,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', this.editingPayment.id);
