@@ -715,7 +715,11 @@ const Payments = {
                 newTotalDue = totalDue + parseFloat(rental.weekly_rate || 400);
             }
             
-            const newBalance = newTotalDue - newPaid;
+            // FIX: Exclude deposit from rent balance calculation
+            // total_amount_paid includes deposit, but total_amount_due is rent only
+            const depositAmount = parseFloat(rental.deposit_included || rental.deposit_amount) || 0;
+            const rentPaid = newPaid - depositAmount;
+            const newBalance = newTotalDue - rentPaid;
             
             // FIX: Calculate next payment date based on CURRENT due date, not today
             // This keeps rentals on their proper weekly schedule
