@@ -10,6 +10,7 @@ const Expenses = {
     filtered: [],
     recurring: [],
     vehicles: [],
+    rentals: [], // Active rentals for linking expenses
     
     // Expense type definitions
     expenseTypes: [
@@ -39,6 +40,7 @@ const Expenses = {
     async init() {
         console.log('💰 Initializing Expenses module...');
         await this.loadVehicles();
+        await this.loadRentals();
         await this.load();
         await this.loadRecurring();
         this.setupEventListeners();
@@ -59,6 +61,31 @@ const Expenses = {
             console.log(`✅ Loaded ${this.vehicles.length} vehicles for expenses`);
         } catch (error) {
             console.error('❌ Error loading vehicles:', error);
+        }
+    },
+    
+    /**
+     * Load active rentals for dropdown
+     */
+    async loadRentals() {
+        try {
+            const { data, error } = await db
+                .from('rentals')
+                .select(`
+                    id, 
+                    rental_id, 
+                    rental_status,
+                    customer:customer_id(id, full_name),
+                    vehicle:vehicle_id(id, vehicle_id, make, model, year)
+                `)
+                .in('rental_status', ['active', 'pending_rental', 'pending_approval'])
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            this.rentals = data || [];
+            console.log(`✅ Loaded ${this.rentals.length} active rentals for expenses`);
+        } catch (error) {
+            console.error('❌ Error loading rentals:', error);
         }
     },
     
@@ -415,6 +442,33 @@ const Expenses = {
     },
     
     /**
+     * Populate rental dropdown with active rentals
+     */
+    populateRentalDropdown(selectId, selectedId = null) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        
+        let html = '<option value="">None (general expense)</option>';
+        
+        if (this.rentals.length > 0) {
+            html += '<optgroup label="Active Rentals">';
+            this.rentals.forEach(rental => {
+                const customerName = rental.customer?.full_name || 'Unknown Customer';
+                const vehicleInfo = rental.vehicle 
+                    ? `${rental.vehicle.vehicle_id} - ${rental.vehicle.year} ${rental.vehicle.make} ${rental.vehicle.model}`
+                    : 'Unknown Vehicle';
+                const displayText = `${customerName} (${vehicleInfo})`;
+                const selected = rental.id === selectedId ? 'selected' : '';
+                
+                html += `<option value="${rental.id}" ${selected}>${displayText}</option>`;
+            });
+            html += '</optgroup>';
+        }
+        
+        select.innerHTML = html;
+    },
+    
+    /**
      * Open add expense modal
      */
     openAddModal(vehicleId = null, rentalId = null) {
@@ -431,6 +485,7 @@ const Expenses = {
         // Populate dropdowns
         this.populateVehicleDropdown('expense-vehicle', vehicleId);
         this.populateTypeDropdown('expense-type');
+        this.populateRentalDropdown('expense-rental', rentalId);
         
         // Set default date to today
         const dateInput = document.getElementById('expense-date');
@@ -453,6 +508,13 @@ const Expenses = {
         if (recurringFields) recurringFields.style.display = 'none';
         if (oneTimeFields) oneTimeFields.style.display = 'block';
         
+        // Reset customer responsible checkbox and charge option
+        const customerResponsibleCheckbox = document.getElementById('expense-customer-responsible');
+        if (customerResponsibleCheckbox) customerResponsibleCheckbox.checked = false;
+        
+        const chargeOption = document.getElementById('expense-charge-option');
+        if (chargeOption) chargeOption.style.display = 'none';
+        
         // Store rental ID if provided (for customer-related expenses)
         modal.dataset.rentalId = rentalId || '';
         
@@ -473,6 +535,55 @@ const Expenses = {
     },
     
     /**
+     * Toggle charge option visibility based on customer responsible checkbox
+     */
+    toggleChargeOption() {
+        const isCustomerResponsible = document.getElementById('expense-customer-responsible')?.checked || false;
+        const chargeOption = document.getElementById('expense-charge-option');
+        
+        if (chargeOption) {
+            chargeOption.style.display = isCustomerResponsible ? 'block' : 'none';
+        }
+        
+        // If customer is responsible, require a rental to be selected
+        const rentalSelect = document.getElementById('expense-rental');
+        if (rentalSelect) {
+            if (isCustomerResponsible && !rentalSelect.value) {
+                // Highlight the rental dropdown
+                rentalSelect.focus();
+                rentalSelect.style.borderColor = 'var(--accent-orange)';
+                setTimeout(() => {
+                    rentalSelect.style.borderColor = '';
+                }, 3000);
+            }
+        }
+    },
+    
+    /**
+     * Set expense mode (one-time vs recurring)
+     */
+    setMode(mode) {
+        const oneTimeFields = document.getElementById('onetime-expense-fields');
+        const recurringFields = document.getElementById('recurring-expense-fields');
+        const oneTimeLabel = document.querySelector('label[for="expense-mode-onetime"]');
+        const recurringLabel = document.querySelector('label[for="expense-mode-recurring"]');
+        
+        if (mode === 'onetime') {
+            if (oneTimeFields) oneTimeFields.style.display = 'block';
+            if (recurringFields) recurringFields.style.display = 'none';
+            if (oneTimeLabel) oneTimeLabel.classList.add('active');
+            if (recurringLabel) recurringLabel.classList.remove('active');
+            document.getElementById('expense-mode-onetime').checked = true;
+        } else {
+            if (oneTimeFields) oneTimeFields.style.display = 'none';
+            if (recurringFields) recurringFields.style.display = 'block';
+            if (oneTimeLabel) oneTimeLabel.classList.remove('active');
+            if (recurringLabel) recurringLabel.classList.add('active');
+            document.getElementById('expense-mode-recurring').checked = true;
+        }
+    },
+    
+    /**
      * Save expense
      */
     async save() {
@@ -480,7 +591,10 @@ const Expenses = {
         if (!form) return;
         
         const modal = document.getElementById('modal-add-expense');
-        const rentalId = modal?.dataset?.rentalId || null;
+        
+        // Get rental ID from dropdown (or from modal dataset as fallback)
+        const rentalDropdownValue = document.getElementById('expense-rental')?.value || '';
+        const rentalId = rentalDropdownValue || modal?.dataset?.rentalId || null;
         
         const isRecurring = document.getElementById('expense-recurring')?.checked || false;
         const vehicleId = document.getElementById('expense-vehicle')?.value;
