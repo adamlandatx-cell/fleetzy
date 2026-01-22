@@ -527,7 +527,13 @@ const Rentals = {
             
             // Build ledger entries
             const ledgerEntries = [];
-            const weeklyRate = parseFloat(rental.weekly_rate) || 400;
+            
+            // RATE CHANGE FIX: Use original rate and current rate appropriately
+            const originalRate = parseFloat(rental.weekly_rate) || 400;
+            const currentRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate) || 400;
+            const rateChangeDate = rental.rate_change_date ? parseLocalDateForRentals(rental.rate_change_date) : null;
+            const rateChanged = currentRate !== originalRate && rateChangeDate;
+            
             const depositAmount = parseFloat(rental.deposit_amount || rental.deposit_included) || 250;
             const startDate = rental.start_date ? parseLocalDateForRentals(rental.start_date) : new Date();
             
@@ -544,6 +550,18 @@ const Rentals = {
                 // Skip if this week hasn't started yet
                 if (weekDate > today) break;
                 
+                // Determine which rate to use for this week
+                // If rate changed, use original rate before change date, current rate after
+                let weeklyRateForThisWeek = originalRate;
+                let rateNote = '';
+                if (rateChanged && weekDate >= rateChangeDate) {
+                    weeklyRateForThisWeek = currentRate;
+                    if (weekDate.getTime() === rateChangeDate.getTime() || 
+                        (week === Math.ceil((rateChangeDate - startDate) / (1000 * 60 * 60 * 24 * 7)))) {
+                        rateNote = ' (new rate)';
+                    }
+                }
+                
                 // First week: Add deposit and rent as SEPARATE entries
                 if (week === 0) {
                     // Security deposit entry (separate from rent)
@@ -558,16 +576,16 @@ const Rentals = {
                     ledgerEntries.push({
                         type: 'rent',
                         date: weekDate,
-                        description: 'Week 1 Rent',
-                        amount: weeklyRate,
+                        description: `Week 1 Rent${rateNote}`,
+                        amount: weeklyRateForThisWeek,
                         isDebit: true
                     });
                 } else {
                     ledgerEntries.push({
                         type: 'rent',
                         date: weekDate,
-                        description: `Week ${week + 1} Rent`,
-                        amount: weeklyRate,
+                        description: `Week ${week + 1} Rent${rateNote}`,
+                        amount: weeklyRateForThisWeek,
                         isDebit: true
                     });
                 }
@@ -2390,8 +2408,9 @@ const Rentals = {
             ongoingCheckbox.checked = true;
         }
         
-        // Rate and deposit
-        document.getElementById('edit-rental-weekly-rate').value = parseFloat(rental.weekly_rate) || 400;
+        // Rate and deposit - show CURRENT rate, not original
+        const currentRateValue = parseFloat(rental.current_weekly_rate || rental.weekly_rate) || 400;
+        document.getElementById('edit-rental-weekly-rate').value = currentRateValue;
         document.getElementById('edit-rental-deposit').value = parseFloat(rental.deposit_amount || rental.deposit_included) || 500;
         
         // Next payment due
@@ -2542,7 +2561,7 @@ const Rentals = {
         const newVehicleId = document.getElementById('edit-rental-vehicle')?.value;
         const startDate = document.getElementById('edit-rental-start-date')?.value;
         const startMileage = parseInt(document.getElementById('edit-rental-start-mileage')?.value) || null;
-        const weeklyRate = parseFloat(document.getElementById('edit-rental-weekly-rate')?.value) || 400;
+        const newWeeklyRate = parseFloat(document.getElementById('edit-rental-weekly-rate')?.value) || 400;
         const deposit = parseFloat(document.getElementById('edit-rental-deposit')?.value) || 500;
         const nextPaymentDue = document.getElementById('edit-rental-next-payment')?.value || null;
         
@@ -2566,7 +2585,12 @@ const Rentals = {
         const oldVehicleId = rental.vehicle_id;
         const vehicleChanged = newVehicleId !== oldVehicleId;
         
-        // Confirm changes
+        // Check if rate is being changed
+        const originalRate = parseFloat(rental.weekly_rate) || 400;
+        const currentRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate) || 400;
+        const rateIsChanging = newWeeklyRate !== currentRate;
+        
+        // Build confirmation message
         let confirmMsg = 'Save changes to this rental?';
         if (vehicleChanged) {
             const newVehicle = this.editVehicles?.find(v => v.id === newVehicleId);
@@ -2576,21 +2600,48 @@ const Rentals = {
             confirmMsg = `Change vehicle to ${newVehicleName}?\n\nThe previous vehicle will become available again.`;
         }
         
+        // Add rate change warning
+        if (rateIsChanging) {
+            const rateDirection = newWeeklyRate > currentRate ? 'increase' : 'decrease';
+            confirmMsg += `\n\n⚠️ RATE CHANGE: This will ${rateDirection} the weekly rate from $${currentRate} to $${newWeeklyRate}.\n\nFuture weeks will use the new rate ($${newWeeklyRate}/week).`;
+        }
+        
         if (!confirm(confirmMsg)) return;
         
         try {
             Utils.toastInfo('Saving changes...');
             
-            // Update rental record - only use columns that exist in your schema
+            // Build update data
             const updateData = {
                 vehicle_id: newVehicleId,
                 start_date: startDate,
                 start_mileage: startMileage,
-                weekly_rate: weeklyRate,
                 deposit_amount: deposit,
                 next_payment_due: nextPaymentDue,
                 updated_at: new Date().toISOString()
             };
+            
+            // RATE CHANGE HANDLING:
+            // - If this is the FIRST rate change (current_weekly_rate doesn't exist or equals original),
+            //   preserve weekly_rate as the original and set current_weekly_rate to new rate
+            // - If there was already a rate change, update current_weekly_rate to the new rate
+            if (rateIsChanging) {
+                // Set the current rate to the new value
+                updateData.current_weekly_rate = newWeeklyRate;
+                // Set rate change date to today
+                updateData.rate_change_date = formatLocalDate(new Date());
+                // Add rate change notes
+                const changeNote = `Rate changed from $${currentRate} to $${newWeeklyRate}/week on ${new Date().toLocaleDateString()}`;
+                updateData.rate_change_notes = rental.rate_change_notes 
+                    ? `${rental.rate_change_notes} | ${changeNote}`
+                    : changeNote;
+                
+                // Keep weekly_rate as the ORIGINAL rate (don't change it)
+                // This preserves rate history
+            } else {
+                // No rate change - keep existing values
+                // Don't update weekly_rate or current_weekly_rate
+            }
             
             const { error: updateError } = await db
                 .from('rentals')
