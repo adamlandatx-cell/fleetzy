@@ -752,7 +752,19 @@ const Rentals = {
                     </div>
                     
                     <div class="detail-section">
-                        <h4><i class="fas fa-car"></i> Vehicle</h4>
+                        <h4 style="display: flex; justify-content: space-between; align-items: center;">
+                            <span><i class="fas fa-car"></i> Vehicle</span>
+                            ${rental.rental_status === 'active' ? `
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-sm btn-ghost" onclick="VehicleSwap.viewHistory('${rental.id}')" title="View Vehicle History" style="font-size: 11px;">
+                                        <i class="fas fa-history"></i> History
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="VehicleSwap.openSwapModal('${rental.id}')" title="Swap Vehicle" style="font-size: 11px;">
+                                        <i class="fas fa-exchange-alt"></i> Swap
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </h4>
                         <div class="detail-row">
                             <span class="detail-label">Vehicle</span>
                             <span class="detail-value">${vehicleName}</span>

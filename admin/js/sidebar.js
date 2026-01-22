@@ -38,6 +38,12 @@ const Sidebar = {
             icon: 'fa-credit-card',
             loader: () => Payments?.load?.()
         },
+        expenses: {
+            title: 'Expense Management',
+            subtitle: 'Track vehicle costs, recurring expenses, and customer charges.',
+            icon: 'fa-receipt',
+            loader: () => Expenses?.init?.()
+        },
         reports: {
             title: 'Reports & Analytics',
             subtitle: 'View financial reports, trends, and AI insights.',
