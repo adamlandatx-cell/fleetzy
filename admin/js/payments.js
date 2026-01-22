@@ -239,9 +239,12 @@ const Payments = {
         const status = payment.payment_status || 'Pending';
         const method = payment.payment_method || 'Unknown';
         
+        // Default avatar as data URI (no external file needed)
+        const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23374151'/%3E%3Ccircle cx='20' cy='16' r='7' fill='%236B7280'/%3E%3Cpath d='M6 36c0-8 6-12 14-12s14 4 14 12' fill='%236B7280'/%3E%3C/svg%3E";
+        
         // Customer cell - using full_name
         const customerName = customer?.full_name || 'Unknown Customer';
-        const customerPhoto = customer?.selfie_url || 'assets/default-avatar.png';
+        const customerPhoto = customer?.selfie_url || defaultAvatar;
         const customerId = customer?.customer_id || '—';
         
         // Rental reference
@@ -287,7 +290,7 @@ const Payments = {
                 <td>
                     <div class="customer-cell">
                         <img src="${customerPhoto}" alt="${customerName}" class="customer-photo" 
-                             onerror="this.src='assets/default-avatar.png'">
+                             onerror="this.onerror=null; this.src='${defaultAvatar}'">
                         <div class="customer-info">
                             <div class="customer-name">${customerName}</div>
                             <div class="customer-id">${customerId}</div>
