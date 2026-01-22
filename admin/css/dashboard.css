@@ -3159,6 +3159,104 @@ img {
     box-shadow: var(--shadow-sm);
 }
 
+.date-btn i {
+    margin-right: 4px;
+}
+
+/* Custom Date Picker */
+.custom-date-picker {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-tertiary);
+    padding: 8px 12px;
+    border-radius: var(--radius-lg);
+    margin-left: 8px;
+    animation: slideInRight 0.2s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.date-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-input-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.date-input {
+    background: var(--bg-card-solid);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    width: 130px;
+}
+
+.date-input:hover {
+    border-color: var(--accent-green);
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Custom calendar icon for date input */
+.date-input::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+    transition: filter var(--transition-fast);
+}
+
+.date-input::-webkit-calendar-picker-indicator:hover {
+    filter: invert(0.9);
+}
+
+.btn-apply-dates {
+    background: var(--accent-green);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+}
+
+.btn-apply-dates:hover {
+    background: var(--accent-green-dark, #059669);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-apply-dates i {
+    font-size: 11px;
+}
+
 /* Main Export Button */
 .btn-export-main {
     background: var(--gradient-brand);
@@ -4028,11 +4126,43 @@ img {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
+        gap: 12px;
     }
     
     .date-range-selector {
         overflow-x: auto;
         justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    
+    .date-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .custom-date-picker {
+        flex-direction: column;
+        align-items: stretch;
+        margin-left: 0;
+        margin-top: 8px;
+        padding: 12px;
+        gap: 10px;
+    }
+    
+    .date-input-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+    
+    .date-input {
+        width: 100%;
+    }
+    
+    .btn-apply-dates {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
     }
     
     .btn-export-main {
