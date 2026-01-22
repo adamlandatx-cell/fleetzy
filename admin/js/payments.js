@@ -239,6 +239,12 @@ const Payments = {
         const status = payment.payment_status || 'Pending';
         const method = payment.payment_method || 'Unknown';
         
+        // Normalize status display text (capitalize first letter, show "Paid" for both "paid" and "confirmed")
+        const normalizedStatus = status.toLowerCase();
+        const displayStatus = (normalizedStatus === 'paid' || normalizedStatus === 'confirmed') 
+            ? 'Paid' 
+            : status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+        
         // Default avatar as data URI (no external file needed)
         const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23374151'/%3E%3Ccircle cx='20' cy='16' r='7' fill='%236B7280'/%3E%3Cpath d='M6 36c0-8 6-12 14-12s14 4 14 12' fill='%236B7280'/%3E%3C/svg%3E";
         
@@ -289,7 +295,7 @@ const Payments = {
             <tr data-id="${payment.id}">
                 <td>
                     <div class="customer-cell">
-                        <img src="${customerPhoto}" alt="${customerName}" class="customer-photo" 
+                        <img src="${customerPhoto}" alt="${customerName}" class="customer-avatar" 
                              onerror="this.onerror=null; this.src='${defaultAvatar}'">
                         <div class="customer-info">
                             <div class="customer-name">${customerName}</div>
@@ -311,7 +317,7 @@ const Payments = {
                 </td>
                 <td>${paidDate}</td>
                 <td>
-                    <span class="status-badge ${statusClass}">${status}</span>
+                    <span class="status-badge ${statusClass}">${displayStatus}</span>
                 </td>
                 <td>
                     <div class="action-buttons">
