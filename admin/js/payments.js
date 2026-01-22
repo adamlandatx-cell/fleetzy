@@ -367,6 +367,9 @@ const Payments = {
                 <button class="btn-icon danger" onclick="Payments.openRejectModal('${payment.id}')" title="Reject Payment">
                     <i class="fas fa-times"></i>
                 </button>
+                <button class="btn-icon" onclick="Payments.edit('${payment.id}')" title="Edit Payment">
+                    <i class="fas fa-edit"></i>
+                </button>
                 <button class="btn-icon" onclick="Payments.view('${payment.id}')" title="View Details">
                     <i class="fas fa-eye"></i>
                 </button>
@@ -374,6 +377,9 @@ const Payments = {
         }
         
         return `
+            <button class="btn-icon" onclick="Payments.edit('${payment.id}')" title="Edit Payment">
+                <i class="fas fa-edit"></i>
+            </button>
             <button class="btn-icon" onclick="Payments.view('${payment.id}')" title="View Details">
                 <i class="fas fa-eye"></i>
             </button>
@@ -623,6 +629,241 @@ const Payments = {
         }
     },
     
+    /**
+     * Edit payment
+     */
+    edit(paymentId) {
+        const payment = this.data.find(p => p.id === paymentId);
+        if (!payment) {
+            Utils.toastError('Payment not found');
+            return;
+        }
+        
+        // Store current payment for saving
+        this.editingPayment = payment;
+        
+        const content = document.getElementById('edit-payment-content');
+        if (!content) {
+            // Create the modal if it doesn't exist
+            this.createEditModal();
+        }
+        
+        const modal = document.getElementById('modal-edit-payment');
+        const editContent = document.getElementById('edit-payment-content');
+        
+        if (!modal || !editContent) {
+            Utils.toastError('Edit modal not available');
+            return;
+        }
+        
+        // Format date for input (YYYY-MM-DD)
+        const paidDate = payment.paid_date ? payment.paid_date.split('T')[0] : '';
+        
+        // Build edit form
+        editContent.innerHTML = `
+            <form id="edit-payment-form" onsubmit="Payments.saveEdit(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="edit-payment-amount">Amount *</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">$</span>
+                            <input type="number" id="edit-payment-amount" step="0.01" min="0" 
+                                   value="${payment.paid_amount || ''}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-payment-date">Payment Date *</label>
+                        <input type="date" id="edit-payment-date" value="${paidDate}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-payment-method">Payment Method</label>
+                        <select id="edit-payment-method">
+                            <option value="Zelle" ${payment.payment_method === 'Zelle' ? 'selected' : ''}>Zelle</option>
+                            <option value="CashApp" ${payment.payment_method === 'CashApp' ? 'selected' : ''}>CashApp</option>
+                            <option value="Venmo" ${payment.payment_method === 'Venmo' ? 'selected' : ''}>Venmo</option>
+                            <option value="PayPal" ${payment.payment_method === 'PayPal' ? 'selected' : ''}>PayPal</option>
+                            <option value="Stripe" ${payment.payment_method === 'Stripe' ? 'selected' : ''}>Stripe (Card)</option>
+                            <option value="Cash" ${payment.payment_method === 'Cash' ? 'selected' : ''}>Cash</option>
+                            <option value="Check" ${payment.payment_method === 'Check' ? 'selected' : ''}>Check</option>
+                            <option value="Other" ${payment.payment_method === 'Other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-payment-status">Status</label>
+                        <select id="edit-payment-status">
+                            <option value="pending" ${(payment.payment_status || '').toLowerCase() === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Confirmed" ${(payment.payment_status || '').toLowerCase() === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="rejected" ${(payment.payment_status || '').toLowerCase() === 'rejected' ? 'selected' : ''}>Rejected</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="edit-payment-notes">Notes</label>
+                        <textarea id="edit-payment-notes" rows="3" placeholder="Optional notes...">${payment.notes || ''}</textarea>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="Payments.closeEditModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        `;
+        
+        modal.classList.add('active');
+    },
+    
+    /**
+     * Create edit payment modal dynamically
+     */
+    createEditModal() {
+        const existingModal = document.getElementById('modal-edit-payment');
+        if (existingModal) return;
+        
+        const modalHTML = `
+            <div id="modal-edit-payment" class="modal">
+                <div class="modal-overlay" onclick="Payments.closeEditModal()"></div>
+                <div class="modal-container" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-edit"></i> Edit Payment</h2>
+                        <button class="modal-close" onclick="Payments.closeEditModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="edit-payment-content">
+                        <!-- Form content injected by edit() -->
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    },
+    
+    /**
+     * Close edit modal
+     */
+    closeEditModal() {
+        const modal = document.getElementById('modal-edit-payment');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+        this.editingPayment = null;
+    },
+    
+    /**
+     * Save payment edits
+     */
+    async saveEdit(event) {
+        event.preventDefault();
+        
+        if (!this.editingPayment) {
+            Utils.toastError('No payment selected for editing');
+            return;
+        }
+        
+        const amount = parseFloat(document.getElementById('edit-payment-amount').value);
+        const paidDate = document.getElementById('edit-payment-date').value;
+        const method = document.getElementById('edit-payment-method').value;
+        const status = document.getElementById('edit-payment-status').value;
+        const notes = document.getElementById('edit-payment-notes').value.trim();
+        
+        if (!amount || amount <= 0) {
+            Utils.toastError('Please enter a valid amount');
+            return;
+        }
+        
+        if (!paidDate) {
+            Utils.toastError('Please enter a payment date');
+            return;
+        }
+        
+        const oldAmount = parseFloat(this.editingPayment.paid_amount) || 0;
+        const amountDiff = amount - oldAmount;
+        
+        try {
+            // Update payment record
+            const { error: updateError } = await db
+                .from('payments')
+                .update({
+                    paid_amount: amount,
+                    paid_date: paidDate,
+                    payment_method: method,
+                    payment_status: status,
+                    notes: notes,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', this.editingPayment.id);
+            
+            if (updateError) throw updateError;
+            
+            // If amount changed and payment is confirmed, update rental totals
+            if (amountDiff !== 0 && this.editingPayment.rental_id && 
+                (status.toLowerCase() === 'confirmed' || this.editingPayment.payment_status?.toLowerCase() === 'confirmed')) {
+                await this.adjustRentalForPaymentEdit(this.editingPayment.rental_id, amountDiff);
+            }
+            
+            Utils.toastSuccess('Payment updated successfully');
+            this.closeEditModal();
+            await this.load(); // Refresh data
+            
+        } catch (error) {
+            console.error('Error updating payment:', error);
+            Utils.toastError('Failed to update payment');
+        }
+    },
+    
+    /**
+     * Adjust rental totals when a payment amount is edited
+     */
+    async adjustRentalForPaymentEdit(rentalId, amountDiff) {
+        try {
+            // Get current rental
+            const { data: rental, error: fetchError } = await db
+                .from('rentals')
+                .select('*')
+                .eq('id', rentalId)
+                .single();
+            
+            if (fetchError) throw fetchError;
+            
+            // Adjust totals
+            const currentPaid = parseFloat(rental.total_amount_paid) || 0;
+            const newPaid = currentPaid + amountDiff;
+            const totalDue = parseFloat(rental.total_amount_due) || 0;
+            
+            // Exclude deposit from balance calculation
+            const depositAmount = parseFloat(rental.deposit_included || rental.deposit_amount) || 0;
+            const rentPaid = newPaid - depositAmount;
+            const newBalance = totalDue - rentPaid;
+            
+            // Update rental
+            const { error: updateError } = await db
+                .from('rentals')
+                .update({
+                    total_amount_paid: newPaid,
+                    balance_remaining: Math.max(0, newBalance),
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', rentalId);
+            
+            if (updateError) throw updateError;
+            
+            console.log(`✅ Adjusted rental ${rentalId}: paid changed by $${amountDiff}, new balance=$${newBalance}`);
+            
+        } catch (error) {
+            console.error('Error adjusting rental for payment edit:', error);
+            // Don't throw - payment was saved, just log the error
+        }
+    },
+
     /**
      * Approve payment
      */
