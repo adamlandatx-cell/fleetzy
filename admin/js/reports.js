@@ -212,6 +212,11 @@ const Reports = {
                 this.changeDateRange(range);
             }
             
+            // Apply custom dates button
+            if (e.target.closest('#apply-custom-dates')) {
+                this.applyCustomDates();
+            }
+            
             // Export buttons
             if (e.target.closest('[data-export]')) {
                 const type = e.target.closest('[data-export]').dataset.export;
@@ -244,6 +249,25 @@ const Reports = {
                         <button class="date-btn" data-date-range="lastMonth">Last Month</button>
                         <button class="date-btn" data-date-range="thisQuarter">This Quarter</button>
                         <button class="date-btn" data-date-range="thisYear">This Year</button>
+                        <button class="date-btn" data-date-range="allTime">All Time</button>
+                        <button class="date-btn" data-date-range="custom">
+                            <i class="fas fa-calendar-alt"></i> Custom
+                        </button>
+                    </div>
+                    
+                    <!-- Custom Date Range Picker (hidden by default) -->
+                    <div class="custom-date-picker" id="custom-date-picker" style="display: none;">
+                        <div class="date-input-group">
+                            <label>From</label>
+                            <input type="date" id="report-date-start" class="date-input">
+                        </div>
+                        <div class="date-input-group">
+                            <label>To</label>
+                            <input type="date" id="report-date-end" class="date-input">
+                        </div>
+                        <button class="btn-apply-dates" id="apply-custom-dates">
+                            <i class="fas fa-check"></i> Apply
+                        </button>
                     </div>
                     
                     <button class="btn-export-main" data-export="full">
@@ -1102,12 +1126,88 @@ const Reports = {
             btn.classList.toggle('active', btn.dataset.dateRange === range);
         });
         
+        // Show/hide custom date picker
+        const customPicker = document.getElementById('custom-date-picker');
+        if (customPicker) {
+            if (range === 'custom') {
+                customPicker.style.display = 'flex';
+                // Set default dates if not already set
+                const startInput = document.getElementById('report-date-start');
+                const endInput = document.getElementById('report-date-end');
+                
+                if (!startInput.value) {
+                    // Default to last 30 days
+                    const end = new Date();
+                    const start = new Date();
+                    start.setDate(start.getDate() - 30);
+                    
+                    startInput.value = start.toISOString().split('T')[0];
+                    endInput.value = end.toISOString().split('T')[0];
+                }
+                return; // Don't refresh until they click Apply
+            } else {
+                customPicker.style.display = 'none';
+            }
+        }
+        
         // Re-render all components with new date range
         this.updateStats();
         this.renderRevenueChart();
         this.renderMethodsChart();
         this.renderTopCustomers();
         this.renderFleetMetrics();
+        this.renderVehicleRevenue();
+        this.renderTransactionsTable();
+    },
+    
+    /**
+     * Apply custom date range
+     */
+    applyCustomDates() {
+        const startInput = document.getElementById('report-date-start');
+        const endInput = document.getElementById('report-date-end');
+        
+        if (!startInput || !endInput) return;
+        
+        const startVal = startInput.value;
+        const endVal = endInput.value;
+        
+        if (!startVal || !endVal) {
+            Utils.toastError('Please select both start and end dates');
+            return;
+        }
+        
+        const start = new Date(startVal);
+        const end = new Date(endVal);
+        
+        if (start > end) {
+            Utils.toastError('Start date must be before end date');
+            return;
+        }
+        
+        // Store custom dates
+        this.state.startDate = start;
+        this.state.endDate = end;
+        this.state.dateRange = 'custom';
+        
+        // Update the button text to show the selected range
+        const customBtn = document.querySelector('[data-date-range="custom"]');
+        if (customBtn) {
+            const startFormatted = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const endFormatted = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            customBtn.innerHTML = `<i class="fas fa-calendar-check"></i> ${startFormatted} - ${endFormatted}`;
+        }
+        
+        Utils.toastSuccess(`Showing data from ${start.toLocaleDateString()} to ${end.toLocaleDateString()}`);
+        
+        // Re-render all components
+        this.updateStats();
+        this.renderRevenueChart();
+        this.renderMethodsChart();
+        this.renderTopCustomers();
+        this.renderFleetMetrics();
+        this.renderVehicleRevenue();
+        this.renderTransactionsTable();
     },
 
     /**
@@ -1134,6 +1234,24 @@ const Reports = {
             case 'thisYear':
                 start = new Date(now.getFullYear(), 0, 1);
                 end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+                break;
+            case 'allTime':
+                // Go back 10 years to capture all data
+                start = new Date(2020, 0, 1);
+                end = new Date(now.getFullYear() + 1, 11, 31, 23, 59, 59, 999);
+                break;
+            case 'custom':
+                // Use stored custom dates
+                if (this.state.startDate && this.state.endDate) {
+                    start = new Date(this.state.startDate);
+                    start.setHours(0, 0, 0, 0);
+                    end = new Date(this.state.endDate);
+                    end.setHours(23, 59, 59, 999);
+                } else {
+                    // Fallback to this month if no custom dates set
+                    start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+                }
                 break;
             default:
                 start = new Date(now.getFullYear(), now.getMonth(), 1);
