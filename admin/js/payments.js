@@ -664,16 +664,13 @@ const Payments = {
             <form id="edit-payment-form" onsubmit="Payments.saveEdit(event)">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="edit-payment-amount">Amount *</label>
-                        <div class="input-with-icon">
-                            <span class="input-icon">$</span>
-                            <input type="number" id="edit-payment-amount" step="0.01" min="0" 
-                                   value="${payment.paid_amount || ''}" required>
-                        </div>
+                        <label for="edit-payment-amount">Amount <span class="required">*</span></label>
+                        <input type="number" id="edit-payment-amount" step="0.01" min="0" 
+                               value="${payment.paid_amount || ''}" required placeholder="Enter amount">
                     </div>
                     
                     <div class="form-group">
-                        <label for="edit-payment-date">Payment Date *</label>
+                        <label for="edit-payment-date">Payment Date <span class="required">*</span></label>
                         <input type="date" id="edit-payment-date" value="${paidDate}" required>
                     </div>
                     
@@ -705,15 +702,6 @@ const Payments = {
                         <textarea id="edit-payment-notes" rows="3" placeholder="Optional notes...">${payment.notes || ''}</textarea>
                     </div>
                 </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="Payments.closeEditModal()">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                </div>
             </form>
         `;
         
@@ -729,16 +717,22 @@ const Payments = {
         
         const modalHTML = `
             <div id="modal-edit-payment" class="modal">
-                <div class="modal-overlay" onclick="Payments.closeEditModal()"></div>
-                <div class="modal-container" style="max-width: 500px;">
+                <div class="modal-backdrop" onclick="Payments.closeEditModal()"></div>
+                <div class="modal-content modal-sm">
                     <div class="modal-header">
-                        <h2><i class="fas fa-edit"></i> Edit Payment</h2>
+                        <h3><i class="fas fa-edit"></i> Edit Payment</h3>
                         <button class="modal-close" onclick="Payments.closeEditModal()">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     <div class="modal-body" id="edit-payment-content">
                         <!-- Form content injected by edit() -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="Payments.closeEditModal()">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="Payments.saveEdit(event)">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
                     </div>
                 </div>
             </div>
