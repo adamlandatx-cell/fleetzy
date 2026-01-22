@@ -307,6 +307,55 @@
    ADD EXPENSE MODAL
    ============================================ */
 
+/* Checkbox Label Styling */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary);
+    padding: 8px 0;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid var(--border-primary);
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.checkbox-label input[type="checkbox"]:hover {
+    border-color: var(--accent-green);
+}
+
+.checkbox-label span {
+    line-height: 1.4;
+}
+
 .expense-form-toggle {
     display: flex;
     gap: 16px;
