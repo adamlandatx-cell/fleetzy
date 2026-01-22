@@ -769,9 +769,24 @@ const Rentals = {
                     
                     <div class="detail-section">
                         <h4><i class="fas fa-dollar-sign"></i> Account Summary</h4>
+                        ${rateChanged ? `
+                            <div class="detail-row">
+                                <span class="detail-label">Original Rate</span>
+                                <span class="detail-value" style="color: var(--text-secondary); text-decoration: line-through;">$${originalRate.toFixed(2)}/wk</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Current Rate</span>
+                                <span class="detail-value" style="color: var(--primary);">$${currentRate.toFixed(2)}/wk <span style="font-size: 11px; color: var(--text-tertiary);">(since ${rateChangeDate.toLocaleDateString()})</span></span>
+                            </div>
+                        ` : `
+                            <div class="detail-row">
+                                <span class="detail-label">Weekly Rate</span>
+                                <span class="detail-value">$${currentRate.toFixed(2)}/wk</span>
+                            </div>
+                        `}
                         <div class="detail-row">
-                            <span class="detail-label">Weekly Rate</span>
-                            <span class="detail-value">$${weeklyRate.toFixed(2)}</span>
+                            <span class="detail-label">Security Deposit</span>
+                            <span class="detail-value">$${depositAmount.toFixed(2)}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Total Paid</span>
