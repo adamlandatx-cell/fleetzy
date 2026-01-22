@@ -544,13 +544,22 @@ const Rentals = {
                 // Skip if this week hasn't started yet
                 if (weekDate > today) break;
                 
-                // First week includes deposit
+                // First week: Add deposit and rent as SEPARATE entries
                 if (week === 0) {
+                    // Security deposit entry (separate from rent)
+                    ledgerEntries.push({
+                        type: 'deposit',
+                        date: weekDate,
+                        description: 'Security Deposit',
+                        amount: depositAmount,
+                        isDebit: true
+                    });
+                    // Week 1 rent (separate from deposit)
                     ledgerEntries.push({
                         type: 'rent',
                         date: weekDate,
-                        description: 'Deposit + Week 1',
-                        amount: weeklyRate + depositAmount,
+                        description: 'Week 1 Rent',
+                        amount: weeklyRate,
                         isDebit: true
                     });
                 } else {
