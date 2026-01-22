@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fleetzy Admin</title>
     <link rel="stylesheet" href="css/charges.css">
+    <link rel="stylesheet" href="css/expenses.css">
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -67,6 +68,10 @@
                 <i class="fas fa-credit-card"></i>
                 <span>Payments</span>
                 <span class="badge" id="payments-badge" style="display: none;">0</span>
+            </div>
+            <div class="nav-item" data-section="expenses">
+                <i class="fas fa-receipt"></i>
+                <span>Expenses</span>
             </div>
             
             <div class="nav-divider"></div>
@@ -2476,6 +2481,373 @@
         </div>
 
         <!-- ============================================
+             EXPENSES SECTION
+        ============================================ -->
+        <section id="section-expenses" class="content-section" style="display: none;">
+            
+            <!-- Expenses Header -->
+            <div class="section-header">
+                <div class="section-header-left">
+                    <h2>Expense Management</h2>
+                    <p>Track vehicle costs, recurring expenses, and customer charges</p>
+                </div>
+                <div class="section-header-right">
+                    <button class="btn btn-secondary" onclick="Expenses.refresh()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <button class="btn btn-primary" onclick="Expenses.openAddModal()">
+                        <i class="fas fa-plus"></i>
+                        Add Expense
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Expenses Stats -->
+            <div class="expenses-stats">
+                <div class="expense-stat-card">
+                    <div class="stat-label">This Month</div>
+                    <div class="stat-value negative" id="expenses-stat-thismonth">$0</div>
+                </div>
+                <div class="expense-stat-card">
+                    <div class="stat-label">Last Month</div>
+                    <div class="stat-value negative" id="expenses-stat-lastmonth">$0</div>
+                </div>
+                <div class="expense-stat-card">
+                    <div class="stat-label">Monthly Recurring</div>
+                    <div class="stat-value" id="expenses-stat-recurring">$0</div>
+                </div>
+                <div class="expense-stat-card">
+                    <div class="stat-label">Total All Time</div>
+                    <div class="stat-value negative" id="expenses-stat-total">$0</div>
+                </div>
+            </div>
+            
+            <!-- Expenses Layout (Table + Recurring Sidebar) -->
+            <div class="expenses-layout">
+                
+                <!-- Expenses Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-list"></i>
+                            All Expenses
+                        </h2>
+                        <div class="card-filters">
+                            <div class="search-input">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="expenses-search" placeholder="Search expenses..." oninput="Expenses.filter()">
+                            </div>
+                            <select id="expenses-vehicle-filter" class="filter-select" onchange="Expenses.filter()">
+                                <option value="">All Vehicles</option>
+                            </select>
+                            <select id="expenses-type-filter" class="filter-select expense-type-select" onchange="Expenses.filter()">
+                                <option value="">All Types</option>
+                                <optgroup label="Financing">
+                                    <option value="loan_payment">Loan Payment</option>
+                                    <option value="lease_payment">Lease Payment</option>
+                                </optgroup>
+                                <optgroup label="Operating">
+                                    <option value="insurance">Insurance</option>
+                                    <option value="registration">Registration</option>
+                                    <option value="inspection">Inspection</option>
+                                    <option value="gps_subscription">GPS Subscription</option>
+                                </optgroup>
+                                <optgroup label="Maintenance">
+                                    <option value="oil_change">Oil Change</option>
+                                    <option value="tire_rotation">Tire Rotation</option>
+                                    <option value="tire_replacement">Tire Replacement</option>
+                                    <option value="brakes">Brakes</option>
+                                    <option value="general_repair">General Repair</option>
+                                </optgroup>
+                                <optgroup label="Other">
+                                    <option value="cleaning">Cleaning</option>
+                                    <option value="car_wash_membership">Car Wash Membership</option>
+                                    <option value="fuel">Fuel</option>
+                                    <option value="towing">Towing</option>
+                                    <option value="parking_tolls">Parking/Tolls</option>
+                                    <option value="damage_repair">Damage Repair</option>
+                                    <option value="other">Other</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body no-padding">
+                        <div class="table-responsive">
+                            <table class="data-table expenses-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Vehicle</th>
+                                        <th>Type</th>
+                                        <th>Amount</th>
+                                        <th>Vendor</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expenses-table-body">
+                                    <tr>
+                                        <td colspan="7" class="empty-state">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            <p>Loading expenses...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recurring Expenses Sidebar -->
+                <div class="recurring-expenses-card">
+                    <div class="recurring-expenses-header">
+                        <h3><i class="fas fa-sync-alt"></i> Recurring Expenses</h3>
+                        <span class="recurring-expenses-total" id="recurring-total">$0/mo</span>
+                    </div>
+                    <div id="recurring-expenses-list">
+                        <div class="empty-recurring">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                    <div style="padding: 16px 20px; border-top: 1px solid var(--border-primary);">
+                        <button class="btn btn-ghost btn-sm" onclick="Expenses.generateMonthlyExpenses()" title="Generate this month's recurring expenses">
+                            <i class="fas fa-magic"></i> Generate Monthly
+                        </button>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+
+        <!-- ============================================
+             ADD EXPENSE MODAL
+        ============================================ -->
+        <div id="modal-add-expense" class="modal">
+            <div class="modal-backdrop" onclick="Expenses.closeAddModal()"></div>
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h2><i class="fas fa-receipt"></i> Add Expense</h2>
+                    <button class="modal-close" onclick="Expenses.closeAddModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="expense-form">
+                        <!-- One-Time vs Recurring Toggle -->
+                        <div class="expense-form-toggle">
+                            <input type="radio" name="expense-mode" id="expense-mode-onetime" value="onetime" checked>
+                            <label for="expense-mode-onetime" class="active" onclick="Expenses.setMode('onetime')">
+                                <i class="fas fa-receipt"></i> One-Time
+                            </label>
+                            <input type="radio" name="expense-mode" id="expense-mode-recurring" value="recurring">
+                            <label for="expense-mode-recurring" onclick="Expenses.setMode('recurring')">
+                                <i class="fas fa-sync-alt"></i> Recurring
+                            </label>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <!-- Vehicle Selection -->
+                            <div class="form-group">
+                                <label class="form-label required">Vehicle</label>
+                                <select id="expense-vehicle" class="form-input" required>
+                                    <option value="">Select vehicle...</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Expense Type -->
+                            <div class="form-group">
+                                <label class="form-label required">Expense Type</label>
+                                <select id="expense-type" class="form-input expense-type-select" required>
+                                    <option value="">Select type...</option>
+                                    <optgroup label="Financing">
+                                        <option value="loan_payment">💰 Loan Payment</option>
+                                        <option value="lease_payment">📋 Lease Payment</option>
+                                    </optgroup>
+                                    <optgroup label="Operating">
+                                        <option value="insurance">🛡️ Insurance</option>
+                                        <option value="registration">📝 Registration</option>
+                                        <option value="inspection">🔍 Inspection</option>
+                                        <option value="gps_subscription">📍 GPS Subscription</option>
+                                    </optgroup>
+                                    <optgroup label="Maintenance">
+                                        <option value="oil_change">🛢️ Oil Change</option>
+                                        <option value="tire_rotation">🔄 Tire Rotation</option>
+                                        <option value="tire_replacement">🔘 Tire Replacement</option>
+                                        <option value="brakes">🛑 Brakes</option>
+                                        <option value="general_repair">🔧 General Repair</option>
+                                    </optgroup>
+                                    <optgroup label="Other">
+                                        <option value="cleaning">🧹 Cleaning</option>
+                                        <option value="car_wash_membership">🚿 Car Wash Membership</option>
+                                        <option value="fuel">⛽ Fuel</option>
+                                        <option value="towing">🚛 Towing</option>
+                                        <option value="parking_tolls">🅿️ Parking/Tolls</option>
+                                        <option value="damage_repair">💥 Damage Repair</option>
+                                        <option value="other">📦 Other</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            
+                            <!-- Amount -->
+                            <div class="form-group">
+                                <label class="form-label required">Amount</label>
+                                <div class="input-with-prefix">
+                                    <span class="prefix">$</span>
+                                    <input type="number" id="expense-amount" step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            
+                            <!-- Vendor -->
+                            <div class="form-group">
+                                <label class="form-label">Vendor</label>
+                                <input type="text" id="expense-vendor" class="form-input" placeholder="e.g., AutoZone, Jiffy Lube">
+                            </div>
+                        </div>
+                        
+                        <!-- ONE-TIME EXPENSE FIELDS -->
+                        <div id="onetime-expense-fields">
+                            <div class="form-grid">
+                                <!-- Date -->
+                                <div class="form-group">
+                                    <label class="form-label required">Date</label>
+                                    <input type="date" id="expense-date" class="form-input" required>
+                                </div>
+                                
+                                <!-- Link to Rental (Optional) -->
+                                <div class="form-group">
+                                    <label class="form-label">Link to Rental</label>
+                                    <select id="expense-rental" class="form-input">
+                                        <option value="">None (general expense)</option>
+                                    </select>
+                                    <span class="form-hint">Optional: Link expense to active rental</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Receipt Upload -->
+                            <div class="form-group">
+                                <label class="form-label">Receipt</label>
+                                <input type="file" id="expense-receipt" class="form-input" accept="image/*,.pdf">
+                                <span class="form-hint">Upload receipt image or PDF</span>
+                            </div>
+                            
+                            <!-- Customer Responsible -->
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="expense-customer-responsible" onchange="Expenses.toggleChargeOption()">
+                                    <span>Customer is responsible for this expense</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Create Charge (shown when customer responsible) -->
+                            <div class="form-group" id="expense-charge-option" style="display: none; margin-left: 24px;">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="expense-create-charge" checked>
+                                    <span>Create charge on customer's rental</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- RECURRING EXPENSE FIELDS -->
+                        <div id="recurring-expense-fields" style="display: none;">
+                            <div class="form-grid">
+                                <!-- Day of Month -->
+                                <div class="form-group">
+                                    <label class="form-label required">Day of Month</label>
+                                    <select id="expense-day" class="form-input" required>
+                                        <option value="">Select day...</option>
+                                        <option value="1">1st</option>
+                                        <option value="5">5th</option>
+                                        <option value="10">10th</option>
+                                        <option value="15">15th</option>
+                                        <option value="20">20th</option>
+                                        <option value="25">25th</option>
+                                        <option value="28">28th</option>
+                                    </select>
+                                    <span class="form-hint">Monthly payment due date</span>
+                                </div>
+                                
+                                <!-- Start Date -->
+                                <div class="form-group">
+                                    <label class="form-label required">Start Date</label>
+                                    <input type="date" id="expense-start-date" class="form-input" required>
+                                    <span class="form-hint">When should this start?</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Backfill Option -->
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="expense-backfill">
+                                    <span>Generate past expenses from start date</span>
+                                </label>
+                                <span class="form-hint">Will create expense records for all past months</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label class="form-label">Description / Notes</label>
+                            <textarea id="expense-description" class="form-input" rows="2" placeholder="Additional details..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="Expenses.closeAddModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="Expenses.save()">
+                        <i class="fas fa-save"></i> Save Expense
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             VEHICLE SWAP MODAL (Dynamically built by vehicle-swap.js)
+        ============================================ -->
+        <div id="modal-vehicle-swap" class="modal">
+            <div class="modal-backdrop" onclick="VehicleSwap.closeModal()"></div>
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h2><i class="fas fa-exchange-alt"></i> Swap Vehicle</h2>
+                    <button class="modal-close" onclick="VehicleSwap.closeModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="vehicle-swap-content">
+                    <!-- Content dynamically loaded -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="VehicleSwap.closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="vehicle-swap-confirm" onclick="VehicleSwap.execute()">
+                        <i class="fas fa-exchange-alt"></i> Confirm Swap
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             VEHICLE SWAP HISTORY MODAL
+        ============================================ -->
+        <div id="modal-swap-history" class="modal">
+            <div class="modal-backdrop" onclick="VehicleSwap.closeHistoryModal()"></div>
+            <div class="modal-content modal-md">
+                <div class="modal-header">
+                    <h2><i class="fas fa-history"></i> Vehicle History</h2>
+                    <button class="modal-close" onclick="VehicleSwap.closeHistoryModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body" id="swap-history-content">
+                    <!-- Content dynamically loaded -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="VehicleSwap.closeHistoryModal()">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
              REPORTS SECTION (Placeholder)
         ============================================ -->
         <section id="section-reports" class="content-section" style="display: none;">
@@ -2936,6 +3308,8 @@
     <script src="js/documents.js"></script>
     <script src="js/charges.js"></script>
     <script src="js/upcoming-payments.js"></script>
+    <script src="js/expenses.js"></script>
+    <script src="js/vehicle-swap.js"></script>
     
     <!-- Initialize App -->
     <script>
