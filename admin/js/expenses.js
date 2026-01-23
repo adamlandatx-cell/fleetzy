@@ -165,7 +165,7 @@ const Expenses = {
         }
         
         // Recurring toggle in add modal
-        const recurringCheckbox = document.getElementById('expense-recurring');
+        const recurringCheckbox = document.getElementById('expense-mode-recurring');
         if (recurringCheckbox) {
             recurringCheckbox.addEventListener('change', (e) => {
                 const recurringFields = document.getElementById('recurring-expense-fields');
@@ -479,7 +479,7 @@ const Expenses = {
         }
         
         // Reset form
-        const form = document.getElementById('form-add-expense');
+        const form = document.getElementById('expense-form');
         if (form) form.reset();
         
         // Populate dropdowns
@@ -500,7 +500,7 @@ const Expenses = {
         }
         
         // Reset recurring checkbox and fields visibility
-        const recurringCheckbox = document.getElementById('expense-recurring');
+        const recurringCheckbox = document.getElementById('expense-mode-recurring');
         if (recurringCheckbox) recurringCheckbox.checked = false;
         
         const recurringFields = document.getElementById('recurring-expense-fields');
@@ -587,7 +587,7 @@ const Expenses = {
      * Save expense
      */
     async save() {
-        const form = document.getElementById('form-add-expense');
+        const form = document.getElementById('expense-form');
         if (!form) return;
         
         const modal = document.getElementById('modal-add-expense');
@@ -596,7 +596,7 @@ const Expenses = {
         const rentalDropdownValue = document.getElementById('expense-rental')?.value || '';
         const rentalId = rentalDropdownValue || modal?.dataset?.rentalId || null;
         
-        const isRecurring = document.getElementById('expense-recurring')?.checked || false;
+        const isRecurring = document.getElementById('expense-mode-recurring')?.checked || false;
         const vehicleId = document.getElementById('expense-vehicle')?.value;
         const expenseType = document.getElementById('expense-type')?.value;
         const amount = parseFloat(document.getElementById('expense-amount')?.value) || 0;
@@ -624,7 +624,7 @@ const Expenses = {
             if (isRecurring) {
                 // Save as recurring expense
                 const startDate = document.getElementById('expense-start-date')?.value;
-                const dayOfMonth = parseInt(document.getElementById('expense-day-of-month')?.value) || 1;
+                const dayOfMonth = parseInt(document.getElementById('expense-day')?.value) || 1;
                 
                 if (!startDate) {
                     Utils.toastError('Please select a start date');
