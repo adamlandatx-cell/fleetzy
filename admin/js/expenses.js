@@ -638,7 +638,8 @@ const Expenses = {
                     frequency: 'monthly',
                     day_of_month: dayOfMonth,
                     vendor: vendor,
-                    description: description,
+                    
+                    description: description || null,
                     start_date: startDate,
                     is_active: true
                 };
@@ -689,8 +690,8 @@ const Expenses = {
                     expense_type: expenseType,
                     amount: amount,
                     expense_date: expenseDate,
-                    vendor: vendor,
-                    description: description,
+                    
+                    description: vendor ? (vendor + (description ? ": " + description : "")) : (description || null),
                     receipt_url: receiptUrl,
                     rental_id: rentalId || null,
                     is_customer_responsible: isCustomerResponsible
@@ -741,7 +742,7 @@ const Expenses = {
                     expense_type: expenseType,
                     amount: amount,
                     expense_date: currentDate.toISOString().split('T')[0],
-                    vendor: vendor,
+                    
                     description: (description || '') + ' (Auto-generated)',
                     recurring_expense_id: recurringId
                 });
@@ -889,7 +890,7 @@ const Expenses = {
                             expense_type: recurring.expense_type,
                             amount: recurring.amount,
                             expense_date: expenseDate.toISOString().split('T')[0],
-                            vendor: recurring.vendor,
+                            
                             description: (recurring.description || '') + ' (Auto-generated)',
                             recurring_expense_id: recurring.id
                         }]);
