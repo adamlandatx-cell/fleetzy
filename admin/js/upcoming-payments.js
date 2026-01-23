@@ -139,6 +139,8 @@ async function loadUpcomingPayments() {
         endOfWeek.setDate(endOfWeek.getDate() + 7);
         
         // Categorize rentals
+        const overdue = [];
+        const dueToday = [];
         const dueTomorrow = [];
         const dueThisWeek = [];
         const dueLater = [];
@@ -149,31 +151,56 @@ async function loadUpcomingPayments() {
             if (!dueDate) return;
             dueDate.setHours(0, 0, 0, 0);
             
-            if (dueDate.getTime() === tomorrow.getTime()) {
+            if (dueDate.getTime() < today.getTime()) {
+                // Past due - overdue
+                overdue.push(rental);
+            } else if (dueDate.getTime() === today.getTime()) {
+                // Due today
+                dueToday.push(rental);
+            } else if (dueDate.getTime() === tomorrow.getTime()) {
+                // Due tomorrow
                 dueTomorrow.push(rental);
-            } else if (dueDate <= endOfWeek && dueDate > tomorrow) {
+            } else if (dueDate <= endOfWeek) {
+                // Due this week (but after tomorrow)
                 dueThisWeek.push(rental);
-            } else if (dueDate <= today) {
-                // Overdue - treat as urgent
-                dueTomorrow.push(rental);
             } else {
                 dueLater.push(rental);
             }
         });
         
-        // Update stats
-        updateUpcomingStats(dueTomorrow, dueThisWeek);
+        // Update stats - combine overdue + today + tomorrow for urgent count
+        updateUpcomingStats(overdue, dueToday, dueTomorrow, dueThisWeek);
         
         // Render list
         let html = '';
         
-        // Due Tomorrow / Overdue (urgent)
+        // OVERDUE (most urgent - red)
+        if (overdue.length > 0) {
+            html += `<div style="padding: 8px 16px; background: rgba(239, 68, 68, 0.15); font-size: 12px; font-weight: 600; color: #ef4444;">
+                <i class="fas fa-exclamation-circle"></i> OVERDUE (${overdue.length})
+            </div>`;
+            overdue.forEach(rental => {
+                html += renderUpcomingPaymentItem(rental, true, 'overdue');
+            });
+        }
+        
+        // DUE TODAY (urgent - orange/amber)
+        if (dueToday.length > 0) {
+            html += `<div style="padding: 8px 16px; background: rgba(245, 158, 11, 0.15); font-size: 12px; font-weight: 600; color: #f59e0b;">
+                <i class="fas fa-clock"></i> DUE TODAY (${dueToday.length})
+            </div>`;
+            dueToday.forEach(rental => {
+                html += renderUpcomingPaymentItem(rental, true, 'today');
+            });
+        }
+        
+        // DUE TOMORROW (warning - yellow)
         if (dueTomorrow.length > 0) {
-            html += `<div style="padding: 8px 16px; background: rgba(245, 158, 11, 0.1); font-size: 12px; font-weight: 600; color: #f59e0b;">
-                <i class="fas fa-exclamation-triangle"></i> DUE TOMORROW / OVERDUE (${dueTomorrow.length})
+            html += `<div style="padding: 8px 16px; background: rgba(234, 179, 8, 0.1); font-size: 12px; font-weight: 600; color: #eab308;">
+                <i class="fas fa-calendar-day"></i> DUE TOMORROW (${dueTomorrow.length})
             </div>`;
             dueTomorrow.forEach(rental => {
-                html += renderUpcomingPaymentItem(rental, true);
+                html += renderUpcomingPaymentItem(rental, false, 'tomorrow');
             });
         }
         
@@ -183,12 +210,12 @@ async function loadUpcomingPayments() {
                 <i class="fas fa-calendar-week"></i> THIS WEEK (${dueThisWeek.length})
             </div>`;
             dueThisWeek.forEach(rental => {
-                html += renderUpcomingPaymentItem(rental, false);
+                html += renderUpcomingPaymentItem(rental, false, 'week');
             });
         }
         
         // Show message if nothing urgent
-        if (dueTomorrow.length === 0 && dueThisWeek.length === 0) {
+        if (overdue.length === 0 && dueToday.length === 0 && dueTomorrow.length === 0 && dueThisWeek.length === 0) {
             html = `
                 <div class="upcoming-empty" style="padding: 30px; text-align: center;">
                     <i class="fas fa-calendar-check" style="font-size: 36px; color: var(--primary); margin-bottom: 12px;"></i>
@@ -200,9 +227,10 @@ async function loadUpcomingPayments() {
         
         container.innerHTML = html;
         
-        // Update AI Insights if payments due tomorrow
-        if (dueTomorrow.length > 0) {
-            showTollCheckAlert(dueTomorrow);
+        // Update AI Insights for urgent payments (overdue or due today)
+        const urgentRentals = [...overdue, ...dueToday];
+        if (urgentRentals.length > 0) {
+            showTollCheckAlert(urgentRentals);
         }
         
     } catch (error) {
@@ -225,9 +253,12 @@ async function loadUpcomingPayments() {
 
 /**
  * Render a single upcoming payment item
- * Now includes pending charges in total
+ * Now includes pending charges in total and urgency type
+ * @param {Object} rental - Rental object
+ * @param {boolean} isUrgent - Whether this is an urgent payment
+ * @param {string} urgencyType - 'overdue', 'today', 'tomorrow', or 'week'
  */
-function renderUpcomingPaymentItem(rental, isUrgent) {
+function renderUpcomingPaymentItem(rental, isUrgent, urgencyType = 'week') {
     // DB uses full_name, not first_name/last_name
     const customerName = rental.customers?.full_name || 'Unknown';
     const vehicleInfo = rental.vehicles ? 
@@ -238,10 +269,19 @@ function renderUpcomingPaymentItem(rental, isUrgent) {
     const dueDate = parseLocalDate(rental.next_payment_due);
     const dueDateStr = dueDate ? dueDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'N/A';
     
-    // Check if overdue
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const isOverdue = dueDate && dueDate < today;
+    // Determine CSS class and label based on urgency type
+    let urgencyClass = '';
+    let urgencyLabel = '';
+    if (urgencyType === 'overdue') {
+        urgencyClass = 'overdue';
+        urgencyLabel = '<i class="fas fa-exclamation-circle"></i> OVERDUE - ';
+    } else if (urgencyType === 'today') {
+        urgencyClass = 'due-today';
+        urgencyLabel = '<i class="fas fa-clock"></i> TODAY - ';
+    } else if (urgencyType === 'tomorrow') {
+        urgencyClass = 'due-tomorrow';
+        urgencyLabel = '';
+    }
     
     // Calculate totals
     const weeklyRate = parseFloat(rental.weekly_rate || 0);
@@ -260,12 +300,12 @@ function renderUpcomingPaymentItem(rental, isUrgent) {
     }
     
     return `
-        <div class="upcoming-payment-item ${isUrgent ? 'due-tomorrow' : ''}">
+        <div class="upcoming-payment-item ${urgencyClass}">
             <div class="payment-item-info">
                 <div class="payment-item-name">${customerName}</div>
                 <div class="payment-item-vehicle">${vehicleInfo} • ${licensePlate}</div>
-                <div class="payment-item-due ${isUrgent ? 'tomorrow' : ''}">
-                    ${isOverdue ? '<i class="fas fa-exclamation-circle"></i> OVERDUE - ' : ''}${dueDateStr}
+                <div class="payment-item-due ${urgencyClass}">
+                    ${urgencyLabel}${dueDateStr}
                 </div>
             </div>
             <div class="payment-item-right">
@@ -295,17 +335,40 @@ function renderUpcomingPaymentItem(rental, isUrgent) {
 
 /**
  * Update the stats in the widget header
- * Now includes charges in totals
+ * Now includes charges in totals and separate urgency levels
  */
-function updateUpcomingStats(dueTomorrow, dueThisWeek) {
-    // Calculate total including charges
-    const weekTotal = [...dueTomorrow, ...dueThisWeek].reduce((sum, r) => sum + parseFloat(r.totalDue || r.weekly_rate || 0), 0);
+function updateUpcomingStats(overdue, dueToday, dueTomorrow, dueThisWeek) {
+    // Calculate total including charges - all payments this week
+    const allThisWeek = [...overdue, ...dueToday, ...dueTomorrow, ...dueThisWeek];
+    const weekTotal = allThisWeek.reduce((sum, r) => sum + parseFloat(r.totalDue || r.weekly_rate || 0), 0);
+    
+    // Urgent count = overdue + today (needs immediate attention)
+    const urgentCount = overdue.length + dueToday.length;
     
     const statWeek = document.getElementById('stat-expected-week');
     const statTomorrow = document.getElementById('stat-due-tomorrow');
     
     if (statWeek) statWeek.textContent = '$' + weekTotal.toFixed(0);
-    if (statTomorrow) statTomorrow.textContent = dueTomorrow.length;
+    
+    // Update the urgent stat - show overdue + today count
+    if (statTomorrow) {
+        statTomorrow.textContent = urgentCount;
+        // Update label if element exists
+        const label = statTomorrow.previousElementSibling;
+        if (label && urgentCount > 0) {
+            if (overdue.length > 0) {
+                label.textContent = 'Overdue/Today';
+                statTomorrow.style.color = '#ef4444'; // Red for overdue
+            } else {
+                label.textContent = 'Due Today';
+                statTomorrow.style.color = '#f59e0b'; // Orange for today
+            }
+        } else if (label) {
+            label.textContent = 'Due Tomorrow';
+            statTomorrow.textContent = dueTomorrow.length;
+            statTomorrow.style.color = ''; // Reset color
+        }
+    }
 }
 
 /**
@@ -317,14 +380,14 @@ function showTollCheckAlert(urgentRentals) {
                               document.querySelector('[data-insights]');
     
     if (!insightsContainer) {
-        console.log('Toll Check Alert: ' + urgentRentals.length + ' payments due tomorrow');
+        console.log('Toll Check Alert: ' + urgentRentals.length + ' payments need attention');
         return;
     }
     
     const alertHtml = `
         <div class="insight-card toll-alert" style="margin-bottom: 12px;">
             <div style="display: flex; align-items: flex-start; gap: 12px;">
-                <div class="insight-icon" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <div class="insight-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-road"></i>
                 </div>
                 <div style="flex: 1;">
@@ -332,7 +395,7 @@ function showTollCheckAlert(urgentRentals) {
                         🚗 Check Tolls Now!
                     </div>
                     <div style="font-size: 13px; color: var(--text-secondary);">
-                        ${urgentRentals.length} payment${urgentRentals.length > 1 ? 's' : ''} due tomorrow. 
+                        ${urgentRentals.length} payment${urgentRentals.length > 1 ? 's' : ''} due today or overdue. 
                         Check toll charges before collecting.
                     </div>
                 </div>
