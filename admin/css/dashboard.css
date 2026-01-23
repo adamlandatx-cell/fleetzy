@@ -6255,3 +6255,133 @@ html {
 .light .status-picker-option:hover {
     background: #f4f4f5;
 }
+
+/* =====================================================
+   UPCOMING PAYMENTS - URGENCY STYLES
+   ===================================================== */
+
+/* Overdue payments - Red/Urgent */
+.upcoming-payment-item.overdue {
+    background: rgba(239, 68, 68, 0.08);
+    border-left: 3px solid #ef4444;
+}
+
+.upcoming-payment-item.overdue:hover {
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.payment-item-due.overdue {
+    color: #ef4444 !important;
+    font-weight: 600;
+}
+
+/* Due Today payments - Orange/Amber */
+.upcoming-payment-item.due-today {
+    background: rgba(245, 158, 11, 0.08);
+    border-left: 3px solid #f59e0b;
+}
+
+.upcoming-payment-item.due-today:hover {
+    background: rgba(245, 158, 11, 0.12);
+}
+
+.payment-item-due.due-today {
+    color: #f59e0b !important;
+    font-weight: 600;
+}
+
+/* Due Tomorrow payments - Yellow */
+.upcoming-payment-item.due-tomorrow {
+    background: rgba(234, 179, 8, 0.06);
+    border-left: 3px solid #eab308;
+}
+
+.upcoming-payment-item.due-tomorrow:hover {
+    background: rgba(234, 179, 8, 0.1);
+}
+
+.payment-item-due.due-tomorrow {
+    color: #eab308 !important;
+}
+
+/* Base styling for payment items */
+.upcoming-payment-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: background 0.2s ease;
+    cursor: pointer;
+}
+
+.upcoming-payment-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.payment-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.payment-item-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.payment-item-vehicle {
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.payment-item-due {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.payment-item-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.payment-item-amount {
+    text-align: right;
+}
+
+.payment-item-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-icon-small {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-icon-small:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-icon-small.toll-check {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.btn-icon-small.toll-check:hover {
+    background: #f59e0b;
+    color: white;
+}
