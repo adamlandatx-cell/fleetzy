@@ -18,12 +18,6 @@
     <link rel="shortcut icon" href="/icons/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
     
-    <!-- Social Media Preview -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://getfleetzy.netlify.app">
-    <meta property="og:title" content="Payment - Fleetzy Car Rental">
-    <meta property="og:description" content="Reliable weekly car rentals starting at $400/week. Fast approval, quality vehicles, flexible payments.">
-    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,26 +36,18 @@
     <script src="/pwa-helper.js" defer></script>
 
     <style>
-        /* ============================================
-           FLEETZY PAYMENT PORTAL - DARK MODE
-           Premium Tesla/Apple Inspired Design
-           ============================================ */
-        
         :root {
             --bg-primary: #09090b;
             --bg-secondary: #18181b;
             --bg-tertiary: #27272a;
             --bg-card: rgba(39, 39, 42, 0.5);
-            
             --border-subtle: rgba(255, 255, 255, 0.06);
             --border-medium: rgba(255, 255, 255, 0.1);
             --border-strong: rgba(255, 255, 255, 0.15);
-            
             --text-primary: #fafafa;
             --text-secondary: #a1a1aa;
             --text-tertiary: #71717a;
             --text-muted: #52525b;
-            
             --accent-green: #10b981;
             --accent-emerald: #34d399;
             --accent-teal: #14b8a6;
@@ -70,24 +56,14 @@
             --accent-amber: #f59e0b;
             --accent-red: #ef4444;
             --accent-purple: #8b5cf6;
-            
             --gradient-brand: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
             --gradient-card: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
-            
             --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.2);
             --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        html {
-            font-size: 16px;
-            -webkit-text-size-adjust: 100%;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; -webkit-text-size-adjust: 100%; }
         
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -95,20 +71,16 @@
             color: var(--text-primary);
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             line-height: 1.5;
             padding-bottom: 80px;
         }
         
         .hidden { display: none !important; }
         
-        /* Ambient Glow Background */
         .ambient-glow {
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
             background: 
                 radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
                 radial-gradient(circle at 70% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
@@ -116,14 +88,12 @@
             z-index: 0;
         }
         
-        /* Header */
         .header {
             position: sticky;
             top: 0;
             z-index: 50;
             background: rgba(9, 9, 11, 0.85);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border-subtle);
         }
         
@@ -136,13 +106,10 @@
             justify-content: space-between;
         }
         
-        .header-logo {
-            height: 2rem;
-        }
+        .header-logo { height: 2rem; }
         
         .header-back {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -160,38 +127,38 @@
             color: var(--text-primary);
         }
         
-        /* Loading Screen */
-        .loading-screen {
+        .loading-overlay {
             position: fixed;
             inset: 0;
-            background: var(--bg-primary);
+            background: rgba(9, 9, 11, 0.9);
+            backdrop-filter: blur(8px);
             z-index: 100;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1.5rem;
+        }
+        
+        .loading-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
         }
         
         .loading-spinner {
-            width: 48px;
-            height: 48px;
+            width: 48px; height: 48px;
             border: 3px solid var(--bg-tertiary);
             border-top-color: var(--accent-green);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
-        .loading-text {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
+        .loading-card p { color: var(--text-secondary); font-size: 0.875rem; }
         
-        /* Main Content */
         .main-content {
             position: relative;
             z-index: 1;
@@ -200,7 +167,6 @@
             padding: 1.5rem 1rem;
         }
         
-        /* Page Title */
         .page-title {
             margin-bottom: 1.5rem;
             animation: fadeInUp 0.5s ease-out;
@@ -221,23 +187,13 @@
             color: var(--accent-green);
         }
         
-        .page-title p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
+        .page-title p { font-size: 0.875rem; color: var(--text-secondary); }
         
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Cards */
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border-medium);
@@ -247,9 +203,7 @@
             animation: fadeInUp 0.5s ease-out;
         }
         
-        .card-gradient {
-            background: var(--gradient-card);
-        }
+        .card-gradient { background: var(--gradient-card); }
         
         .card-title {
             font-size: 0.75rem;
@@ -260,11 +214,9 @@
             margin-bottom: 1rem;
         }
         
-        /* Auth Form */
         .auth-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
             border-radius: 20px;
             display: flex;
             align-items: center;
@@ -277,30 +229,13 @@
             background: var(--gradient-brand);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         
-        .auth-title {
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
+        .auth-title { text-align: center; margin-bottom: 1.5rem; }
+        .auth-title h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .auth-title p { font-size: 0.875rem; color: var(--text-secondary); }
         
-        .auth-title h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .auth-title p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-        
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 1rem;
-        }
+        .form-group { margin-bottom: 1rem; }
         
         .form-label {
             display: block;
@@ -324,9 +259,7 @@
             transition: all var(--transition-base);
         }
         
-        .form-input::placeholder {
-            color: var(--text-muted);
-        }
+        .form-input::placeholder { color: var(--text-muted); }
         
         .form-input:focus {
             outline: none;
@@ -334,7 +267,6 @@
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
         }
         
-        /* Error Alert */
         .error-alert {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.3);
@@ -346,17 +278,9 @@
             gap: 0.75rem;
         }
         
-        .error-alert i {
-            color: var(--accent-red);
-            font-size: 1.25rem;
-        }
+        .error-alert i { color: var(--accent-red); font-size: 1.25rem; }
+        .error-alert p { color: #fca5a5; font-size: 0.875rem; }
         
-        .error-alert p {
-            color: #fca5a5;
-            font-size: 0.875rem;
-        }
-        
-        /* Primary Button */
         .btn-primary {
             width: 100%;
             padding: 1rem 1.5rem;
@@ -386,7 +310,6 @@
             transform: none;
         }
         
-        /* Secondary Button */
         .btn-secondary {
             width: 100%;
             padding: 1rem 1.5rem;
@@ -398,19 +321,13 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
             transition: all var(--transition-base);
         }
         
         .btn-secondary:hover {
             background: var(--bg-secondary);
-            border-color: var(--border-strong);
         }
         
-        /* Payment Summary */
         .summary-row {
             display: flex;
             justify-content: space-between;
@@ -419,26 +336,159 @@
             border-bottom: 1px solid var(--border-subtle);
         }
         
-        .summary-row:last-child {
-            border-bottom: none;
+        .summary-row:last-child { border-bottom: none; }
+        .summary-label { color: var(--text-secondary); font-size: 0.875rem; }
+        .summary-value { color: var(--text-primary); font-weight: 600; }
+        .summary-value.highlight { color: var(--accent-green); font-size: 1.25rem; }
+        
+        .method-selection-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
         }
         
-        .summary-label {
+        .method-selection-title h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .method-selection-title p {
             color: var(--text-secondary);
             font-size: 0.875rem;
         }
         
-        .summary-value {
+        .payment-method-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .method-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: 16px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .method-card:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-2px);
+        }
+        
+        .method-card.selected {
+            border-color: var(--accent-green);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.05));
+        }
+        
+        .method-card.preferred {
+            border-color: var(--accent-green);
+        }
+        
+        .method-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .method-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .method-icon.zelle { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+        .method-icon.card { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+        .method-icon.cashapp { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        
+        .method-info { flex: 1; }
+        
+        .method-name {
+            font-size: 1.125rem;
+            font-weight: 700;
             color: var(--text-primary);
-            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
-        .summary-value.highlight {
+        .method-name .badge {
+            font-size: 0.625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            background: var(--accent-green);
+            color: white;
+        }
+        
+        .method-fee {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .method-fee.no-fee { color: var(--accent-green); font-weight: 600; }
+        
+        .method-amounts {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+        
+        .method-amount-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
+        
+        .method-amount-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        
+        .method-amount-value.savings {
             color: var(--accent-green);
-            font-size: 1.25rem;
         }
         
-        /* Payment Type Buttons */
+        .method-radio {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-medium);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-base);
+        }
+        
+        .method-card.selected .method-radio {
+            border-color: var(--accent-green);
+            background: var(--accent-green);
+        }
+        
+        .method-card.selected .method-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+        
         .payment-types {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -465,15 +515,12 @@
         }
         
         .payment-type-btn.active {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
             border-color: var(--accent-green);
             color: var(--accent-green);
         }
         
-        /* Custom Amount Input */
-        .amount-input-wrapper {
-            position: relative;
-        }
+        .amount-input-wrapper { position: relative; }
         
         .amount-input-wrapper::before {
             content: '$';
@@ -505,12 +552,6 @@
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
         }
         
-        .amount-input::placeholder {
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-        
-        /* Stripe Element Container */
         .stripe-element-container {
             padding: 1rem;
             background: var(--bg-secondary);
@@ -524,138 +565,116 @@
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
         }
         
-        .stripe-element-container.StripeElement--invalid {
-            border-color: var(--accent-red);
-        }
-        
         .card-errors {
             color: var(--accent-red);
             font-size: 0.75rem;
             margin-top: 0.5rem;
         }
         
-        /* Section Divider */
-        .section-divider {
+        .fee-summary {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .fee-summary.has-fee {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        .fee-summary-row {
             display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin: 1.5rem 0;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
         }
         
-        .divider-line {
-            flex: 1;
-            height: 1px;
-            background: var(--border-medium);
+        .fee-summary-row:last-child { margin-bottom: 0; }
+        
+        .fee-summary-row.total {
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-subtle);
+            font-weight: 700;
         }
         
-        .divider-text {
-            color: var(--text-tertiary);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .fee-summary-label { color: var(--text-secondary); font-size: 0.875rem; }
+        .fee-summary-value { color: var(--text-primary); font-weight: 600; }
+        .fee-summary-value.fee { color: var(--accent-amber); }
+        .fee-summary-value.total { color: var(--accent-green); font-size: 1.125rem; }
+        
+        .zelle-instructions { text-align: center; }
+        
+        .zelle-step {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
         }
         
-        /* Alternative Payment Methods */
-        .alt-payments-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
-        }
-        
-        .alt-payment-card {
+        .zelle-copy-box {
             background: var(--bg-secondary);
             border: 1px solid var(--border-medium);
-            border-radius: 16px;
-            padding: 1.25rem;
-            text-align: center;
-            text-decoration: none;
-            transition: all var(--transition-base);
-            display: block;
-        }
-        
-        .alt-payment-card:hover {
-            background: var(--bg-tertiary);
-            border-color: var(--border-strong);
-            transform: translateY(-2px);
-        }
-        
-        .alt-payment-card.preferred {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.1) 100%);
-            border-color: var(--accent-green);
-        }
-        
-        .alt-payment-icon {
-            width: 48px;
-            height: 48px;
             border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 0.75rem;
-            font-size: 1.5rem;
+            gap: 0.75rem;
+            transition: all var(--transition-base);
         }
         
-        .alt-payment-icon.zelle { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
-        .alt-payment-icon.cashapp { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-        .alt-payment-icon.credit { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
-        .alt-payment-icon.cash { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .zelle-copy-box:hover {
+            border-color: var(--accent-purple);
+            background: rgba(139, 92, 246, 0.1);
+        }
         
-        .alt-payment-name {
-            color: var(--text-primary);
+        .zelle-copy-box span {
+            font-size: 1.125rem;
             font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.25rem;
+            color: var(--accent-purple);
         }
         
-        .alt-payment-info {
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-        }
+        .zelle-copy-box i { color: var(--text-tertiary); }
         
-        .alt-payment-badge {
-            display: inline-block;
-            background: var(--accent-green);
+        .zelle-sms-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gradient-brand);
             color: white;
-            font-size: 0.625rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            margin-top: 0.5rem;
-        }
-        
-        /* Info Box */
-        .info-box {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 0.75rem 1.5rem;
             border-radius: 12px;
-            padding: 1rem;
+            text-decoration: none;
+            font-weight: 600;
             margin-top: 1rem;
         }
         
-        .info-box p {
-            color: #93c5fd;
-            font-size: 0.875rem;
-            text-align: center;
-        }
-        
-        .info-box a {
-            color: var(--accent-blue);
+        .cashapp-link {
+            display: block;
+            background: linear-gradient(135deg, #00D632, #00C92C);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
+            text-align: center;
+            font-size: 1.125rem;
+            margin: 1rem 0;
+            transition: all var(--transition-base);
         }
         
-        /* Success Section */
-        .success-section {
-            text-align: center;
+        .cashapp-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 214, 50, 0.3);
         }
+        
+        .success-section { text-align: center; }
         
         .success-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -663,15 +682,11 @@
             margin: 0 auto 1.5rem;
         }
         
-        .success-icon i {
-            font-size: 2.5rem;
-            color: var(--accent-green);
-        }
+        .success-icon i { font-size: 2.5rem; color: var(--accent-green); }
         
         .success-title {
             font-size: 1.75rem;
             font-weight: 700;
-            color: var(--text-primary);
             margin-bottom: 0.5rem;
         }
         
@@ -694,36 +709,19 @@
             border-bottom: 1px solid var(--border-subtle);
         }
         
-        .success-row:last-child {
-            border-bottom: none;
-        }
-        
-        .success-label {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-        
-        .success-value {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-        
-        .success-value.highlight {
-            color: var(--accent-green);
-        }
+        .success-row:last-child { border-bottom: none; }
+        .success-label { color: var(--text-secondary); }
+        .success-value { font-weight: 600; }
+        .success-value.highlight { color: var(--accent-green); }
         
         .success-notice {
             background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
             border-radius: 12px;
             padding: 1rem;
             margin-bottom: 1.5rem;
         }
         
-        .success-notice p {
-            color: #6ee7b7;
-            font-size: 0.875rem;
-        }
+        .success-notice p { color: var(--accent-emerald); }
         
         .success-buttons {
             display: flex;
@@ -731,47 +729,37 @@
             gap: 0.75rem;
         }
         
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(9, 9, 11, 0.9);
-            backdrop-filter: blur(8px);
-            z-index: 100;
+        .back-link {
             display: flex;
             align-items: center;
-            justify-content: center;
-        }
-        
-        .loading-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-medium);
-            border-radius: 1.25rem;
-            padding: 2rem 3rem;
-            text-align: center;
-        }
-        
-        .loading-card .loading-spinner {
-            margin: 0 auto 1rem;
-        }
-        
-        .loading-card p {
+            gap: 0.5rem;
             color: var(--text-secondary);
-            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: color var(--transition-base);
         }
         
-        /* Bottom Navigation */
+        .back-link:hover { color: var(--text-primary); }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+        }
+        
+        .footer a { color: var(--accent-green); }
+        
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            z-index: 50;
-            background: rgba(9, 9, 11, 0.9);
+            background: rgba(24, 24, 27, 0.95);
             backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border-top: 1px solid var(--border-subtle);
-            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 40;
         }
         
         .bottom-nav-content {
@@ -779,7 +767,7 @@
             margin: 0 auto;
             display: flex;
             justify-content: space-around;
-            padding: 0.75rem 0;
+            padding: 0.5rem;
         }
         
         .nav-item {
@@ -788,270 +776,40 @@
             align-items: center;
             gap: 0.25rem;
             padding: 0.5rem 1rem;
-            color: var(--text-muted);
+            color: var(--text-tertiary);
             text-decoration: none;
-            transition: all var(--transition-base);
-            border-radius: 12px;
-        }
-        
-        .nav-item i {
-            font-size: 1.25rem;
-        }
-        
-        .nav-item span {
             font-size: 0.625rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-weight: 500;
+            transition: all var(--transition-base);
         }
         
-        .nav-item.active {
-            color: var(--accent-green);
-        }
+        .nav-item i { font-size: 1.25rem; }
+        .nav-item.active { color: var(--accent-green); }
         
-        .nav-item:hover:not(.active) {
-            color: var(--text-secondary);
-        }
-        
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 1rem;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-        
-        .footer a {
-            color: var(--accent-green);
-            text-decoration: none;
-        }
-        
-        /* Animations */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .slide-in {
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        /* Mobile Optimizations */
-        @media (max-width: 380px) {
-            .alt-payments-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .payment-types {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 0.25rem;
-            }
-            
-            .payment-type-btn {
-                padding: 0.75rem 0.25rem;
-                font-size: 0.75rem;
-            }
-        }
-        
-        /* Zelle Modal Styles */
-        .zelle-modal {
+        .toast {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 1rem;
-        }
-        
-        .zelle-modal.hidden {
-            display: none;
-        }
-        
-        .zelle-modal-content {
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            animation: slideUp 0.3s ease;
-        }
-        
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .zelle-modal-header {
-            margin-bottom: 1.5rem;
-        }
-        
-        .zelle-icon-large {
-            width: 60px;
-            height: 60px;
-            background: rgba(139, 92, 246, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-        }
-        
-        .zelle-icon-large i {
-            font-size: 1.5rem;
-            color: #a78bfa;
-        }
-        
-        .zelle-modal-header h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-        }
-        
-        .zelle-modal-body {
-            text-align: left;
-        }
-        
-        .zelle-step {
-            color: #94a3b8;
-            font-size: 0.95rem;
-            margin-bottom: 0.75rem;
-            line-height: 1.5;
-        }
-        
-        .zelle-step strong {
-            color: #a78bfa;
-        }
-        
-        .zelle-copy-box {
-            background: rgba(139, 92, 246, 0.15);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 1rem 0;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .zelle-copy-box:hover {
-            background: rgba(139, 92, 246, 0.25);
-            border-color: rgba(139, 92, 246, 0.5);
-        }
-        
-        .zelle-copy-box:active {
-            transform: scale(0.98);
-        }
-        
-        .zelle-copy-box span {
-            color: white;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        
-        .zelle-copy-box i {
-            color: #a78bfa;
-        }
-        
-        .zelle-amount {
-            color: white;
-            font-size: 1rem;
-            margin: 1rem 0;
-            text-align: center;
-        }
-        
-        .zelle-amount strong {
-            color: #10b981;
-            font-size: 1.25rem;
-        }
-        
-        .zelle-sms-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: #10b981;
-            font-weight: 600;
-            text-decoration: none;
-            margin-top: 0.5rem;
-            transition: all 0.2s ease;
-        }
-        
-        .zelle-sms-link:hover {
-            background: rgba(16, 185, 129, 0.25);
-            border-color: rgba(16, 185, 129, 0.5);
-        }
-        
-        .zelle-close-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            color: white;
-            font-weight: 600;
-            padding: 1rem;
-            border: none;
-            border-radius: 0.75rem;
-            margin-top: 1.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-        }
-        
-        .zelle-close-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
-        }
-        
-        /* Toast notification for copy */
-        .copy-toast {
-            position: fixed;
-            bottom: 2rem;
+            bottom: 100px;
             left: 50%;
             transform: translateX(-50%);
-            background: #10b981;
-            color: white;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
             padding: 0.75rem 1.5rem;
-            border-radius: 2rem;
-            font-weight: 600;
-            font-size: 0.9rem;
-            z-index: 1001;
-            animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            z-index: 1000;
+            animation: toastIn 0.3s ease-out;
         }
         
         @keyframes toastIn {
-            from { opacity: 0; transform: translate(-50%, 20px); }
-            to { opacity: 1; transform: translate(-50%, 0); }
-        }
-        
-        @keyframes toastOut {
-            from { opacity: 1; transform: translate(-50%, 0); }
-            to { opacity: 0; transform: translate(-50%, 20px); }
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
     </style>
 </head>
 <body>
-    <!-- Ambient Glow Background -->
     <div class="ambient-glow"></div>
 
-    <!-- Header -->
     <header class="header">
         <div class="header-content">
             <img src="/fleetzy-logo.png" alt="Fleetzy" class="header-logo">
@@ -1061,7 +819,6 @@
         </div>
     </header>
 
-    <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay hidden">
         <div class="loading-card">
             <div class="loading-spinner"></div>
@@ -1069,7 +826,6 @@
         </div>
     </div>
 
-    <!-- Main Content -->
     <main class="main-content">
         
         <!-- Authentication Section -->
@@ -1089,7 +845,6 @@
                     <p>Enter your phone number and driver's license info</p>
                 </div>
                 
-                <!-- Error Alert -->
                 <div id="authError" class="error-alert hidden">
                     <i class="fas fa-exclamation-circle"></i>
                     <p id="authErrorText">Error message here</p>
@@ -1098,26 +853,12 @@
                 <form id="authForm">
                     <div class="form-group">
                         <label class="form-label">Phone Number</label>
-                        <input 
-                            type="tel" 
-                            id="phone" 
-                            class="form-input" 
-                            placeholder="+1 (555) 123-4567"
-                            required
-                        >
+                        <input type="tel" id="phone" class="form-input" placeholder="+1 (555) 123-4567" required>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label">Last 4 of Driver's License</label>
-                        <input 
-                            type="text" 
-                            id="dlLast4" 
-                            class="form-input" 
-                            placeholder="1234"
-                            maxlength="4"
-                            pattern="\d{4}"
-                            required
-                        >
+                        <input type="text" id="dlLast4" class="form-input" placeholder="1234" maxlength="4" pattern="\d{4}" required>
                     </div>
                     
                     <button type="submit" class="btn-primary">
@@ -1135,33 +876,26 @@
                 <p id="customerGreeting">Hello, Driver!</p>
             </div>
             
-            <!-- Payment Summary Card -->
             <div class="card card-gradient">
-                <div class="card-title">Payment Summary</div>
+                <div class="card-title">Amount Due</div>
                 
                 <div class="summary-row">
                     <span class="summary-label">Vehicle</span>
                     <span id="vehicleName" class="summary-value">---</span>
                 </div>
                 <div class="summary-row">
-                    <span class="summary-label">Weekly Rate</span>
+                    <span class="summary-label">Weekly Rent</span>
                     <span id="weeklyRate" class="summary-value">$0.00</span>
                 </div>
-                <div id="additionalFeesRow" class="summary-row hidden">
-                    <span class="summary-label">Additional Fees</span>
-                    <span id="additionalFees" class="summary-value">$0.00</span>
-                </div>
+                <div id="chargesContainer"></div>
                 <div class="summary-row">
                     <span class="summary-label">Total Due</span>
-                    <span id="totalWithTax" class="summary-value highlight">$0.00</span>
+                    <span id="totalDue" class="summary-value highlight">$0.00</span>
                 </div>
             </div>
             
-            <!-- Payment Form Card -->
             <div class="card">
-                <div class="card-title">Payment Details</div>
-                
-                <!-- Payment Type Selection -->
+                <div class="card-title">What are you paying?</div>
                 <div class="payment-types">
                     <button type="button" class="payment-type-btn active" data-type="weekly" onclick="selectPaymentType('weekly')">
                         Weekly
@@ -1174,19 +908,196 @@
                     </button>
                 </div>
                 
-                <!-- Custom Amount Input (Hidden by default) -->
                 <div id="customAmountGroup" class="form-group hidden">
                     <label class="form-label">Enter Amount</label>
                     <div class="amount-input-wrapper">
-                        <input 
-                            type="number" 
-                            id="customAmount" 
-                            class="amount-input" 
-                            placeholder="0.00" 
-                            min="1" 
-                            step="0.01"
-                            oninput="updateCustomAmount()"
-                        >
+                        <input type="number" id="customAmount" class="amount-input" placeholder="0.00" min="1" step="0.01" oninput="updateCustomAmount()">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="methodSelectionCard" class="card">
+                <div class="method-selection-title">
+                    <h2>Choose Payment Method</h2>
+                    <p>Select how you'd like to pay</p>
+                </div>
+                
+                <div class="payment-method-cards">
+                    <div class="method-card preferred" onclick="selectPaymentMethod('zelle')" data-method="zelle">
+                        <div class="method-radio"></div>
+                        <div class="method-card-header">
+                            <div class="method-icon zelle">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">
+                                    Zelle
+                                    <span class="badge">⭐ Preferred</span>
+                                </div>
+                                <div class="method-fee no-fee">No processing fee!</div>
+                            </div>
+                        </div>
+                        <div class="method-amounts">
+                            <span class="method-amount-label">You Pay</span>
+                            <span id="zelleTotal" class="method-amount-value savings">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="method-card" onclick="selectPaymentMethod('card')" data-method="card">
+                        <div class="method-radio"></div>
+                        <div class="method-card-header">
+                            <div class="method-icon card">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">Credit/Debit Card</div>
+                                <div class="method-fee">3% processing fee</div>
+                            </div>
+                        </div>
+                        <div class="method-amounts">
+                            <span class="method-amount-label">You Pay</span>
+                            <span id="cardTotal" class="method-amount-value">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="method-card" onclick="selectPaymentMethod('cashapp')" data-method="cashapp">
+                        <div class="method-radio"></div>
+                        <div class="method-card-header">
+                            <div class="method-icon cashapp">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">Cash App</div>
+                                <div class="method-fee">3% processing fee</div>
+                            </div>
+                        </div>
+                        <div class="method-amounts">
+                            <span class="method-amount-label">You Pay</span>
+                            <span id="cashappTotal" class="method-amount-value">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="continueToPayBtn" class="btn-primary" onclick="continueToPayment()" disabled style="margin-top: 1.5rem;">
+                    <i class="fas fa-arrow-right"></i>
+                    <span>Select a payment method</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Zelle Payment Section -->
+        <div id="zellePaymentSection" class="hidden slide-in">
+            <div class="back-link" onclick="goBackToMethodSelection()">
+                <i class="fas fa-arrow-left"></i> Back to payment methods
+            </div>
+            
+            <div class="card">
+                <div class="zelle-instructions">
+                    <div class="method-icon zelle" style="margin: 0 auto 1rem;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h2 style="margin-bottom: 0.5rem;">Pay with Zelle</h2>
+                    <p class="method-fee no-fee" style="margin-bottom: 1.5rem;">No processing fee - you save money!</p>
+                    
+                    <div class="fee-summary">
+                        <div class="fee-summary-row">
+                            <span class="fee-summary-label">Amount Due</span>
+                            <span id="zelleBaseAmount" class="fee-summary-value">$0.00</span>
+                        </div>
+                        <div class="fee-summary-row">
+                            <span class="fee-summary-label">Processing Fee</span>
+                            <span class="fee-summary-value" style="color: var(--accent-green);">$0.00</span>
+                        </div>
+                        <div class="fee-summary-row total">
+                            <span class="fee-summary-label">Total to Send</span>
+                            <span id="zelleFinalAmount" class="fee-summary-value total">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <p class="zelle-step"><strong>1.</strong> Open your bank app</p>
+                    <p class="zelle-step"><strong>2.</strong> Go to "Send with Zelle"</p>
+                    <p class="zelle-step"><strong>3.</strong> Send payment to:</p>
+                    
+                    <div class="zelle-copy-box" onclick="copyZelleEmail()">
+                        <span>adam@getfleetzy.com</span>
+                        <i class="fas fa-copy"></i>
+                    </div>
+                    
+                    <p class="zelle-step"><strong>4.</strong> After sending, text a screenshot to:</p>
+                    
+                    <a href="sms:+12812713900" class="zelle-sms-link">
+                        <i class="fas fa-comment-sms"></i>
+                        (281) 271-3900
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- CashApp Payment Section -->
+        <div id="cashappPaymentSection" class="hidden slide-in">
+            <div class="back-link" onclick="goBackToMethodSelection()">
+                <i class="fas fa-arrow-left"></i> Back to payment methods
+            </div>
+            
+            <div class="card">
+                <div class="zelle-instructions">
+                    <div class="method-icon cashapp" style="margin: 0 auto 1rem;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h2 style="margin-bottom: 0.5rem;">Pay with Cash App</h2>
+                    <p class="method-fee" style="margin-bottom: 1.5rem;">3% processing fee applies</p>
+                    
+                    <div class="fee-summary has-fee">
+                        <div class="fee-summary-row">
+                            <span class="fee-summary-label">Amount Due</span>
+                            <span id="cashappBaseAmount" class="fee-summary-value">$0.00</span>
+                        </div>
+                        <div class="fee-summary-row">
+                            <span class="fee-summary-label">Processing Fee (3%)</span>
+                            <span id="cashappFeeAmount" class="fee-summary-value fee">$0.00</span>
+                        </div>
+                        <div class="fee-summary-row total">
+                            <span class="fee-summary-label">Total to Send</span>
+                            <span id="cashappFinalAmount" class="fee-summary-value total">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <a href="https://cash.app/\$fleetzycarrentals" target="_blank" class="cashapp-link">
+                        <i class="fas fa-external-link-alt"></i>
+                        Open Cash App - \$fleetzycarrentals
+                    </a>
+                    
+                    <p class="zelle-step" style="margin-top: 1.5rem;"><strong>After sending:</strong> Text a screenshot to:</p>
+                    
+                    <a href="sms:+12812713900" class="zelle-sms-link">
+                        <i class="fas fa-comment-sms"></i>
+                        (281) 271-3900
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Payment Section -->
+        <div id="cardPaymentSection" class="hidden slide-in">
+            <div class="back-link" onclick="goBackToMethodSelection()">
+                <i class="fas fa-arrow-left"></i> Back to payment methods
+            </div>
+            
+            <div class="card">
+                <div class="card-title">Credit/Debit Card Payment</div>
+                
+                <div class="fee-summary has-fee" style="margin-bottom: 1.5rem;">
+                    <div class="fee-summary-row">
+                        <span class="fee-summary-label">Amount Due</span>
+                        <span id="cardBaseAmount" class="fee-summary-value">$0.00</span>
+                    </div>
+                    <div class="fee-summary-row">
+                        <span class="fee-summary-label">Processing Fee (3%)</span>
+                        <span id="cardFeeAmount" class="fee-summary-value fee">$0.00</span>
+                    </div>
+                    <div class="fee-summary-row total">
+                        <span class="fee-summary-label">Total Charge</span>
+                        <span id="cardFinalAmount" class="fee-summary-value total">$0.00</span>
                     </div>
                 </div>
                 
@@ -1202,88 +1113,6 @@
                         <span id="submitButtonText">Pay $0.00</span>
                     </button>
                 </form>
-            </div>
-            
-            <!-- Alternative Payment Methods -->
-            <div class="card">
-                <div class="section-divider">
-                    <span class="divider-line"></span>
-                    <span class="divider-text">Or Pay With</span>
-                    <span class="divider-line"></span>
-                </div>
-                
-                <div class="alt-payments-grid">
-                    <!-- Zelle -->
-                    <div class="alt-payment-card preferred" onclick="handleZelleClick()" style="cursor: pointer;">
-                        <div class="alt-payment-icon zelle">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <p class="alt-payment-name">Zelle</p>
-                        <p class="alt-payment-info" id="zelleInfo">adam@getfleetzy.com</p>
-                        <span class="alt-payment-badge">⭐ Preferred</span>
-                    </div>
-                    
-                    <!-- CashApp -->
-                    <a href="https://cash.app/$fleetzycarrentals" target="_blank" class="alt-payment-card">
-                        <div class="alt-payment-icon cashapp">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                        <p class="alt-payment-name">Cash App</p>
-                        <p class="alt-payment-info">$fleetzycarrentals</p>
-                    </a>
-                    
-                    <!-- Credit Card -->
-                    <div class="alt-payment-card" style="cursor: default;">
-                        <div class="alt-payment-icon credit">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
-                        <p class="alt-payment-name">Credit Card</p>
-                        <p class="alt-payment-info">Use form above ↑</p>
-                    </div>
-                    
-                    <!-- Cash -->
-                    <div class="alt-payment-card" style="cursor: default;">
-                        <div class="alt-payment-icon cash">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
-                        <p class="alt-payment-name">Cash</p>
-                        <p class="alt-payment-info">In-person only</p>
-                    </div>
-                </div>
-                
-                <!-- Zelle Instructions Modal -->
-                <div id="zelleModal" class="zelle-modal hidden">
-                    <div class="zelle-modal-content">
-                        <div class="zelle-modal-header">
-                            <div class="zelle-icon-large">
-                                <i class="fas fa-bolt"></i>
-                            </div>
-                            <h3>Pay with Zelle</h3>
-                        </div>
-                        <div class="zelle-modal-body">
-                            <p class="zelle-step"><strong>1.</strong> Open your bank app (Chase, Bank of America, Wells Fargo, etc.)</p>
-                            <p class="zelle-step"><strong>2.</strong> Go to "Send with Zelle"</p>
-                            <p class="zelle-step"><strong>3.</strong> Send payment to:</p>
-                            <div class="zelle-copy-box" onclick="copyZelleEmail()">
-                                <span id="zelleEmailDisplay">adam@getfleetzy.com</span>
-                                <i class="fas fa-copy"></i>
-                            </div>
-                            <p class="zelle-amount">Amount: <strong id="zelleAmount">$400.00</strong></p>
-                            <p class="zelle-step"><strong>4.</strong> After sending, text screenshot to:</p>
-                            <a href="sms:+12812713900" class="zelle-sms-link">
-                                <i class="fas fa-comment-sms"></i> (281) 271-3900
-                            </a>
-                        </div>
-                        <button class="zelle-close-btn" onclick="closeZelleModal()">Got it!</button>
-                    </div>
-                </div>
-                
-                <div class="info-box">
-                    <p>
-                        <strong>📱 After paying via Zelle or Cash App:</strong><br>
-                        Text screenshot to <a href="sms:+12812713900">+1 (281) 271-3900</a>
-                    </p>
-                </div>
             </div>
         </div>
 
@@ -1333,7 +1162,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <div class="footer">
             <p>&copy; 2025 Fleetzy. All rights reserved.</p>
             <p style="margin-top: 0.5rem;">Questions? Call or text: <a href="tel:+12812713900">+1 (281) 271-3900</a></p>
@@ -1341,7 +1169,6 @@
 
     </main>
 
-    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <div class="bottom-nav-content">
             <a href="/dashboard" class="nav-item">
@@ -1363,47 +1190,6 @@
         </div>
     </nav>
 
-    <!-- Payment Portal JavaScript -->
     <script src="/payment.js"></script>
-    
-    <!-- Stripe Element Dark Mode Styling Override -->
-    <script>
-        // Wait for Stripe to initialize, then override styles for dark mode
-        document.addEventListener('DOMContentLoaded', function() {
-            // Override the default Stripe element creation with dark mode styles
-            const originalInitStripe = window.initializeStripe;
-            
-            if (typeof originalInitStripe !== 'function') {
-                // If payment.js hasn't loaded yet, set up our own initialization
-                window.stripeStyleOverride = {
-                    base: {
-                        fontSize: '16px',
-                        color: '#fafafa',
-                        fontFamily: 'Plus Jakarta Sans, -apple-system, BlinkMacSystemFont, sans-serif',
-                        '::placeholder': {
-                            color: '#71717a'
-                        },
-                        iconColor: '#a1a1aa'
-                    },
-                    invalid: {
-                        color: '#ef4444',
-                        iconColor: '#ef4444'
-                    },
-                    complete: {
-                        color: '#10b981',
-                        iconColor: '#10b981'
-                    }
-                };
-            }
-        });
-        
-        // Logout function for bottom nav
-        function handleLogout() {
-            localStorage.removeItem('fleetzy_phone');
-            localStorage.removeItem('fleetzy_customer_id');
-            sessionStorage.clear();
-            window.location.href = '/login';
-        }
-    </script>
 </body>
 </html>
