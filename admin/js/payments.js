@@ -1209,7 +1209,7 @@ const Payments = {
             // For each rental, calculate actual balance from charges and payments
             const rentalsWithBalance = await Promise.all((data || []).map(async (rental) => {
                 try {
-                    // Get all charges for this rental
+                    // Get all extra charges for this rental (tolls, late fees, etc.)
                     const { data: charges } = await db
                         .from('rental_charges')
                         .select('amount')
@@ -1222,7 +1222,25 @@ const Payments = {
                         .eq('rental_id', rental.id)
                         .eq('payment_status', 'confirmed');
                     
-                    const totalCharges = (charges || []).reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+                    // Calculate weekly rent charges based on weeks elapsed
+                    const startDate = rental.start_date ? new Date(rental.start_date + 'T00:00:00') : null;
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    let rentCharges = 0;
+                    if (startDate) {
+                        const daysSinceStart = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+                        const weeksElapsed = Math.max(1, Math.ceil((daysSinceStart + 1) / 7)); // At least 1 week
+                        
+                        const weeklyRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate) || 400;
+                        const depositAmount = parseFloat(rental.deposit_amount) || 0;
+                        
+                        // Week 1 = deposit + rent, subsequent weeks = rent only
+                        rentCharges = depositAmount + (weeksElapsed * weeklyRate);
+                    }
+                    
+                    const extraCharges = (charges || []).reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+                    const totalCharges = rentCharges + extraCharges;
                     const totalPaid = (payments || []).reduce((sum, p) => sum + parseFloat(p.paid_amount || 0), 0);
                     const calculatedBalance = totalCharges - totalPaid;
                     
