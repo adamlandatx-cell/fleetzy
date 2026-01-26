@@ -712,7 +712,7 @@ const Payments = {
                         <label for="edit-payment-status">Status</label>
                         <select id="edit-payment-status">
                             <option value="pending" ${(payment.payment_status || '').toLowerCase() === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="Confirmed" ${(payment.payment_status || '').toLowerCase() === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="confirmed" ${(payment.payment_status || '').toLowerCase() === 'confirmed' ? 'selected' : ''}>Confirmed</option>
                             <option value="rejected" ${(payment.payment_status || '').toLowerCase() === 'rejected' ? 'selected' : ''}>Rejected</option>
                         </select>
                     </div>
@@ -917,7 +917,7 @@ const Payments = {
             const { error: paymentError } = await db
                 .from('payments')
                 .update({
-                    payment_status: 'Confirmed',
+                    payment_status: 'confirmed',
                     approved_by: 'Admin',
                     approved_at: new Date().toISOString(),
                     updated_at: new Date().toISOString()
@@ -1394,7 +1394,7 @@ const Payments = {
                     payment_method: method,
                     payment_type: paymentType,
                     payment_screenshot_url: screenshotUrl,
-                    payment_status: 'paid',
+                    payment_status: 'confirmed',
                     is_late: isLate,
                     days_late: daysLate,
                     notes: autoNotes,

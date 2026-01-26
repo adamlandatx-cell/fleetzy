@@ -608,7 +608,9 @@ const Rentals = {
             
             // Add payments
             for (const payment of payments) {
-                if (payment.payment_status === 'paid' && payment.paid_amount) {
+                // Accept both 'paid' and 'Confirmed' statuses (database uses 'Confirmed')
+                const isPaid = payment.payment_status?.toLowerCase() === 'confirmed';
+                if (isPaid && payment.paid_amount) {
                     const paidDate = payment.paid_date ? new Date(payment.paid_date) : new Date(payment.created_at);
                     ledgerEntries.push({
                         type: 'payment',
@@ -636,7 +638,7 @@ const Rentals = {
             }
             
             // Calculate totals
-            const totalPaid = payments.filter(p => p.payment_status === 'paid')
+            const totalPaid = payments.filter(p => p.payment_status?.toLowerCase() === 'confirmed')
                 .reduce((sum, p) => sum + parseFloat(p.paid_amount || 0), 0);
             const totalCharges = charges.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
             const pendingCharges = charges.filter(c => c.status === 'pending');
@@ -1652,7 +1654,7 @@ const Rentals = {
                     paid_date: startDate,
                     due_date: startDate, // Initial payment is due at start
                     payment_method: rental.payment_method || 'Cash',
-                    payment_status: 'Confirmed',
+                    payment_status: 'confirmed',
                     payment_type: 'initial', // NEW: Payment type categorization
                     is_late: false,
                     days_late: 0,
@@ -2147,7 +2149,7 @@ const Rentals = {
                 paid_amount: amount,
                 paid_date: paymentDate,
                 payment_method: paymentMethod,
-                payment_status: 'paid',
+                payment_status: 'confirmed',
                 payment_type: 'weekly_rent',
                 is_late: isLate,
                 days_late: daysLate,
@@ -2875,7 +2877,7 @@ const Rentals = {
                 paid_amount: amountToApply,
                 paid_date: new Date().toISOString().split('T')[0],
                 payment_method: 'Credit Applied',
-                payment_status: 'paid',
+                payment_status: 'confirmed',
                 payment_type: 'credit_application',
                 notes: 'Credit balance applied to rental'
             });
