@@ -926,6 +926,25 @@ const Payments = {
             
             if (paymentError) throw paymentError;
             
+            // Mark any pending charges for this rental as applied to this payment
+            // This covers tolls, late fees, etc. that were included in this payment
+            if (payment.rental_id) {
+                const { error: chargesError } = await db
+                    .from('rental_charges')
+                    .update({
+                        status: 'applied',
+                        applied_to_payment_id: paymentId,
+                        applied_at: new Date().toISOString()
+                    })
+                    .eq('rental_id', payment.rental_id)
+                    .eq('status', 'pending');
+                
+                if (chargesError) {
+                    console.warn('Could not update charges:', chargesError);
+                    // Don't throw - charges table might not exist or have no pending items
+                }
+            }
+            
             // Update rental totals if we have a rental
             if (payment.rental_id) {
                 await this.updateRentalAfterPayment(payment.rental_id, payment.paid_amount, payment.paid_date);
@@ -1433,22 +1452,20 @@ const Payments = {
                     payment_method: method,
                     payment_type: paymentType,
                     payment_screenshot_url: screenshotUrl,
-                    payment_status: 'confirmed',
+                    payment_status: 'pending',  // Start as pending, admin must confirm
                     is_late: isLate,
                     days_late: daysLate,
-                    notes: autoNotes,
-                    approved_by: 'Admin',
-                    approved_at: new Date().toISOString()
+                    notes: autoNotes
+                    // No approved_by or approved_at until admin confirms
                 });
             
             if (error) throw error;
             
-            // Update rental totals (only for weekly/initial payments)
-            if (paymentType === 'weekly' || paymentType === 'initial') {
-                await this.updateRentalAfterPayment(rentalId, amount, date);
-            }
+            // NOTE: Rental totals are NOT updated here
+            // They are updated when admin CONFIRMS the payment
+            // This allows for review before the payment affects balances
             
-            Utils.toastSuccess('Payment recorded successfully');
+            Utils.toastSuccess('Payment recorded - pending confirmation');
             this.closeNewPaymentModal();
             await this.load();
             

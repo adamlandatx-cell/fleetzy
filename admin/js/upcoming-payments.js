@@ -99,32 +99,17 @@ async function loadUpcomingPayments() {
                 vehicle = vehData;
             }
             
-            // Get pending charges for this rental
-            let pendingCharges = [];
-            let pendingChargesTotal = 0;
-            try {
-                const { data: chargesData } = await db
-                    .from('rental_charges')
-                    .select('id, charge_type, amount, description')
-                    .eq('rental_id', rental.id)
-                    .eq('status', 'pending');
-                
-                if (chargesData && chargesData.length > 0) {
-                    pendingCharges = chargesData;
-                    pendingChargesTotal = chargesData.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
-                }
-            } catch (err) {
-                // Silently handle if rental_charges table doesn't exist
-                console.log('Could not fetch charges for rental:', rental.id);
-            }
+            // Note: We no longer add pending charges to upcoming payment display
+            // Pending charges are shown in the overall balance/ledger, not in "upcoming payments"
+            // This avoids confusion where past-due charges appear added to future payments
             
             return {
                 ...rental,
                 customers: customer,
                 vehicles: vehicle,
-                pendingCharges: pendingCharges,
-                pendingChargesTotal: pendingChargesTotal,
-                totalDue: parseFloat(rental.weekly_rate || 0) + pendingChargesTotal
+                pendingCharges: [],
+                pendingChargesTotal: 0,
+                totalDue: parseFloat(rental.weekly_rate || 0)
             };
         }));
         
