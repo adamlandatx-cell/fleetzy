@@ -335,23 +335,29 @@ function updateUpcomingStats(overdue, dueToday, dueTomorrow, dueThisWeek) {
     
     if (statWeek) statWeek.textContent = '$' + weekTotal.toFixed(0);
     
-    // Update the urgent stat - show overdue + today count
+    // Update the urgent stat - show overdue + today count, OR due tomorrow
     if (statTomorrow) {
-        statTomorrow.textContent = urgentCount;
-        // Update label if element exists
-        const label = statTomorrow.previousElementSibling;
-        if (label && urgentCount > 0) {
-            if (overdue.length > 0) {
-                label.textContent = 'Overdue/Today';
-                statTomorrow.style.color = '#ef4444'; // Red for overdue
-            } else {
-                label.textContent = 'Due Today';
-                statTomorrow.style.color = '#f59e0b'; // Orange for today
+        const label = statTomorrow.nextElementSibling || statTomorrow.previousElementSibling;
+        
+        if (urgentCount > 0) {
+            // Show overdue/today count (more urgent)
+            statTomorrow.textContent = urgentCount;
+            if (label) {
+                if (overdue.length > 0) {
+                    label.textContent = 'Overdue/Today';
+                    statTomorrow.style.color = '#ef4444'; // Red for overdue
+                } else {
+                    label.textContent = 'Due Today';
+                    statTomorrow.style.color = '#f59e0b'; // Orange for today
+                }
             }
-        } else if (label) {
-            label.textContent = 'Due Tomorrow';
+        } else {
+            // No urgent - show due tomorrow count
             statTomorrow.textContent = dueTomorrow.length;
-            statTomorrow.style.color = ''; // Reset color
+            statTomorrow.style.color = dueTomorrow.length > 0 ? '#f59e0b' : ''; // Orange if any
+            if (label) {
+                label.textContent = 'Due Tomorrow';
+            }
         }
     }
 }
