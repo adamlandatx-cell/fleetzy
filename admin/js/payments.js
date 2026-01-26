@@ -992,21 +992,9 @@ const Payments = {
             const rentPaid = newPaid - depositAmount;
             const newBalance = newTotalDue - rentPaid;
             
-            // CREDIT BALANCE FEATURE: Detect overpayment
-            // If payment exceeds what was due, store the excess as credit
-            let creditToAdd = 0;
-            const currentCredit = parseFloat(rental.credit_balance) || 0;
-            
-            // Calculate actual balance before this payment
-            const previousBalance = totalDue - (currentPaid - depositAmount);
-            
-            // If this payment is more than what was due, it's an overpayment
-            if (paidAmount > previousBalance && previousBalance > 0) {
-                creditToAdd = paidAmount - previousBalance;
-                console.log(`💰 Overpayment detected: $${paidAmount} paid, $${previousBalance} due, creating $${creditToAdd.toFixed(2)} credit`);
-            }
-            
-            const newCreditBalance = currentCredit + creditToAdd;
+            // NOTE: We don't track credit_balance separately anymore
+            // The ledger's negative balance IS the credit (Option A - simple approach)
+            // If customer overpays, the ledger will show negative balance = their credit
             
             // FIX: Calculate next payment date based on CURRENT due date, not today
             // This keeps rentals on their proper weekly schedule
@@ -1040,28 +1028,22 @@ const Payments = {
             // Record when payment was actually made
             const lastPaymentDate = paidDate || formatLocalDateForPayments(new Date());
             
-            // Update rental (including credit_balance)
+            // Update rental totals
             const { error: updateError } = await db
                 .from('rentals')
                 .update({
                     total_amount_paid: newPaid,
                     total_amount_due: newTotalDue,
-                    balance_remaining: Math.max(0, newBalance),
+                    balance_remaining: newBalance, // Can be negative if overpaid (that's their credit)
                     last_payment_date: lastPaymentDate,
                     next_payment_due: formatLocalDateForPayments(nextPaymentDue),
-                    credit_balance: newCreditBalance,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
             
             if (updateError) throw updateError;
             
-            console.log(`✅ Updated rental ${rentalId}: paid=$${newPaid}, due=$${newTotalDue}, balance=$${Math.max(0, newBalance)}, credit=$${newCreditBalance.toFixed(2)}, next_due=${formatLocalDateForPayments(nextPaymentDue)}`);
-            
-            // Notify user if credit was created
-            if (creditToAdd > 0) {
-                Utils.toastInfo(`$${creditToAdd.toFixed(2)} credit added to account`);
-            }
+            console.log(`✅ Updated rental ${rentalId}: paid=$${newPaid}, due=$${newTotalDue}, balance=$${newBalance}, next_due=${formatLocalDateForPayments(nextPaymentDue)}`);
             
         } catch (error) {
             console.error('Error updating rental:', error);
