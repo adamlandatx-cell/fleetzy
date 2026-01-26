@@ -1185,7 +1185,7 @@ const Payments = {
     
     /**
      * Load active rentals for dropdown
-     * FIXED: Now includes multiple statuses (active, Active, pending_rental) and shows balance
+     * FIXED: Now calculates actual balance from charges and payments (not stored field)
      */
     async loadActiveRentals() {
         try {
@@ -1206,31 +1206,59 @@ const Payments = {
             
             console.log('📋 Active rentals loaded:', data?.length || 0, data);
             
+            // For each rental, calculate actual balance from charges and payments
+            const rentalsWithBalance = await Promise.all((data || []).map(async (rental) => {
+                try {
+                    // Get all charges for this rental
+                    const { data: charges } = await db
+                        .from('rental_charges')
+                        .select('amount')
+                        .eq('rental_id', rental.id);
+                    
+                    // Get all confirmed payments for this rental
+                    const { data: payments } = await db
+                        .from('payments')
+                        .select('paid_amount, payment_status')
+                        .eq('rental_id', rental.id)
+                        .eq('payment_status', 'confirmed');
+                    
+                    const totalCharges = (charges || []).reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+                    const totalPaid = (payments || []).reduce((sum, p) => sum + parseFloat(p.paid_amount || 0), 0);
+                    const calculatedBalance = totalCharges - totalPaid;
+                    
+                    return { ...rental, calculatedBalance };
+                } catch (e) {
+                    console.error('Error calculating balance for rental:', rental.id, e);
+                    return { ...rental, calculatedBalance: parseFloat(rental.balance_remaining) || 0 };
+                }
+            }));
+            
             const select = document.getElementById('new-payment-rental');
             if (select) {
-                if (!data || data.length === 0) {
+                if (!rentalsWithBalance || rentalsWithBalance.length === 0) {
                     select.innerHTML = '<option value="">No active rentals found</option>';
                 } else {
                     select.innerHTML = '<option value="">Select rental...</option>' +
-                        (data || []).map(rental => {
+                        rentalsWithBalance.map(rental => {
                             const customer = rental.customer;
                             const vehicle = rental.vehicle;
                             const name = customer?.full_name || 'Unknown Customer';
                             const vehicleInfo = vehicle ? `${vehicle.year} ${vehicle.make} ${vehicle.model}` : 'No Vehicle';
                             const rentalId = rental.rental_id || rental.id.substring(0, 8);
-                            const balance = parseFloat(rental.balance_remaining) || 0;
+                            const balance = rental.calculatedBalance;
+                            const balanceDisplay = balance < 0 ? `-$${Math.abs(balance).toFixed(2)} (Credit)` : `$${balance.toFixed(2)}`;
                             return `<option value="${rental.id}" 
                                             data-customer="${name}"
                                             data-balance="${balance}"
-                                            data-rate="${rental.weekly_rate || 400}"
+                                            data-rate="${rental.current_weekly_rate || rental.weekly_rate || 400}"
                                             data-deposit="${rental.deposit_amount || 500}">
-                                        ${rentalId} - ${name} (${vehicleInfo}) - Balance: $${balance.toLocaleString()}
+                                        ${rentalId} - ${name} (${vehicleInfo}) - Balance: ${balanceDisplay}
                                     </option>`;
                         }).join('');
                 }
             }
             
-            this.activeRentals = data || [];
+            this.activeRentals = rentalsWithBalance || [];
             
         } catch (error) {
             console.error('Error loading rentals:', error);
@@ -1251,7 +1279,17 @@ const Payments = {
             const rate = parseFloat(option.dataset.rate) || 400;
             
             document.getElementById('new-payment-customer-display').textContent = customer;
-            document.getElementById('new-payment-balance-display').textContent = Utils.formatCurrency(balance);
+            
+            // Display balance with credit indication
+            const balanceDisplay = document.getElementById('new-payment-balance-display');
+            if (balance < 0) {
+                balanceDisplay.textContent = `-$${Math.abs(balance).toFixed(2)} (Credit)`;
+                balanceDisplay.style.color = 'var(--success)';
+            } else {
+                balanceDisplay.textContent = `$${balance.toFixed(2)}`;
+                balanceDisplay.style.color = balance > 0 ? 'var(--danger)' : 'var(--text-primary)';
+            }
+            
             document.getElementById('new-payment-amount').value = rate;
             
             // Also trigger payment type change to update amount based on type
@@ -1259,6 +1297,7 @@ const Payments = {
         } else {
             document.getElementById('new-payment-customer-display').textContent = '—';
             document.getElementById('new-payment-balance-display').textContent = '—';
+            document.getElementById('new-payment-balance-display').style.color = '';
             document.getElementById('new-payment-amount').value = '';
         }
     },
