@@ -983,7 +983,7 @@ const Payments = {
             let newTotalDue = totalDue;
             if (!rental.weeks_count) {
                 // Ongoing rental - add another week's worth
-                newTotalDue = totalDue + parseFloat(rental.weekly_rate || 400);
+                newTotalDue = totalDue + parseFloat(rental.current_weekly_rate || rental.weekly_rate || 400);
             }
             
             // FIX: Exclude deposit from rent balance calculation
@@ -991,6 +991,22 @@ const Payments = {
             const depositAmount = parseFloat(rental.deposit_included || rental.deposit_amount) || 0;
             const rentPaid = newPaid - depositAmount;
             const newBalance = newTotalDue - rentPaid;
+            
+            // CREDIT BALANCE FEATURE: Detect overpayment
+            // If payment exceeds what was due, store the excess as credit
+            let creditToAdd = 0;
+            const currentCredit = parseFloat(rental.credit_balance) || 0;
+            
+            // Calculate actual balance before this payment
+            const previousBalance = totalDue - (currentPaid - depositAmount);
+            
+            // If this payment is more than what was due, it's an overpayment
+            if (paidAmount > previousBalance && previousBalance > 0) {
+                creditToAdd = paidAmount - previousBalance;
+                console.log(`💰 Overpayment detected: $${paidAmount} paid, $${previousBalance} due, creating $${creditToAdd.toFixed(2)} credit`);
+            }
+            
+            const newCreditBalance = currentCredit + creditToAdd;
             
             // FIX: Calculate next payment date based on CURRENT due date, not today
             // This keeps rentals on their proper weekly schedule
@@ -1024,7 +1040,7 @@ const Payments = {
             // Record when payment was actually made
             const lastPaymentDate = paidDate || formatLocalDateForPayments(new Date());
             
-            // Update rental
+            // Update rental (including credit_balance)
             const { error: updateError } = await db
                 .from('rentals')
                 .update({
@@ -1033,13 +1049,19 @@ const Payments = {
                     balance_remaining: Math.max(0, newBalance),
                     last_payment_date: lastPaymentDate,
                     next_payment_due: formatLocalDateForPayments(nextPaymentDue),
+                    credit_balance: newCreditBalance,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', rentalId);
             
             if (updateError) throw updateError;
             
-            console.log(`✅ Updated rental ${rentalId}: paid=$${newPaid}, due=$${newTotalDue}, balance=$${newBalance}, next_due=${formatLocalDateForPayments(nextPaymentDue)}`);
+            console.log(`✅ Updated rental ${rentalId}: paid=$${newPaid}, due=$${newTotalDue}, balance=$${Math.max(0, newBalance)}, credit=$${newCreditBalance.toFixed(2)}, next_due=${formatLocalDateForPayments(nextPaymentDue)}`);
+            
+            // Notify user if credit was created
+            if (creditToAdd > 0) {
+                Utils.toastInfo(`$${creditToAdd.toFixed(2)} credit added to account`);
+            }
             
         } catch (error) {
             console.error('Error updating rental:', error);

@@ -686,6 +686,21 @@ const Rentals = {
                                     </tr>
                                 `;
                             }).join('')}
+                            ${parseFloat(rental.credit_balance || 0) > 0 ? `
+                            <tr style="background: rgba(16, 185, 129, 0.15); border: none;">
+                                <td style="padding: 10px; color: var(--success); font-weight: 600;" colspan="2">
+                                    <i class="fas fa-wallet"></i> Available Credit
+                                </td>
+                                <td style="padding: 10px; text-align: right; font-weight: 600; color: var(--success);">
+                                    -$${parseFloat(rental.credit_balance).toFixed(2)}
+                                </td>
+                                <td style="padding: 10px; text-align: right; font-weight: 600; color: var(--success);">
+                                    <button onclick="Rentals.applyCredit('${rental.id}')" style="background: var(--success); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                                        Apply
+                                    </button>
+                                </td>
+                            </tr>
+                            ` : ''}
                         </tbody>
                     </table>
                 </div>
@@ -813,6 +828,32 @@ const Rentals = {
                             <span class="detail-value" style="font-weight: 700; font-size: 18px; color: var(--${balanceClass});">
                                 ${runningBalance >= 0 ? '' : '-'}$${Math.abs(runningBalance).toFixed(2)}
                             </span>
+                        </div>
+                        ${parseFloat(rental.credit_balance || 0) > 0 ? `
+                        <div class="detail-row" style="background: rgba(16, 185, 129, 0.1); border-radius: 6px; padding: 8px; margin-top: 8px;">
+                            <span class="detail-label" style="color: var(--success); font-weight: 600;">
+                                <i class="fas fa-wallet"></i> Credit Balance
+                            </span>
+                            <span class="detail-value" style="font-weight: 700; font-size: 16px; color: var(--success);">
+                                $${parseFloat(rental.credit_balance).toFixed(2)}
+                            </span>
+                        </div>
+                        <div class="detail-row" style="margin-top: 4px;">
+                            <span class="detail-label" style="font-weight: 600;">Net Amount Due</span>
+                            <span class="detail-value" style="font-weight: 700; font-size: 18px; color: var(--${Math.max(0, runningBalance - parseFloat(rental.credit_balance || 0)) > 0 ? 'danger' : 'success'});">
+                                $${Math.max(0, runningBalance - parseFloat(rental.credit_balance || 0)).toFixed(2)}
+                            </span>
+                        </div>
+                        ` : ''}
+                        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+                            ${parseFloat(rental.credit_balance || 0) > 0 && runningBalance > 0 ? `
+                            <button class="btn btn-sm" onclick="Rentals.applyCredit('${rental.id}')" style="background: var(--success); color: white; font-size: 11px;">
+                                <i class="fas fa-check"></i> Apply Credit
+                            </button>
+                            ` : ''}
+                            <button class="btn btn-sm btn-secondary" onclick="Rentals.addCredit('${rental.id}')" style="font-size: 11px;">
+                                <i class="fas fa-plus"></i> Add Credit
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2716,6 +2757,138 @@ const Rentals = {
         } catch (error) {
             console.error('Error updating rental:', error);
             Utils.toastError('Failed to update rental: ' + error.message);
+        }
+    },
+    
+    /* ============================================
+       CREDIT BALANCE MANAGEMENT
+    ============================================ */
+    
+    /**
+     * Add credit to a rental manually
+     */
+    async addCredit(rentalId) {
+        const amountStr = prompt('Enter credit amount to add:');
+        if (!amountStr || isNaN(parseFloat(amountStr))) return;
+        
+        const creditAmount = parseFloat(amountStr);
+        if (creditAmount <= 0) {
+            Utils.toastError('Please enter a positive amount');
+            return;
+        }
+        
+        const reason = prompt('Reason for credit (optional):') || 'Manual credit adjustment';
+        
+        try {
+            // Get current rental
+            const { data: rental, error: fetchError } = await db
+                .from('rentals')
+                .select('credit_balance')
+                .eq('id', rentalId)
+                .single();
+            
+            if (fetchError) throw fetchError;
+            
+            const newCredit = parseFloat(rental.credit_balance || 0) + creditAmount;
+            
+            // Update rental with new credit balance
+            const { error: updateError } = await db
+                .from('rentals')
+                .update({ credit_balance: newCredit })
+                .eq('id', rentalId);
+            
+            if (updateError) throw updateError;
+            
+            Utils.toastSuccess(`Added $${creditAmount.toFixed(2)} credit. Reason: ${reason}`);
+            
+            // Refresh the rental details modal
+            await this.load();
+            this.viewDetails(rentalId);
+            
+        } catch (error) {
+            console.error('Error adding credit:', error);
+            Utils.toastError('Error adding credit: ' + error.message);
+        }
+    },
+    
+    /**
+     * Apply credit balance to outstanding balance
+     */
+    async applyCredit(rentalId) {
+        try {
+            // Get current rental data
+            const { data: rental, error: fetchError } = await db
+                .from('rentals')
+                .select('*')
+                .eq('id', rentalId)
+                .single();
+            
+            if (fetchError) throw fetchError;
+            
+            const credit = parseFloat(rental.credit_balance || 0);
+            const balance = parseFloat(rental.balance_remaining || 0);
+            
+            if (credit <= 0) {
+                Utils.toastWarning('No credit available to apply');
+                return;
+            }
+            
+            // Calculate how much to apply
+            // We need to recalculate the actual balance from ledger entries
+            // For now, let's calculate based on total paid vs total due
+            const totalPaid = parseFloat(rental.total_amount_paid || 0);
+            const totalDue = parseFloat(rental.total_amount_due || 0);
+            const actualBalance = totalDue - totalPaid;
+            
+            if (actualBalance <= 0) {
+                Utils.toastInfo('No outstanding balance - credit will remain for future use');
+                return;
+            }
+            
+            const amountToApply = Math.min(credit, actualBalance);
+            
+            // Confirm with user
+            const confirmed = confirm(`Apply $${amountToApply.toFixed(2)} credit to balance?\n\nCurrent credit: $${credit.toFixed(2)}\nCurrent balance: $${actualBalance.toFixed(2)}\n\nAfter applying:\nNew credit: $${(credit - amountToApply).toFixed(2)}\nNew balance: $${(actualBalance - amountToApply).toFixed(2)}`);
+            
+            if (!confirmed) return;
+            
+            const newCredit = credit - amountToApply;
+            const newTotalPaid = totalPaid + amountToApply;
+            const newBalance = Math.max(0, totalDue - newTotalPaid);
+            
+            // Update rental
+            const { error: updateError } = await db
+                .from('rentals')
+                .update({
+                    credit_balance: newCredit,
+                    total_amount_paid: newTotalPaid,
+                    balance_remaining: newBalance
+                })
+                .eq('id', rentalId);
+            
+            if (updateError) throw updateError;
+            
+            // Log this as a special payment record
+            await db.from('payments').insert({
+                rental_id: rentalId,
+                customer_id: rental.customer_id,
+                paid_amount: amountToApply,
+                paid_date: new Date().toISOString().split('T')[0],
+                payment_method: 'Credit Applied',
+                payment_status: 'paid',
+                payment_type: 'credit_application',
+                notes: 'Credit balance applied to rental'
+            });
+            
+            Utils.toastSuccess(`Applied $${amountToApply.toFixed(2)} credit to balance`);
+            
+            // Refresh the rental details modal
+            await this.load();
+            this.viewDetails(rentalId);
+            
+        } catch (error) {
+            console.error('Error applying credit:', error);
+            Utils.toastError('Error applying credit: ' + error.message);
         }
     },
     
