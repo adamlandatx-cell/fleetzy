@@ -681,20 +681,20 @@ const Rentals = {
                                 let actionButtons = '';
                                 if (entry.type === 'charge' && entry.id) {
                                     const attachIcon = entry.receiptUrl 
-                                        ? \`<button onclick="Charges.viewAttachment('\${entry.receiptUrl}')" class="btn-icon-tiny" title="View attachment" style="color: var(--primary); background: none; border: none; cursor: pointer; padding: 2px 4px;"><i class="fas fa-paperclip"></i></button>\`
+                                        ? `<button onclick="Charges.viewAttachment('${entry.receiptUrl}')" class="btn-icon-tiny" title="View attachment" style="color: var(--primary); background: none; border: none; cursor: pointer; padding: 2px 4px;"><i class="fas fa-paperclip"></i></button>`
                                         : '';
                                     const editIcon = entry.status === 'pending' 
-                                        ? \`<button onclick="Charges.openEditChargeModal('\${entry.id}')" class="btn-icon-tiny" title="Edit charge" style="color: var(--text-secondary); background: none; border: none; cursor: pointer; padding: 2px 4px;"><i class="fas fa-edit"></i></button>\`
+                                        ? `<button onclick="Charges.openEditChargeModal('${entry.id}')" class="btn-icon-tiny" title="Edit charge" style="color: var(--text-secondary); background: none; border: none; cursor: pointer; padding: 2px 4px;"><i class="fas fa-edit"></i></button>`
                                         : '';
-                                    actionButtons = \`<span style="display: inline-flex; gap: 2px; margin-left: 8px;">\${attachIcon}\${editIcon}</span>\`;
+                                    actionButtons = `<span style="display: inline-flex; gap: 2px; margin-left: 8px;">${attachIcon}${editIcon}</span>`;
                                 }
                                 
-                                return \`
+                                return `
                                     <tr style="border-bottom: 1px solid var(--border-primary);">
-                                        <td style="padding: 10px; color: var(--text-secondary);">\${dateStr}</td>
+                                        <td style="padding: 10px; color: var(--text-secondary);">${dateStr}</td>
                                         <td style="padding: 10px;">
-                                            <i class="fas \${icon}" style="color: \${iconColor}; margin-right: 6px;"></i>
-                                            \${entry.description}\${statusBadge}\${actionButtons}
+                                            <i class="fas ${icon}" style="color: ${iconColor}; margin-right: 6px;"></i>
+                                            ${entry.description}${statusBadge}${actionButtons}
                                         </td>
                                         <td style="padding: 10px; text-align: right; font-weight: 500; color: ${amountColor};">${amountPrefix}$${entry.amount.toFixed(2)}</td>
                                         <td style="padding: 10px; text-align: right; font-weight: 600; color: ${balColor};">
