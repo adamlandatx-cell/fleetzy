@@ -470,6 +470,8 @@ const Rentals = {
      * Enhanced to show payments, charges, and running balance
      */
     async view(rentalId) {
+        // Store current rental ID for refresh after edits
+        this.currentViewingRentalId = rentalId;
         const rental = this.data.find(r => r.id === rentalId);
         if (!rental) {
             Utils.toastError('Rental not found');
@@ -602,7 +604,8 @@ const Rentals = {
                     isDebit: true,
                     chargeType: charge.charge_type,
                     status: charge.status,
-                    id: charge.id
+                    id: charge.id,
+                    receiptUrl: charge.receipt_url
                 });
             }
             
@@ -674,12 +677,24 @@ const Rentals = {
                                 const balColor = entry.balance > 0 ? 'var(--danger)' : 'var(--success)';
                                 const statusBadge = entry.status === 'pending' ? '<span style="background: var(--warning); color: #000; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: 6px;">PENDING</span>' : '';
                                 
-                                return `
+                                // Build action buttons for charges (edit + attachment)
+                                let actionButtons = '';
+                                if (entry.type === 'charge' && entry.id) {
+                                    const attachIcon = entry.receiptUrl 
+                                        ? \`<button onclick="Charges.viewAttachment('\${entry.receiptUrl}')" class="btn-icon-tiny" title="View attachment" style="color: var(--primary); background: none; border: none; cursor: pointer; padding: 2px 4px;"><i class="fas fa-paperclip"></i></button>\`
+                                        : '';
+                                    const editIcon = entry.status === 'pending' 
+                                        ? \`<button onclick="Charges.openEditChargeModal('\${entry.id}')" class="btn-icon-tiny" title="Edit charge" style="color: var(--text-secondary); background: none; border: none; cursor: pointer; padding: 2px 4px;"><i class="fas fa-edit"></i></button>\`
+                                        : '';
+                                    actionButtons = \`<span style="display: inline-flex; gap: 2px; margin-left: 8px;">\${attachIcon}\${editIcon}</span>\`;
+                                }
+                                
+                                return \`
                                     <tr style="border-bottom: 1px solid var(--border-primary);">
-                                        <td style="padding: 10px; color: var(--text-secondary);">${dateStr}</td>
+                                        <td style="padding: 10px; color: var(--text-secondary);">\${dateStr}</td>
                                         <td style="padding: 10px;">
-                                            <i class="fas ${icon}" style="color: ${iconColor}; margin-right: 6px;"></i>
-                                            ${entry.description}${statusBadge}
+                                            <i class="fas \${icon}" style="color: \${iconColor}; margin-right: 6px;"></i>
+                                            \${entry.description}\${statusBadge}\${actionButtons}
                                         </td>
                                         <td style="padding: 10px; text-align: right; font-weight: 500; color: ${amountColor};">${amountPrefix}$${entry.amount.toFixed(2)}</td>
                                         <td style="padding: 10px; text-align: right; font-weight: 600; color: ${balColor};">
