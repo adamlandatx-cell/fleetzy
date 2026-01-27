@@ -652,6 +652,22 @@
             </div>
         </div>
 
+        <!-- Charge Documentation Section -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-file-invoice-dollar"></i>
+                Charge Documentation
+            </h2>
+            <span class="section-count" id="charge-docs-count">0</span>
+        </div>
+        
+        <div id="charge-docs-list">
+            <div class="empty-state">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <p>No charge documentation</p>
+            </div>
+        </div>
+
         <!-- Inspection Reports Section -->
         <div class="section-header">
             <h2 class="section-title">
@@ -968,6 +984,7 @@
                 ]);
                 
                 loadUploadedDocuments(customer);
+                await loadChargeDocuments();
                 
             } catch (err) {
                 console.error('Init error:', err);
@@ -1159,6 +1176,112 @@
 
         // ========================================
         // LOAD RECEIPTS
+
+        // ========================================
+        // LOAD CHARGE DOCUMENTATION (Toll invoices, etc.)
+        // ========================================
+        async function loadChargeDocuments() {
+            const container = document.getElementById('charge-docs-list');
+            
+            try {
+                // First get the customer's rental IDs
+                const { data: rentals, error: rentalsError } = await db
+                    .from('rentals')
+                    .select('id')
+                    .eq('customer_id', customerId);
+                
+                if (rentalsError) throw rentalsError;
+                
+                if (!rentals || rentals.length === 0) {
+                    // No rentals, no charges
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <p>No charge documentation</p>
+                        </div>
+                    `;
+                    document.getElementById('charge-docs-count').textContent = '0';
+                    return;
+                }
+                
+                const rentalIds = rentals.map(r => r.id);
+                
+                // Get charges with receipt_url for these rentals
+                const { data: charges, error: chargesError } = await db
+                    .from('rental_charges')
+                    .select('*')
+                    .in('rental_id', rentalIds)
+                    .not('receipt_url', 'is', null)
+                    .order('charge_date', { ascending: false });
+                
+                if (chargesError) throw chargesError;
+                
+                if (!charges || charges.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <p>No charge documentation</p>
+                        </div>
+                    `;
+                    document.getElementById('charge-docs-count').textContent = '0';
+                    return;
+                }
+                
+                document.getElementById('charge-docs-count').textContent = charges.length;
+                
+                // Get charge type icons
+                const typeIcons = {
+                    'toll': 'fa-road',
+                    'damage': 'fa-car-crash',
+                    'cleaning': 'fa-broom',
+                    'late_fee': 'fa-clock',
+                    'deposit_replenish': 'fa-piggy-bank',
+                    'mileage_overage': 'fa-tachometer-alt',
+                    'other': 'fa-file-invoice-dollar'
+                };
+                
+                container.innerHTML = charges.map(charge => {
+                    const date = charge.charge_date 
+                        ? new Date(charge.charge_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : 'N/A';
+                    const amount = `$${parseFloat(charge.amount).toFixed(2)}`;
+                    const typeLabel = charge.charge_type.replace(/_/g, ' ');
+                    const icon = typeIcons[charge.charge_type] || 'fa-file-invoice-dollar';
+                    const description = charge.description || typeLabel;
+                    const isPdf = (charge.receipt_url || '').toLowerCase().includes('.pdf');
+                    
+                    return `
+                        <div class="document-card" onclick="openLightbox('${charge.receipt_url}', '${description} - ${amount}')">
+                            <div class="document-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber);">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="document-info">
+                                <div class="document-name">${description}</div>
+                                <div class="document-meta">
+                                    <span><i class="fas fa-calendar"></i> ${date}</span>
+                                    <span>•</span>
+                                    <span>${amount}</span>
+                                    <span>•</span>
+                                    <span style="text-transform: capitalize;">${charge.status}</span>
+                                </div>
+                            </div>
+                            <div class="document-action">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (err) {
+                console.error('Error loading charge documents:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="color: var(--accent-red);"></i>
+                        <p>Error loading charge documentation</p>
+                    </div>
+                `;
+            }
+        }
         // ========================================
         async function loadReceipts() {
             const container = document.getElementById('receipts-list');
