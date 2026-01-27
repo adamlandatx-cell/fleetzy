@@ -46,6 +46,7 @@ async function loadUpcomingPayments() {
                 id,
                 rental_id,
                 weekly_rate,
+                current_weekly_rate,
                 next_payment_due,
                 rental_status,
                 customer_id,
@@ -103,13 +104,17 @@ async function loadUpcomingPayments() {
             // Pending charges are shown in the overall balance/ledger, not in "upcoming payments"
             // This avoids confusion where past-due charges appear added to future payments
             
+            // Use current_weekly_rate if available (rate may have changed), fall back to weekly_rate
+            const effectiveRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate || 0);
+            
             return {
                 ...rental,
                 customers: customer,
                 vehicles: vehicle,
                 pendingCharges: [],
                 pendingChargesTotal: 0,
-                totalDue: parseFloat(rental.weekly_rate || 0)
+                effectiveRate: effectiveRate,
+                totalDue: effectiveRate
             };
         }));
         
@@ -268,8 +273,8 @@ function renderUpcomingPaymentItem(rental, isUrgent, urgencyType = 'week') {
         urgencyLabel = '';
     }
     
-    // Calculate totals
-    const weeklyRate = parseFloat(rental.weekly_rate || 0);
+    // Calculate totals - use effectiveRate (current_weekly_rate with fallback)
+    const weeklyRate = parseFloat(rental.effectiveRate || rental.current_weekly_rate || rental.weekly_rate || 0);
     const chargesTotal = rental.pendingChargesTotal || 0;
     const totalDue = rental.totalDue || weeklyRate;
     const hasCharges = chargesTotal > 0;
@@ -324,8 +329,11 @@ function renderUpcomingPaymentItem(rental, isUrgent, urgencyType = 'week') {
  */
 function updateUpcomingStats(overdue, dueToday, dueTomorrow, dueThisWeek) {
     // Calculate total including charges - all payments this week
+    // Use effectiveRate for correct current rate (after rate changes)
     const allThisWeek = [...overdue, ...dueToday, ...dueTomorrow, ...dueThisWeek];
-    const weekTotal = allThisWeek.reduce((sum, r) => sum + parseFloat(r.totalDue || r.weekly_rate || 0), 0);
+    const weekTotal = allThisWeek.reduce((sum, r) => {
+        return sum + parseFloat(r.totalDue || r.effectiveRate || r.current_weekly_rate || r.weekly_rate || 0);
+    }, 0);
     
     // Urgent count = overdue + today (needs immediate attention)
     const urgentCount = overdue.length + dueToday.length;

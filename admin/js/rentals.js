@@ -1373,6 +1373,7 @@ const Rentals = {
             vehicle_id: vehicleId,
             start_date: startDate,
             weekly_rate: weeklyRate,
+            current_weekly_rate: weeklyRate,  // Initialize to same as weekly_rate
             weeks_count: weeks,                    // actual column (not weeks_contracted)
             initial_payment: initialPaymentAmount, // actual column (not total_amount_due)
             deposit_included: deposit,             // actual column - NOT NULL
