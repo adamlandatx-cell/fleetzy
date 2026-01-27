@@ -100,9 +100,28 @@ async function loadUpcomingPayments() {
                 vehicle = vehData;
             }
             
-            // Note: We no longer add pending charges to upcoming payment display
-            // Pending charges are shown in the overall balance/ledger, not in "upcoming payments"
-            // This avoids confusion where past-due charges appear added to future payments
+            // Fetch pending charges (tolls, damages, etc.) that are due on/before the next payment date
+            // This ensures toll fees and other charges appear in upcoming payments
+            // Note: rental_charges uses 'due_with_payment' column, not 'due_date'
+            let pendingCharges = [];
+            let pendingChargesTotal = 0;
+            
+            if (rental.next_payment_due) {
+                const { data: charges, error: chargesError } = await db
+                    .from('rental_charges')
+                    .select('*')
+                    .eq('rental_id', rental.id)
+                    .in('status', ['pending', 'unpaid']) // Both pending and unpaid statuses
+                    .neq('charge_type', 'rent'); // Exclude rent charges (those are already in weekly_rate)
+                    // Note: We removed the date filter since charges should show regardless
+                    // They were added for a reason and should be collected with next payment
+                
+                if (!chargesError && charges && charges.length > 0) {
+                    pendingCharges = charges;
+                    pendingChargesTotal = charges.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
+                    console.log(`Rental ${rental.rental_id}: Found ${charges.length} pending charges totaling $${pendingChargesTotal}`);
+                }
+            }
             
             // Use current_weekly_rate if available (rate may have changed), fall back to weekly_rate
             const effectiveRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate || 0);
@@ -111,10 +130,10 @@ async function loadUpcomingPayments() {
                 ...rental,
                 customers: customer,
                 vehicles: vehicle,
-                pendingCharges: [],
-                pendingChargesTotal: 0,
+                pendingCharges: pendingCharges,
+                pendingChargesTotal: pendingChargesTotal,
                 effectiveRate: effectiveRate,
-                totalDue: effectiveRate
+                totalDue: effectiveRate + pendingChargesTotal
             };
         }));
         
@@ -279,12 +298,24 @@ function renderUpcomingPaymentItem(rental, isUrgent, urgencyType = 'week') {
     const totalDue = rental.totalDue || weeklyRate;
     const hasCharges = chargesTotal > 0;
     
-    // Build charges breakdown HTML
+    // Build charges breakdown HTML with details
     let chargesBreakdown = '';
     if (hasCharges && rental.pendingCharges) {
+        // Build a detailed breakdown tooltip
+        const chargeDetails = rental.pendingCharges.map(c => {
+            const type = (c.charge_type || 'charge').charAt(0).toUpperCase() + (c.charge_type || 'charge').slice(1);
+            return `${type}: $${parseFloat(c.amount).toFixed(2)}`;
+        }).join('\n');
+        
+        // Count charge types
+        const chargeCount = rental.pendingCharges.length;
+        const chargeTypeLabel = chargeCount === 1 
+            ? rental.pendingCharges[0].charge_type || 'charge'
+            : `${chargeCount} charges`;
+        
         chargesBreakdown = `
-            <div class="payment-charges-breakdown" style="font-size: 11px; color: var(--warning); margin-top: 2px;">
-                + $${chargesTotal.toFixed(2)} charges
+            <div class="payment-charges-breakdown" style="font-size: 11px; color: var(--warning); margin-top: 2px; cursor: help;" title="${chargeDetails}">
+                + $${chargesTotal.toFixed(2)} (${chargeTypeLabel})
             </div>
         `;
     }
