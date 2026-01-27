@@ -485,3 +485,294 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export
 window.Charges = Charges;
+
+// ============================================
+// EDIT CHARGE FUNCTIONALITY
+// Added: January 27, 2025
+// ============================================
+
+/**
+ * Open the Edit Charge modal
+ */
+Charges.openEditChargeModal = async function(chargeId) {
+    console.log('Opening Edit Charge modal for:', chargeId);
+    
+    // Get the charge data
+    try {
+        const { data: charge, error } = await db
+            .from('rental_charges')
+            .select('*')
+            .eq('id', chargeId)
+            .single();
+        
+        if (error) throw error;
+        if (!charge) {
+            Utils.toastError('Charge not found');
+            return;
+        }
+        
+        // Store for later
+        this.editingChargeId = chargeId;
+        this.editingCharge = charge;
+        
+        // Check if modal exists, if not create it
+        let modal = document.getElementById('modal-edit-charge');
+        if (!modal) {
+            this.createEditChargeModal();
+            modal = document.getElementById('modal-edit-charge');
+        }
+        
+        // Populate the form
+        document.getElementById('edit-charge-type').textContent = charge.charge_type.replace(/_/g, ' ').toUpperCase();
+        document.getElementById('edit-charge-amount').value = parseFloat(charge.amount).toFixed(2);
+        document.getElementById('edit-charge-description').value = charge.description || '';
+        document.getElementById('edit-charge-date').value = charge.charge_date || '';
+        document.getElementById('edit-charge-notes').value = charge.notes || '';
+        document.getElementById('edit-charge-status').textContent = charge.status;
+        
+        // Handle existing attachment
+        const attachmentSection = document.getElementById('edit-charge-current-attachment');
+        const noAttachment = document.getElementById('edit-charge-no-attachment');
+        
+        if (charge.receipt_url) {
+            attachmentSection.style.display = 'block';
+            noAttachment.style.display = 'none';
+            document.getElementById('edit-charge-attachment-link').href = charge.receipt_url;
+            document.getElementById('edit-charge-attachment-link').onclick = (e) => {
+                e.preventDefault();
+                window.open(charge.receipt_url, '_blank');
+            };
+        } else {
+            attachmentSection.style.display = 'none';
+            noAttachment.style.display = 'block';
+        }
+        
+        // Clear file input
+        document.getElementById('edit-charge-new-attachment').value = '';
+        
+        // Show modal
+        modal.classList.add('active');
+        
+    } catch (error) {
+        console.error('Error loading charge:', error);
+        Utils.toastError('Failed to load charge: ' + error.message);
+    }
+};
+
+/**
+ * Create the Edit Charge modal dynamically
+ */
+Charges.createEditChargeModal = function() {
+    const modalHTML = `
+        <div class="modal-overlay" id="modal-edit-charge">
+            <div class="modal-container" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2><i class="fas fa-edit"></i> Edit Charge</h2>
+                    <button class="modal-close" onclick="Charges.closeEditChargeModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Charge Type (Read-only) -->
+                    <div class="form-group">
+                        <label class="form-label">Charge Type</label>
+                        <div id="edit-charge-type" style="padding: 10px 12px; background: var(--bg-tertiary); border-radius: 8px; font-weight: 600; text-transform: capitalize;"></div>
+                    </div>
+                    
+                    <!-- Status Badge -->
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <div>
+                            <span id="edit-charge-status" class="status-badge" style="text-transform: capitalize;"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Amount -->
+                    <div class="form-group">
+                        <label class="form-label">Amount ($)</label>
+                        <input type="number" id="edit-charge-amount" class="form-input" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <input type="text" id="edit-charge-description" class="form-input" placeholder="e.g., Hardy Toll Road - January">
+                    </div>
+                    
+                    <!-- Date -->
+                    <div class="form-group">
+                        <label class="form-label">Charge Date</label>
+                        <input type="date" id="edit-charge-date" class="form-input">
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea id="edit-charge-notes" class="form-input" rows="2" placeholder="Internal notes..."></textarea>
+                    </div>
+                    
+                    <!-- Current Attachment -->
+                    <div class="form-group">
+                        <label class="form-label">Attachment / Invoice</label>
+                        
+                        <!-- Show if attachment exists -->
+                        <div id="edit-charge-current-attachment" style="display: none; margin-bottom: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px;">
+                                <i class="fas fa-paperclip" style="color: var(--primary);"></i>
+                                <a href="#" id="edit-charge-attachment-link" target="_blank" style="color: var(--primary); text-decoration: none; flex: 1;">
+                                    View Current Attachment
+                                </a>
+                                <button type="button" onclick="Charges.removeAttachment()" class="btn-icon-small" title="Remove attachment" style="color: var(--danger);">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Show if no attachment -->
+                        <div id="edit-charge-no-attachment" style="margin-bottom: 12px;">
+                            <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; color: var(--text-secondary); font-size: 13px;">
+                                <i class="fas fa-info-circle"></i> No attachment uploaded yet
+                            </div>
+                        </div>
+                        
+                        <!-- Upload new -->
+                        <label style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; display: block;">
+                            Upload New (replaces existing):
+                        </label>
+                        <input type="file" id="edit-charge-new-attachment" class="form-input" accept="image/*,.pdf">
+                        <span class="form-hint">Accepts images or PDF (toll invoice, damage report, etc.)</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="Charges.closeEditChargeModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="Charges.saveEditedCharge()">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+};
+
+/**
+ * Close the Edit Charge modal
+ */
+Charges.closeEditChargeModal = function() {
+    const modal = document.getElementById('modal-edit-charge');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    this.editingChargeId = null;
+    this.editingCharge = null;
+};
+
+/**
+ * Remove attachment from charge
+ */
+Charges.removeAttachment = async function() {
+    if (!this.editingChargeId) return;
+    
+    const confirmed = confirm('Remove the current attachment? This cannot be undone.');
+    if (!confirmed) return;
+    
+    try {
+        const { error } = await db
+            .from('rental_charges')
+            .update({ receipt_url: null })
+            .eq('id', this.editingChargeId);
+        
+        if (error) throw error;
+        
+        // Update UI
+        document.getElementById('edit-charge-current-attachment').style.display = 'none';
+        document.getElementById('edit-charge-no-attachment').style.display = 'block';
+        this.editingCharge.receipt_url = null;
+        
+        Utils.toastSuccess('Attachment removed');
+        
+    } catch (error) {
+        console.error('Error removing attachment:', error);
+        Utils.toastError('Failed to remove attachment');
+    }
+};
+
+/**
+ * Save edited charge
+ */
+Charges.saveEditedCharge = async function() {
+    if (!this.editingChargeId) return;
+    
+    const amount = parseFloat(document.getElementById('edit-charge-amount').value);
+    const description = document.getElementById('edit-charge-description').value.trim();
+    const chargeDate = document.getElementById('edit-charge-date').value;
+    const notes = document.getElementById('edit-charge-notes').value.trim();
+    const newAttachment = document.getElementById('edit-charge-new-attachment').files[0];
+    
+    if (!amount || amount <= 0) {
+        Utils.toastError('Please enter a valid amount');
+        return;
+    }
+    
+    // Show loading
+    const saveBtn = document.querySelector('#modal-edit-charge .btn-primary');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    saveBtn.disabled = true;
+    
+    try {
+        let receiptUrl = this.editingCharge.receipt_url;
+        
+        // Upload new attachment if provided
+        if (newAttachment) {
+            receiptUrl = await this.uploadReceipt(newAttachment, this.editingCharge.rental_id);
+        }
+        
+        // Update the charge
+        const { error } = await db
+            .from('rental_charges')
+            .update({
+                amount: amount,
+                description: description || null,
+                charge_date: chargeDate || null,
+                notes: notes || null,
+                receipt_url: receiptUrl,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', this.editingChargeId);
+        
+        if (error) throw error;
+        
+        Utils.toastSuccess('Charge updated successfully!');
+        this.closeEditChargeModal();
+        
+        // Refresh the view
+        if (typeof Rentals !== 'undefined' && Rentals.currentViewingRentalId) {
+            Rentals.view(Rentals.currentViewingRentalId);
+        }
+        if (typeof Dashboard !== 'undefined' && Dashboard.load) {
+            Dashboard.load();
+        }
+        
+    } catch (error) {
+        console.error('Error saving charge:', error);
+        Utils.toastError('Failed to save: ' + error.message);
+    } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
+};
+
+/**
+ * View charge attachment (for use in ledger)
+ */
+Charges.viewAttachment = function(url) {
+    if (!url) {
+        Utils.toastInfo('No attachment available');
+        return;
+    }
+    window.open(url, '_blank');
+};
+
+console.log('✅ Charges Edit functionality loaded');
