@@ -1083,7 +1083,7 @@
     <header class="header">
         <div class="header-content">
             <img src="/fleetzy-logo.png" alt="Fleetzy" class="header-logo">
-            <a href="/dashboard" class="header-back">
+            <a href="javascript:void(0)" onclick="handleHeaderBack()" class="header-back">
                 <i class="fas fa-arrow-left"></i>
             </a>
         </div>
@@ -2115,7 +2115,43 @@
             document.getElementById('screenshotUploadBox').classList.remove('has-photo');
             document.getElementById('submitPaymentBtn').disabled = true;
             
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' }
+
+        function handleHeaderBack() {
+            // Determine current step and go back appropriately
+            const authSection = document.getElementById('authSection');
+            const odometerSection = document.getElementById('odometerSection');
+            const amountSection = document.getElementById('amountSection');
+            const methodSection = document.getElementById('methodSection');
+            const uploadSection = document.getElementById('uploadSection');
+            const stripeSection = document.getElementById('stripeSection');
+            
+            // Check which section is currently visible
+            if (authSection && authSection.classList.contains('active')) {
+                // On auth screen - go to dashboard
+                window.location.href = '/dashboard.html';
+            } else if (odometerSection && odometerSection.classList.contains('active')) {
+                // On odometer screen - go back to dashboard (stay logged in)
+                window.location.href = '/dashboard.html';
+            } else if (amountSection && amountSection.classList.contains('active')) {
+                // On amount screen - go back to odometer
+                goBackToOdometer();
+            } else if (methodSection && methodSection.classList.contains('active')) {
+                // On method screen - go back to amount
+                goBackToAmount();
+            } else if (uploadSection && uploadSection.classList.contains('active')) {
+                // On upload screen - go back to method
+                goBackToMethod();
+            } else if (stripeSection && stripeSection.classList.contains('active')) {
+                // On stripe screen - go back to method
+                goBackToMethod();
+            } else {
+                // Default - go to dashboard
+                window.location.href = '/dashboard.html';
+            }
+        }
+        
+);
         }
         
         // ============================================================================
