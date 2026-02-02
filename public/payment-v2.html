@@ -1103,7 +1103,7 @@
         <!-- ============================
              SECTION 1: AUTHENTICATION
              ============================ -->
-        <div id="authSection" class="slide-in">
+        <div id="authSection" class="slide-in hidden">
             <div class="page-title">
                 <h1><i class="fas fa-credit-card"></i> Make a Payment</h1>
                 <p>Verify your account to continue</p>
@@ -1682,14 +1682,88 @@
             const phone = localStorage.getItem('fleetzy_phone');
             
             if (customerId && phone) {
+                // User has a session - try to load their data
                 try {
                     await loadCustomerData(customerId);
+                    // Success - loadCustomerData will show payment section
+                    return;
                 } catch (error) {
+                    // Check if it's a "no active rental" error vs actual auth failure
+                    if (error.message === 'No active rental found') {
+                        // User is authenticated but has no rental - don't clear session
+                        // Show a friendly message instead
+                        showNoActiveRentalMessage();
+                        return;
+                    }
+                    // Actual session invalid (customer deleted, etc) - clear and show auth
                     console.log('Session invalid, showing auth');
                     localStorage.removeItem('fleetzy_customer_id');
                     localStorage.removeItem('fleetzy_phone');
                 }
             }
+            
+            // No valid session - show auth section
+            document.getElementById('authSection').classList.remove('hidden');
+        }
+        
+        function showNoActiveRentalMessage() {
+            const authSection = document.getElementById('authSection');
+            const paymentSection = document.getElementById('paymentSection');
+            
+            // Hide both sections
+            authSection.classList.add('hidden');
+            paymentSection.classList.add('hidden');
+            
+            // Create a "no rental" message
+            const customerName = localStorage.getItem('fleetzy_customer_name') || 'there';
+            const noRentalDiv = document.createElement('div');
+            noRentalDiv.id = 'noRentalSection';
+            noRentalDiv.className = 'slide-in';
+            noRentalDiv.innerHTML = `
+                <div class="page-title">
+                    <h1><i class="fas fa-car"></i> Welcome, ${customerName}!</h1>
+                    <p>You're logged in</p>
+                </div>
+                
+                <div class="card" style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1rem; color: var(--text-secondary);">
+                        <i class="fas fa-car-side"></i>
+                    </div>
+                    <h2 style="margin-bottom: 0.5rem; color: var(--text-primary);">No Active Rental</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        You don't currently have an active rental with Fleetzy.<br>
+                        Once your rental starts, you can make payments here.
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <a href="dashboard.html" class="btn-primary" style="text-decoration: none;">
+                            <i class="fas fa-home"></i> Go to Dashboard
+                        </a>
+                        <button onclick="logoutAndShowAuth()" class="btn-secondary">
+                            <i class="fas fa-sign-out-alt"></i> Switch Account
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after main content starts
+            const mainContent = document.querySelector('.main-content');
+            mainContent.appendChild(noRentalDiv);
+        }
+        
+        function logoutAndShowAuth() {
+            // Clear session
+            localStorage.removeItem('fleetzy_customer_id');
+            localStorage.removeItem('fleetzy_phone');
+            localStorage.removeItem('fleetzy_customer_name');
+            
+            // Remove no rental section if exists
+            const noRentalSection = document.getElementById('noRentalSection');
+            if (noRentalSection) {
+                noRentalSection.remove();
+            }
+            
+            // Show auth section
+            document.getElementById('authSection').classList.remove('hidden');
         }
         
         // ============================================================================
@@ -1730,15 +1804,23 @@
                     throw new Error('Invalid credentials');
                 }
                 
-                // Save session
+                // Save session with customer name
                 localStorage.setItem('fleetzy_customer_id', customer.id);
                 localStorage.setItem('fleetzy_phone', phone);
+                const customerName = customer.first_name || customer.full_name?.split(' ')[0] || 'there';
+                localStorage.setItem('fleetzy_customer_name', customerName);
                 
                 await loadCustomerData(customer.id);
                 
             } catch (error) {
                 console.error('Auth error:', error);
-                showToast('Invalid phone or DL number', 'error');
+                
+                // Check if it's a "no active rental" error (user authenticated but no rental)
+                if (error.message === 'No active rental found') {
+                    showNoActiveRentalMessage();
+                } else {
+                    showToast('Invalid phone or DL number', 'error');
+                }
             } finally {
                 hideLoading();
             }
@@ -1759,8 +1841,16 @@
                     .eq('id', customerId)
                     .single();
                 
-                if (custError) throw custError;
+                if (custError || !customer) {
+                    // Customer doesn't exist - this is a real auth failure
+                    throw new Error('Customer not found');
+                }
+                
                 currentCustomer = customer;
+                
+                // Save customer name for friendly messaging
+                const customerName = customer.first_name || customer.full_name?.split(' ')[0] || 'there';
+                localStorage.setItem('fleetzy_customer_name', customerName);
                 
                 // Get active rental
                 const { data: rental, error: rentalError } = await db
@@ -1771,6 +1861,8 @@
                     .single();
                 
                 if (rentalError || !rental) {
+                    // Customer exists but no active rental - throw specific error
+                    // DO NOT clear session here - checkExistingSession will handle this gracefully
                     throw new Error('No active rental found');
                 }
                 
@@ -1800,9 +1892,22 @@
                 
             } catch (error) {
                 console.error('Load error:', error);
+                
+                // Re-throw to let caller handle appropriately
+                // Only clear session for actual auth failures, not data issues
+                if (error.message === 'No active rental found') {
+                    throw error; // Let checkExistingSession handle this gracefully
+                }
+                
+                // Real error - show toast and clear session
                 showToast(error.message || 'Failed to load account', 'error');
                 localStorage.removeItem('fleetzy_customer_id');
                 localStorage.removeItem('fleetzy_phone');
+                localStorage.removeItem('fleetzy_customer_name');
+                
+                // Show auth section for real failures
+                document.getElementById('authSection').classList.remove('hidden');
+                
             } finally {
                 hideLoading();
             }
