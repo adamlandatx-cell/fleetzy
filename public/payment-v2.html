@@ -1690,7 +1690,7 @@
                 } catch (error) {
                     // Check if it's a "no active rental" error vs actual auth failure
                     if (error.message === 'No active rental found') {
-                        // User is authenticated but has no rental - don't clear session
+                        // User is authenticated but has no rental - do not clear session
                         // Show a friendly message instead
                         showNoActiveRentalMessage();
                         return;
@@ -1722,7 +1722,7 @@
             noRentalDiv.innerHTML = `
                 <div class="page-title">
                     <h1><i class="fas fa-car"></i> Welcome, ${customerName}!</h1>
-                    <p>You're logged in</p>
+                    <p>You are logged in</p>
                 </div>
                 
                 <div class="card" style="text-align: center; padding: 2rem;">
@@ -1731,7 +1731,7 @@
                     </div>
                     <h2 style="margin-bottom: 0.5rem; color: var(--text-primary);">No Active Rental</h2>
                     <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-                        You don't currently have an active rental with Fleetzy.<br>
+                        You do not currently have an active rental with Fleetzy.<br>
                         Once your rental starts, you can make payments here.
                     </p>
                     <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
@@ -1842,7 +1842,7 @@
                     .single();
                 
                 if (custError || !customer) {
-                    // Customer doesn't exist - this is a real auth failure
+                    // Customer does not exist - this is a real auth failure
                     throw new Error('Customer not found');
                 }
                 
@@ -2220,7 +2220,8 @@
             document.getElementById('screenshotUploadBox').classList.remove('has-photo');
             document.getElementById('submitPaymentBtn').disabled = true;
             
-            window.scrollTo({ top: 0, behavior: 'smooth' }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         function handleHeaderBack() {
             // Determine current step and go back appropriately
