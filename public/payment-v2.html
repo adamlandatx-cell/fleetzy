@@ -1723,7 +1723,7 @@
                 }
                 
                 // Verify DL last 4
-                const dlNumber = customer.drivers_license_number || '';
+                const dlNumber = customer.dl_number || '';
                 const last4 = dlNumber.slice(-4);
                 
                 if (last4 !== dlInput) {
