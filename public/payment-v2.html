@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Make a Payment - Fleetzy</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#09090b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fleetzy">
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="shortcut icon" href="/icons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        /* ============================================
+           FLEETZY PAYMENT PORTAL V2 - WITH ODOMETER
+           ============================================ */
+        
+        :root {
+            --bg-primary: #09090b;
+            --bg-secondary: #18181b;
+            --bg-tertiary: #27272a;
+            --bg-card: rgba(39, 39, 42, 0.5);
+            
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            --border-strong: rgba(255, 255, 255, 0.15);
+            
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --text-muted: #52525b;
+            
+            --accent-green: #10b981;
+            --accent-emerald: #34d399;
+            --accent-teal: #14b8a6;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            
+            --gradient-brand: linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+            --gradient-card: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
+            
+            --shadow-glow: 0 0 40px rgba(16, 185, 129, 0.2);
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.5;
+            padding-bottom: 80px;
+        }
+        
+        .hidden { display: none !important; }
+        
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem;
+        }
+        
+        .header-content {
+            max-width: 28rem;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-logo {
+            height: 28px;
+            width: auto;
+        }
+        
+        .header-back {
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all var(--transition-base);
+        }
+        
+        .header-back:hover {
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 28rem;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-gradient {
+            background: var(--gradient-card);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        
+        .card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        
+        /* Page Title */
+        .page-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-title h1 i {
+            margin-right: 0.5rem;
+            color: var(--accent-green);
+        }
+        
+        .page-title p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all var(--transition-base);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-teal) 100%);
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all var(--transition-base);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--border-strong);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        /* Summary Rows */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .summary-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .summary-value.highlight {
+            color: var(--accent-green);
+            font-size: 1.25rem;
+        }
+        
+        .summary-value.late-fee {
+            color: var(--accent-amber);
+        }
+        
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-medium);
+            transition: all var(--transition-base);
+        }
+        
+        .step-dot.active {
+            width: 24px;
+            border-radius: 4px;
+            background: var(--accent-green);
+        }
+        
+        .step-dot.completed {
+            background: var(--accent-green);
+        }
+        
+        /* ==================================
+           ODOMETER SECTION STYLES
+           ================================== */
+        
+        .odometer-section {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .odometer-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .odometer-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .odometer-icon i {
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+        }
+        
+        .odometer-title h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .odometer-title p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .last-reading-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .last-reading-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .last-reading-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .last-reading-value span {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 400;
+        }
+        
+        /* Photo Upload Box */
+        .photo-upload-box {
+            border: 2px dashed var(--border-strong);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            margin-bottom: 1rem;
+        }
+        
+        .photo-upload-box:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .photo-upload-box.has-photo {
+            border-style: solid;
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.05);
+            padding: 0.5rem;
+        }
+        
+        .photo-upload-box input[type="file"] {
+            display: none;
+        }
+        
+        .upload-placeholder i {
+            font-size: 2.5rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+        
+        .upload-placeholder p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .upload-placeholder p strong {
+            color: var(--accent-blue);
+        }
+        
+        .photo-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        /* Reading Input */
+        .reading-input-wrapper {
+            position: relative;
+        }
+        
+        .reading-input {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: 12px;
+            padding: 1rem;
+            padding-right: 80px;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: right;
+            transition: all var(--transition-base);
+        }
+        
+        .reading-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        
+        .reading-suffix {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        /* Validation Messages */
+        .validation-message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .validation-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+        
+        .validation-message.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fcd34d;
+        }
+        
+        .validation-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+        }
+        
+        /* Miles Driven Display */
+        .miles-driven-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .miles-driven-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        
+        .miles-driven-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+        
+        /* ==================================
+           PAYMENT SECTION STYLES
+           ================================== */
+        
+        .payment-types {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .payment-type-btn {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: 12px;
+            padding: 1rem 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+        
+        .payment-type-btn:hover {
+            border-color: var(--border-strong);
+        }
+        
+        .payment-type-btn.active {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        
+        /* Payment Method Cards */
+        .payment-method-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .method-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: 16px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+        }
+        
+        .method-card:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-2px);
+        }
+        
+        .method-card.selected {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .method-card.preferred {
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        
+        .method-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .method-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .method-icon.zelle {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+        }
+        
+        .method-icon.card {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+        
+        .method-icon.cashapp {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+        }
+        
+        .method-icon i {
+            font-size: 1.25rem;
+        }
+        
+        .method-info {
+            flex: 1;
+        }
+        
+        .method-name {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .method-name .badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            font-size: 0.625rem;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .method-fee {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .method-fee.no-fee {
+            color: var(--accent-green);
+        }
+        
+        .method-amounts {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+        
+        .method-amount-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .method-amount-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        
+        .method-amount-value.savings {
+            color: var(--accent-green);
+        }
+        
+        /* Method Radio */
+        .method-radio {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-strong);
+            border-radius: 50%;
+            transition: all var(--transition-base);
+        }
+        
+        .method-card.selected .method-radio {
+            border-color: var(--accent-green);
+            background: var(--accent-green);
+        }
+        
+        .method-card.selected .method-radio::after {
+            content: '✓';
+            display: block;
+            color: white;
+            font-size: 0.875rem;
+            text-align: center;
+            line-height: 20px;
+        }
+        
+        /* ==================================
+           PAYMENT PROOF SECTION
+           ================================== */
+        
+        .proof-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+        
+        .proof-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .proof-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .proof-icon i {
+            font-size: 1.5rem;
+            color: var(--accent-purple);
+        }
+        
+        .proof-title h3 {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .proof-title p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .payment-instructions {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .instruction-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .instruction-step:last-child {
+            margin-bottom: 0;
+        }
+        
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent-purple);
+            flex-shrink: 0;
+        }
+        
+        .step-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .step-text strong {
+            color: var(--accent-purple);
+        }
+        
+        .copy-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            margin-top: 0.5rem;
+        }
+        
+        .copy-box:hover {
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        .copy-box span {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .copy-box i {
+            color: var(--accent-purple);
+        }
+        
+        /* Fee Summary */
+        .fee-summary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .fee-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+        
+        .fee-row.total {
+            border-top: 1px solid var(--border-medium);
+            margin-top: 0.5rem;
+            padding-top: 1rem;
+        }
+        
+        .fee-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .fee-value {
+            font-weight: 600;
+        }
+        
+        .fee-value.total {
+            font-size: 1.25rem;
+            color: var(--accent-green);
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(9, 9, 11, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-medium);
+            border-radius: 1.25rem;
+            padding: 2rem 3rem;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border-medium);
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Success Section */
+        .success-section {
+            text-align: center;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .success-icon i {
+            font-size: 2.5rem;
+            color: var(--accent-green);
+        }
+        
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .success-message {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Auth Section */
+        .auth-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(16, 185, 129, 0.15);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .auth-icon i {
+            font-size: 2rem;
+            color: var(--accent-green);
+        }
+        
+        .auth-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .auth-title h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-title p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Back Link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all var(--transition-base);
+        }
+        
+        .back-link:hover {
+            color: var(--accent-green);
+        }
+        
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-green);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            z-index: 200;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+        }
+        
+        .toast.error {
+            background: var(--accent-red);
+        }
+        
+        @keyframes toastIn {
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: rgba(9, 9, 11, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-subtle);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        .bottom-nav-content {
+            max-width: 28rem;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.75rem 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all var(--transition-base);
+        }
+        
+        .nav-item i { font-size: 1.25rem; }
+        
+        .nav-item span {
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .nav-item.active { color: var(--accent-green); }
+        
+        /* Stripe Card Element */
+        .stripe-card-container {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-medium);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stripe-card-container.focused {
+            border-color: var(--accent-blue);
+        }
+        
+        #card-element {
+            padding: 0.5rem 0;
+        }
+        
+        #card-errors {
+            color: var(--accent-red);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <img src="/fleetzy-logo.png" alt="Fleetzy" class="header-logo">
+            <a href="/dashboard" class="header-back">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- ============================
+             SECTION 1: AUTHENTICATION
+             ============================ -->
+        <div id="authSection" class="slide-in">
+            <div class="page-title">
+                <h1><i class="fas fa-credit-card"></i> Make a Payment</h1>
+                <p>Verify your account to continue</p>
+            </div>
+            
+            <div class="card">
+                <div class="auth-icon">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                
+                <div class="auth-title">
+                    <h2>Account Verification</h2>
+                    <p>Enter your phone and license info</p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input 
+                        type="tel" 
+                        id="authPhone" 
+                        class="form-input" 
+                        placeholder="(555) 123-4567"
+                        autocomplete="tel"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Last 4 of Driver's License</label>
+                    <input 
+                        type="text" 
+                        id="authDL" 
+                        class="form-input" 
+                        placeholder="1234"
+                        maxlength="4"
+                        pattern="\d{4}"
+                    >
+                </div>
+                
+                <button class="btn-primary" onclick="authenticate()">
+                    <i class="fas fa-arrow-right"></i>
+                    Continue
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================
+             SECTION 2: MAIN PAYMENT FLOW
+             ============================ -->
+        <div id="paymentSection" class="hidden">
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step-dot active" id="step1"></div>
+                <div class="step-dot" id="step2"></div>
+                <div class="step-dot" id="step3"></div>
+            </div>
+
+            <div class="page-title">
+                <h1><i class="fas fa-tachometer-alt"></i> Weekly Payment</h1>
+                <p>Odometer reading + payment submission</p>
+            </div>
+            
+            <!-- Payment Summary Card -->
+            <div class="card card-gradient">
+                <div class="card-title">Payment Summary</div>
+                
+                <div class="summary-row">
+                    <span class="summary-label">Vehicle</span>
+                    <span id="vehicleName" class="summary-value">---</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Weekly Rate</span>
+                    <span id="weeklyRate" class="summary-value">$0.00</span>
+                </div>
+                <div id="lateFeeRow" class="summary-row hidden">
+                    <span class="summary-label">Late Fees</span>
+                    <span id="lateFeeAmount" class="summary-value late-fee">$0.00</span>
+                </div>
+                <div id="balanceRow" class="summary-row hidden">
+                    <span class="summary-label">Previous Balance</span>
+                    <span id="previousBalance" class="summary-value">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Amount Due</span>
+                    <span id="amountDue" class="summary-value highlight">$0.00</span>
+                </div>
+            </div>
+
+            <!-- ============================
+                 STEP 1: ODOMETER READING
+                 ============================ -->
+            <div id="odometerStep" class="card odometer-section slide-in">
+                <div class="odometer-header">
+                    <div class="odometer-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <div class="odometer-title">
+                        <h3>Step 1: Odometer Reading</h3>
+                        <p>Required with each payment</p>
+                    </div>
+                </div>
+                
+                <!-- Last Reading Display -->
+                <div id="lastReadingBox" class="last-reading-box">
+                    <div>
+                        <div class="last-reading-label">Last Reading</div>
+                        <div class="last-reading-value" id="lastReadingValue">
+                            -- <span>miles</span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="last-reading-label">Date</div>
+                        <div id="lastReadingDate" style="color: var(--text-secondary);">--</div>
+                    </div>
+                </div>
+                
+                <!-- Photo Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-camera"></i> Odometer Photo
+                    </label>
+                    <div class="photo-upload-box" id="odometerUploadBox" onclick="document.getElementById('odometerPhoto').click()">
+                        <input type="file" id="odometerPhoto" accept="image/*" capture="environment" onchange="handleOdometerPhoto(this)">
+                        <div class="upload-placeholder" id="odometerPlaceholder">
+                            <i class="fas fa-camera"></i>
+                            <p>Tap to take photo of <strong>odometer</strong></p>
+                        </div>
+                        <img id="odometerPreview" class="photo-preview hidden" alt="Odometer preview">
+                    </div>
+                </div>
+                
+                <!-- Reading Input -->
+                <div class="form-group">
+                    <label class="form-label">Current Odometer Reading</label>
+                    <div class="reading-input-wrapper">
+                        <input 
+                            type="number" 
+                            id="odometerReading" 
+                            class="reading-input" 
+                            placeholder="0"
+                            min="0"
+                            oninput="validateOdometerReading()"
+                        >
+                        <span class="reading-suffix">miles</span>
+                    </div>
+                    <div id="odometerValidation"></div>
+                </div>
+                
+                <!-- Miles Driven Display -->
+                <div id="milesDrivenBox" class="miles-driven-box hidden">
+                    <div class="miles-driven-label">Miles Since Last Reading</div>
+                    <div class="miles-driven-value" id="milesDriven">0</div>
+                </div>
+                
+                <button id="odometerContinueBtn" class="btn-primary" onclick="continueToPaymentAmount()" disabled>
+                    <span>Continue to Payment</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- ============================
+                 STEP 2: PAYMENT AMOUNT
+                 ============================ -->
+            <div id="amountStep" class="card hidden">
+                <div class="back-link" onclick="goBackToOdometer()">
+                    <i class="fas fa-arrow-left"></i> Back to odometer
+                </div>
+                
+                <div class="card-title">Step 2: Payment Amount</div>
+                
+                <!-- Payment Type Selection -->
+                <div class="payment-types">
+                    <button type="button" class="payment-type-btn active" data-type="full" onclick="selectPaymentType('full')">
+                        Full Amount
+                    </button>
+                    <button type="button" class="payment-type-btn" data-type="weekly" onclick="selectPaymentType('weekly')">
+                        Weekly Only
+                    </button>
+                    <button type="button" class="payment-type-btn" data-type="custom" onclick="selectPaymentType('custom')">
+                        Custom
+                    </button>
+                </div>
+                
+                <!-- Amount Display -->
+                <div class="fee-summary" id="paymentAmountDisplay">
+                    <div class="fee-row">
+                        <span class="fee-label">You're Paying</span>
+                        <span class="fee-value total" id="selectedPaymentAmount">$0.00</span>
+                    </div>
+                </div>
+                
+                <!-- Custom Amount Input (Hidden by default) -->
+                <div id="customAmountGroup" class="form-group hidden">
+                    <label class="form-label">Enter Amount</label>
+                    <div class="reading-input-wrapper">
+                        <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.5rem; font-weight: 700;">$</span>
+                        <input 
+                            type="number" 
+                            id="customAmount" 
+                            class="reading-input" 
+                            style="padding-left: 2.5rem; text-align: left;"
+                            placeholder="0.00" 
+                            min="1" 
+                            step="0.01"
+                            oninput="updateCustomAmount()"
+                        >
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="continueToMethod()">
+                    <span>Choose Payment Method</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- ============================
+                 STEP 3: PAYMENT METHOD
+                 ============================ -->
+            <div id="methodStep" class="card hidden">
+                <div class="back-link" onclick="goBackToAmount()">
+                    <i class="fas fa-arrow-left"></i> Back to amount
+                </div>
+                
+                <div class="card-title">Step 3: Payment Method</div>
+                
+                <div class="payment-method-cards">
+                    <!-- Zelle - 0% Fee (Preferred) -->
+                    <div class="method-card preferred" onclick="selectPaymentMethod('zelle')" data-method="zelle">
+                        <div class="method-radio"></div>
+                        <div class="method-card-header">
+                            <div class="method-icon zelle">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">
+                                    Zelle
+                                    <span class="badge">⭐ Preferred</span>
+                                </div>
+                                <div class="method-fee no-fee">No processing fee!</div>
+                            </div>
+                        </div>
+                        <div class="method-amounts">
+                            <span class="method-amount-label">You Pay</span>
+                            <span id="zelleTotal" class="method-amount-value savings">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Credit Card - 3% Fee -->
+                    <div class="method-card" onclick="selectPaymentMethod('card')" data-method="card">
+                        <div class="method-radio"></div>
+                        <div class="method-card-header">
+                            <div class="method-icon card">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">Credit/Debit Card</div>
+                                <div class="method-fee">3% processing fee</div>
+                            </div>
+                        </div>
+                        <div class="method-amounts">
+                            <span class="method-amount-label">You Pay</span>
+                            <span id="cardTotal" class="method-amount-value">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Cash App - 3% Fee -->
+                    <div class="method-card" onclick="selectPaymentMethod('cashapp')" data-method="cashapp">
+                        <div class="method-radio"></div>
+                        <div class="method-card-header">
+                            <div class="method-icon cashapp">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">Cash App</div>
+                                <div class="method-fee">3% processing fee</div>
+                            </div>
+                        </div>
+                        <div class="method-amounts">
+                            <span class="method-amount-label">You Pay</span>
+                            <span id="cashappTotal" class="method-amount-value">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="continueToProofBtn" class="btn-primary" onclick="continueToProof()" disabled style="margin-top: 1.5rem;">
+                    <span>Continue</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- ============================
+                 STEP 4: PAYMENT PROOF (Zelle/CashApp)
+                 ============================ -->
+            <div id="proofStep" class="card proof-section hidden">
+                <div class="back-link" onclick="goBackToMethod()">
+                    <i class="fas fa-arrow-left"></i> Back to payment method
+                </div>
+                
+                <div class="proof-header">
+                    <div class="proof-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="proof-title">
+                        <h3 id="proofMethodTitle">Send Payment</h3>
+                        <p>Then upload your screenshot</p>
+                    </div>
+                </div>
+                
+                <!-- Payment Instructions -->
+                <div class="payment-instructions">
+                    <div class="instruction-step">
+                        <div class="step-number">1</div>
+                        <div class="step-text">Open your <strong id="proofAppName">bank app</strong></div>
+                    </div>
+                    <div class="instruction-step">
+                        <div class="step-number">2</div>
+                        <div class="step-text">Send <strong id="proofAmount">$0.00</strong> to:</div>
+                    </div>
+                    <div id="zelleInstructions">
+                        <div class="copy-box" onclick="copyPaymentInfo()">
+                            <span id="paymentRecipient">adam@getfleetzy.com</span>
+                            <i class="fas fa-copy"></i>
+                        </div>
+                    </div>
+                    <div class="instruction-step" style="margin-top: 1rem;">
+                        <div class="step-number">3</div>
+                        <div class="step-text">Take a <strong>screenshot</strong> of the confirmation</div>
+                    </div>
+                    <div class="instruction-step">
+                        <div class="step-number">4</div>
+                        <div class="step-text">Upload your screenshot below</div>
+                    </div>
+                </div>
+                
+                <!-- Fee Summary -->
+                <div class="fee-summary" id="proofFeeSummary">
+                    <div class="fee-row">
+                        <span class="fee-label">Payment Amount</span>
+                        <span class="fee-value" id="proofBaseAmount">$0.00</span>
+                    </div>
+                    <div class="fee-row" id="proofFeeRow">
+                        <span class="fee-label">Processing Fee</span>
+                        <span class="fee-value" id="proofFeeAmount">$0.00</span>
+                    </div>
+                    <div class="fee-row total">
+                        <span class="fee-label">Total to Send</span>
+                        <span class="fee-value total" id="proofTotalAmount">$0.00</span>
+                    </div>
+                </div>
+                
+                <!-- Screenshot Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-image"></i> Payment Screenshot
+                    </label>
+                    <div class="photo-upload-box" id="screenshotUploadBox" onclick="document.getElementById('screenshotPhoto').click()">
+                        <input type="file" id="screenshotPhoto" accept="image/*" onchange="handleScreenshotPhoto(this)">
+                        <div class="upload-placeholder" id="screenshotPlaceholder">
+                            <i class="fas fa-image"></i>
+                            <p>Tap to upload <strong>payment screenshot</strong></p>
+                        </div>
+                        <img id="screenshotPreview" class="photo-preview hidden" alt="Screenshot preview">
+                    </div>
+                </div>
+                
+                <button id="submitPaymentBtn" class="btn-primary" onclick="submitPayment()" disabled>
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Submit Payment for Review</span>
+                </button>
+            </div>
+
+            <!-- ============================
+                 STEP 4 ALT: CARD PAYMENT
+                 ============================ -->
+            <div id="cardStep" class="card hidden">
+                <div class="back-link" onclick="goBackToMethod()">
+                    <i class="fas fa-arrow-left"></i> Back to payment method
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div class="method-icon card" style="margin: 0 auto 1rem; width: 60px; height: 60px;">
+                        <i class="fas fa-credit-card" style="font-size: 1.75rem;"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem;">Pay with Card</h3>
+                    <p style="color: var(--text-secondary);">3% processing fee applies</p>
+                </div>
+                
+                <!-- Fee Summary -->
+                <div class="fee-summary">
+                    <div class="fee-row">
+                        <span class="fee-label">Payment Amount</span>
+                        <span class="fee-value" id="cardBaseAmount">$0.00</span>
+                    </div>
+                    <div class="fee-row">
+                        <span class="fee-label">Processing Fee (3%)</span>
+                        <span class="fee-value" id="cardFeeAmount">$0.00</span>
+                    </div>
+                    <div class="fee-row total">
+                        <span class="fee-label">Total Charge</span>
+                        <span class="fee-value total" id="cardTotalAmount">$0.00</span>
+                    </div>
+                </div>
+                
+                <!-- Stripe Card Element -->
+                <div class="form-group">
+                    <label class="form-label">Card Details</label>
+                    <div class="stripe-card-container" id="card-element-container">
+                        <div id="card-element"></div>
+                    </div>
+                    <div id="card-errors" role="alert"></div>
+                </div>
+                
+                <button id="submitCardBtn" class="btn-primary" onclick="submitCardPayment()">
+                    <i class="fas fa-lock"></i>
+                    <span id="cardSubmitText">Pay $0.00</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================
+             SUCCESS SECTION
+             ============================ -->
+        <div id="successSection" class="hidden">
+            <div class="card success-section slide-in">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                
+                <h2 class="success-title" id="successTitle">Payment Submitted!</h2>
+                <p class="success-message" id="successMessage">Your payment has been submitted for review. You'll receive a confirmation text once approved.</p>
+                
+                <div class="fee-summary" style="text-align: left; margin-bottom: 1.5rem;">
+                    <div class="fee-row">
+                        <span class="fee-label">Amount</span>
+                        <span class="fee-value" id="successAmount">$0.00</span>
+                    </div>
+                    <div class="fee-row">
+                        <span class="fee-label">Method</span>
+                        <span class="fee-value" id="successMethod">Zelle</span>
+                    </div>
+                    <div class="fee-row">
+                        <span class="fee-label">Odometer</span>
+                        <span class="fee-value" id="successOdometer">0 miles</span>
+                    </div>
+                    <div class="fee-row">
+                        <span class="fee-label">Status</span>
+                        <span class="fee-value" id="successStatus" style="color: var(--accent-amber);">Pending Review</span>
+                    </div>
+                </div>
+                
+                <button class="btn-primary" onclick="window.location.href='/dashboard'">
+                    <i class="fas fa-home"></i>
+                    Return to Dashboard
+                </button>
+                
+                <button class="btn-secondary" style="margin-top: 0.75rem;" onclick="makeAnotherPayment()">
+                    <i class="fas fa-plus"></i>
+                    Make Another Payment
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-content">
+            <a href="/dashboard" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/payment" class="nav-item active">
+                <i class="fas fa-credit-card"></i>
+                <span>Pay</span>
+            </a>
+            <a href="/dashboard#documents" class="nav-item">
+                <i class="fas fa-file-alt"></i>
+                <span>Docs</span>
+            </a>
+            <a href="tel:+12812713900" class="nav-item">
+                <i class="fas fa-headset"></i>
+                <span>Help</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        // ============================================================================
+        // FLEETZY PAYMENT PORTAL V2 - WITH ODOMETER TRACKING
+        // ============================================================================
+        
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://xmixxqtcgaydasejshwn.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtaXh4cXRjZ2F5ZGFzZWpzaHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODE5NTQsImV4cCI6MjA3ODM1Nzk1NH0.gMKEejleqvf-0iZmskUq43NUYbTW5AYPtsUgXevP2_U';
+        
+        // Stripe Configuration
+        const STRIPE_PK = 'pk_live_51SUF2jHZpdKJtYCefJh85rF5S7zzIlE6h4K6OqnGhNfNDtjm5UfFPGj5xNlsV6EMfwBauwKMH8HkfwRfx5Lj6F2D00tJnPLDyA';
+        
+        // Fee Rates
+        const FEE_RATES = {
+            zelle: 0,
+            card: 0.03,
+            cashapp: 0.03
+        };
+        
+        // Initialize Supabase
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Initialize Stripe
+        const stripe = Stripe(STRIPE_PK);
+        let stripeElements;
+        let cardElement;
+        
+        // Global State
+        let currentCustomer = null;
+        let currentRental = null;
+        let currentVehicle = null;
+        let lastOdometerReading = null;
+        
+        let selectedPaymentType = 'full';
+        let selectedPaymentMethod = null;
+        let paymentAmount = 0;
+        let totalAmountDue = 0;
+        let weeklyRate = 0;
+        let lateFees = 0;
+        let previousBalance = 0;
+        
+        let odometerPhotoFile = null;
+        let odometerPhotoUrl = null;
+        let screenshotPhotoFile = null;
+        let screenshotPhotoUrl = null;
+        let currentOdometerReading = 0;
+        
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            checkExistingSession();
+            initializeStripe();
+        });
+        
+        function initializeStripe() {
+            stripeElements = stripe.elements({
+                fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap' }]
+            });
+            
+            cardElement = stripeElements.create('card', {
+                style: {
+                    base: {
+                        color: '#fafafa',
+                        fontFamily: '"Plus Jakarta Sans", sans-serif',
+                        fontSize: '16px',
+                        '::placeholder': { color: '#71717a' }
+                    },
+                    invalid: { color: '#ef4444' }
+                }
+            });
+            
+            cardElement.on('focus', () => {
+                document.getElementById('card-element-container').classList.add('focused');
+            });
+            
+            cardElement.on('blur', () => {
+                document.getElementById('card-element-container').classList.remove('focused');
+            });
+            
+            cardElement.on('change', (event) => {
+                const displayError = document.getElementById('card-errors');
+                displayError.textContent = event.error ? event.error.message : '';
+            });
+        }
+        
+        async function checkExistingSession() {
+            const customerId = localStorage.getItem('fleetzy_customer_id');
+            const phone = localStorage.getItem('fleetzy_phone');
+            
+            if (customerId && phone) {
+                try {
+                    await loadCustomerData(customerId);
+                } catch (error) {
+                    console.log('Session invalid, showing auth');
+                    localStorage.removeItem('fleetzy_customer_id');
+                    localStorage.removeItem('fleetzy_phone');
+                }
+            }
+        }
+        
+        // ============================================================================
+        // AUTHENTICATION
+        // ============================================================================
+        
+        async function authenticate() {
+            const phoneInput = document.getElementById('authPhone').value;
+            const dlInput = document.getElementById('authDL').value;
+            
+            if (!phoneInput || !dlInput) {
+                showToast('Please enter phone and DL last 4', 'error');
+                return;
+            }
+            
+            showLoading('Verifying...');
+            
+            try {
+                // Normalize phone
+                const phone = phoneInput.replace(/\D/g, '').replace(/^1/, '');
+                
+                // Find customer
+                const { data: customer, error } = await db
+                    .from('customers')
+                    .select('*')
+                    .or(`phone.eq.${phone},phone.eq.1${phone},phone.eq.+1${phone}`)
+                    .single();
+                
+                if (error || !customer) {
+                    throw new Error('Customer not found');
+                }
+                
+                // Verify DL last 4
+                const dlNumber = customer.drivers_license_number || '';
+                const last4 = dlNumber.slice(-4);
+                
+                if (last4 !== dlInput) {
+                    throw new Error('Invalid credentials');
+                }
+                
+                // Save session
+                localStorage.setItem('fleetzy_customer_id', customer.id);
+                localStorage.setItem('fleetzy_phone', phone);
+                
+                await loadCustomerData(customer.id);
+                
+            } catch (error) {
+                console.error('Auth error:', error);
+                showToast('Invalid phone or DL number', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // ============================================================================
+        // LOAD CUSTOMER DATA
+        // ============================================================================
+        
+        async function loadCustomerData(customerId) {
+            showLoading('Loading your account...');
+            
+            try {
+                // Get customer
+                const { data: customer, error: custError } = await db
+                    .from('customers')
+                    .select('*')
+                    .eq('id', customerId)
+                    .single();
+                
+                if (custError) throw custError;
+                currentCustomer = customer;
+                
+                // Get active rental
+                const { data: rental, error: rentalError } = await db
+                    .from('rentals')
+                    .select('*, vehicles(*)')
+                    .eq('customer_id', customerId)
+                    .eq('rental_status', 'active')
+                    .single();
+                
+                if (rentalError || !rental) {
+                    throw new Error('No active rental found');
+                }
+                
+                currentRental = rental;
+                currentVehicle = rental.vehicles;
+                
+                // Calculate amounts
+                weeklyRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate || 400);
+                previousBalance = parseFloat(rental.balance_remaining || 0) - weeklyRate;
+                if (previousBalance < 0) previousBalance = 0;
+                
+                // Check for late fees (simplified - would normally check rental_charges)
+                lateFees = 0; // TODO: Calculate from rental_charges
+                
+                totalAmountDue = weeklyRate + lateFees + previousBalance;
+                paymentAmount = totalAmountDue;
+                
+                // Get last odometer reading
+                await loadLastOdometerReading();
+                
+                // Update UI
+                updatePaymentSummary();
+                
+                // Show payment section
+                document.getElementById('authSection').classList.add('hidden');
+                document.getElementById('paymentSection').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Load error:', error);
+                showToast(error.message || 'Failed to load account', 'error');
+                localStorage.removeItem('fleetzy_customer_id');
+                localStorage.removeItem('fleetzy_phone');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        async function loadLastOdometerReading() {
+            try {
+                const { data, error } = await db
+                    .from('odometer_readings')
+                    .select('*')
+                    .eq('rental_id', currentRental.id)
+                    .order('reading_date', { ascending: false })
+                    .limit(1)
+                    .single();
+                
+                if (!error && data) {
+                    lastOdometerReading = data;
+                    document.getElementById('lastReadingValue').innerHTML = 
+                        `${data.reading_value.toLocaleString()} <span>miles</span>`;
+                    document.getElementById('lastReadingDate').textContent = 
+                        new Date(data.reading_date).toLocaleDateString();
+                } else {
+                    // No previous reading - use vehicle's current mileage as baseline
+                    const vehicleMileage = currentVehicle?.current_mileage || currentRental?.start_mileage || 0;
+                    lastOdometerReading = { reading_value: vehicleMileage };
+                    document.getElementById('lastReadingValue').innerHTML = 
+                        `${vehicleMileage.toLocaleString()} <span>miles (start)</span>`;
+                    document.getElementById('lastReadingDate').textContent = 'Rental Start';
+                }
+            } catch (error) {
+                console.log('No previous odometer reading');
+                lastOdometerReading = { reading_value: currentVehicle?.current_mileage || 0 };
+            }
+        }
+        
+        function updatePaymentSummary() {
+            document.getElementById('vehicleName').textContent = 
+                `${currentVehicle.year} ${currentVehicle.make} ${currentVehicle.model}`;
+            document.getElementById('weeklyRate').textContent = formatCurrency(weeklyRate);
+            document.getElementById('amountDue').textContent = formatCurrency(totalAmountDue);
+            
+            // Show late fees if any
+            if (lateFees > 0) {
+                document.getElementById('lateFeeRow').classList.remove('hidden');
+                document.getElementById('lateFeeAmount').textContent = formatCurrency(lateFees);
+            }
+            
+            // Show previous balance if any
+            if (previousBalance > 0) {
+                document.getElementById('balanceRow').classList.remove('hidden');
+                document.getElementById('previousBalance').textContent = formatCurrency(previousBalance);
+            }
+            
+            // Update method totals
+            updateMethodTotals();
+        }
+        
+        function updateMethodTotals() {
+            document.getElementById('zelleTotal').textContent = formatCurrency(paymentAmount);
+            document.getElementById('cardTotal').textContent = formatCurrency(paymentAmount * (1 + FEE_RATES.card));
+            document.getElementById('cashappTotal').textContent = formatCurrency(paymentAmount * (1 + FEE_RATES.cashapp));
+            document.getElementById('selectedPaymentAmount').textContent = formatCurrency(paymentAmount);
+        }
+        
+        // ============================================================================
+        // ODOMETER HANDLING
+        // ============================================================================
+        
+        function handleOdometerPhoto(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            odometerPhotoFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('odometerPreview');
+                const placeholder = document.getElementById('odometerPlaceholder');
+                const box = document.getElementById('odometerUploadBox');
+                
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                box.classList.add('has-photo');
+                
+                validateOdometerReading();
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function validateOdometerReading() {
+            const readingInput = document.getElementById('odometerReading');
+            const reading = parseInt(readingInput.value) || 0;
+            const validation = document.getElementById('odometerValidation');
+            const continueBtn = document.getElementById('odometerContinueBtn');
+            const milesDrivenBox = document.getElementById('milesDrivenBox');
+            const milesDriven = document.getElementById('milesDriven');
+            
+            currentOdometerReading = reading;
+            const lastReading = lastOdometerReading?.reading_value || 0;
+            const diff = reading - lastReading;
+            
+            // Reset
+            validation.innerHTML = '';
+            continueBtn.disabled = true;
+            milesDrivenBox.classList.add('hidden');
+            
+            if (!odometerPhotoFile) {
+                validation.innerHTML = `
+                    <div class="validation-message warning">
+                        <i class="fas fa-camera"></i>
+                        Please take a photo of your odometer
+                    </div>
+                `;
+                return;
+            }
+            
+            if (reading === 0) {
+                validation.innerHTML = `
+                    <div class="validation-message warning">
+                        <i class="fas fa-info-circle"></i>
+                        Enter your current odometer reading
+                    </div>
+                `;
+                return;
+            }
+            
+            if (reading < lastReading) {
+                validation.innerHTML = `
+                    <div class="validation-message error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Reading cannot be less than last reading (${lastReading.toLocaleString()} miles)
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show miles driven
+            milesDriven.textContent = `${diff.toLocaleString()} miles`;
+            milesDrivenBox.classList.remove('hidden');
+            
+            if (diff === 0) {
+                validation.innerHTML = `
+                    <div class="validation-message warning">
+                        <i class="fas fa-info-circle"></i>
+                        Same as last reading - no driving recorded
+                    </div>
+                `;
+            } else if (diff > 800) {
+                validation.innerHTML = `
+                    <div class="validation-message warning">
+                        <i class="fas fa-exclamation-circle"></i>
+                        High mileage (${diff.toLocaleString()} miles) - will be reviewed
+                    </div>
+                `;
+            } else {
+                validation.innerHTML = `
+                    <div class="validation-message success">
+                        <i class="fas fa-check-circle"></i>
+                        Odometer reading verified
+                    </div>
+                `;
+            }
+            
+            continueBtn.disabled = false;
+        }
+        
+        // ============================================================================
+        // NAVIGATION BETWEEN STEPS
+        // ============================================================================
+        
+        function continueToPaymentAmount() {
+            if (!odometerPhotoFile || currentOdometerReading === 0) {
+                showToast('Please complete odometer reading', 'error');
+                return;
+            }
+            
+            // Update step indicators
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step1').classList.add('completed');
+            document.getElementById('step2').classList.add('active');
+            
+            // Show amount step
+            document.getElementById('odometerStep').classList.add('hidden');
+            document.getElementById('amountStep').classList.remove('hidden');
+            document.getElementById('amountStep').classList.add('slide-in');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function goBackToOdometer() {
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step1').classList.remove('completed');
+            document.getElementById('step1').classList.add('active');
+            
+            document.getElementById('amountStep').classList.add('hidden');
+            document.getElementById('odometerStep').classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function selectPaymentType(type) {
+            selectedPaymentType = type;
+            
+            // Update button states
+            document.querySelectorAll('.payment-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // Calculate amount
+            const customGroup = document.getElementById('customAmountGroup');
+            
+            if (type === 'full') {
+                paymentAmount = totalAmountDue;
+                customGroup.classList.add('hidden');
+            } else if (type === 'weekly') {
+                paymentAmount = weeklyRate;
+                customGroup.classList.add('hidden');
+            } else {
+                customGroup.classList.remove('hidden');
+                const customInput = document.getElementById('customAmount');
+                paymentAmount = parseFloat(customInput.value) || 0;
+            }
+            
+            updateMethodTotals();
+        }
+        
+        function updateCustomAmount() {
+            const customInput = document.getElementById('customAmount');
+            paymentAmount = parseFloat(customInput.value) || 0;
+            updateMethodTotals();
+        }
+        
+        function continueToMethod() {
+            if (paymentAmount <= 0) {
+                showToast('Please enter a valid amount', 'error');
+                return;
+            }
+            
+            // Update step indicators
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step2').classList.add('completed');
+            document.getElementById('step3').classList.add('active');
+            
+            // Show method step
+            document.getElementById('amountStep').classList.add('hidden');
+            document.getElementById('methodStep').classList.remove('hidden');
+            document.getElementById('methodStep').classList.add('slide-in');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function goBackToAmount() {
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('step2').classList.remove('completed');
+            document.getElementById('step2').classList.add('active');
+            
+            document.getElementById('methodStep').classList.add('hidden');
+            document.getElementById('amountStep').classList.remove('hidden');
+            
+            selectedPaymentMethod = null;
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('continueToProofBtn').disabled = true;
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            
+            // Update selection UI
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-method="${method}"]`).classList.add('selected');
+            
+            // Enable continue button
+            document.getElementById('continueToProofBtn').disabled = false;
+        }
+        
+        function continueToProof() {
+            if (!selectedPaymentMethod) {
+                showToast('Please select a payment method', 'error');
+                return;
+            }
+            
+            // Hide method step
+            document.getElementById('methodStep').classList.add('hidden');
+            
+            if (selectedPaymentMethod === 'card') {
+                showCardPayment();
+            } else {
+                showProofUpload();
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function goBackToMethod() {
+            document.getElementById('proofStep').classList.add('hidden');
+            document.getElementById('cardStep').classList.add('hidden');
+            document.getElementById('methodStep').classList.remove('hidden');
+            
+            // Reset screenshot
+            screenshotPhotoFile = null;
+            screenshotPhotoUrl = null;
+            document.getElementById('screenshotPreview').classList.add('hidden');
+            document.getElementById('screenshotPlaceholder').classList.remove('hidden');
+            document.getElementById('screenshotUploadBox').classList.remove('has-photo');
+            document.getElementById('submitPaymentBtn').disabled = true;
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // ============================================================================
+        // PAYMENT PROOF (ZELLE/CASHAPP)
+        // ============================================================================
+        
+        function showProofUpload() {
+            const isZelle = selectedPaymentMethod === 'zelle';
+            const fee = paymentAmount * FEE_RATES[selectedPaymentMethod];
+            const total = paymentAmount + fee;
+            
+            // Update proof section
+            document.getElementById('proofMethodTitle').textContent = 
+                isZelle ? 'Pay with Zelle' : 'Pay with Cash App';
+            document.getElementById('proofAppName').textContent = 
+                isZelle ? 'bank app' : 'Cash App';
+            document.getElementById('proofAmount').textContent = formatCurrency(total);
+            
+            document.getElementById('paymentRecipient').textContent = 
+                isZelle ? 'adam@getfleetzy.com' : '$FleetzyHouston';
+            
+            // Update fee summary
+            document.getElementById('proofBaseAmount').textContent = formatCurrency(paymentAmount);
+            document.getElementById('proofFeeAmount').textContent = formatCurrency(fee);
+            document.getElementById('proofFeeAmount').style.color = fee > 0 ? 'var(--accent-amber)' : 'var(--accent-green)';
+            document.getElementById('proofTotalAmount').textContent = formatCurrency(total);
+            
+            if (fee === 0) {
+                document.getElementById('proofFeeRow').style.display = 'none';
+            } else {
+                document.getElementById('proofFeeRow').style.display = 'flex';
+            }
+            
+            // Show proof section
+            document.getElementById('proofStep').classList.remove('hidden');
+            document.getElementById('proofStep').classList.add('slide-in');
+        }
+        
+        function handleScreenshotPhoto(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            screenshotPhotoFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const preview = document.getElementById('screenshotPreview');
+                const placeholder = document.getElementById('screenshotPlaceholder');
+                const box = document.getElementById('screenshotUploadBox');
+                
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                box.classList.add('has-photo');
+                
+                document.getElementById('submitPaymentBtn').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function copyPaymentInfo() {
+            const isZelle = selectedPaymentMethod === 'zelle';
+            const text = isZelle ? 'adam@getfleetzy.com' : '$FleetzyHouston';
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard!');
+            }).catch(() => {
+                showToast('Copy manually: ' + text);
+            });
+        }
+        
+        // ============================================================================
+        // CARD PAYMENT
+        // ============================================================================
+        
+        function showCardPayment() {
+            const fee = paymentAmount * FEE_RATES.card;
+            const total = paymentAmount + fee;
+            
+            document.getElementById('cardBaseAmount').textContent = formatCurrency(paymentAmount);
+            document.getElementById('cardFeeAmount').textContent = formatCurrency(fee);
+            document.getElementById('cardTotalAmount').textContent = formatCurrency(total);
+            document.getElementById('cardSubmitText').textContent = `Pay ${formatCurrency(total)}`;
+            
+            // Mount Stripe element
+            cardElement.mount('#card-element');
+            
+            document.getElementById('cardStep').classList.remove('hidden');
+            document.getElementById('cardStep').classList.add('slide-in');
+        }
+        
+        async function submitCardPayment() {
+            const submitBtn = document.getElementById('submitCardBtn');
+            submitBtn.disabled = true;
+            showLoading('Processing payment...');
+            
+            try {
+                // First upload odometer photo
+                await uploadOdometerPhoto();
+                
+                // Create payment intent via Edge Function
+                const fee = paymentAmount * FEE_RATES.card;
+                const total = Math.round((paymentAmount + fee) * 100); // cents
+                
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/create-payment-intent`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        amount: total,
+                        customer_id: currentCustomer.id,
+                        rental_id: currentRental.id,
+                        metadata: {
+                            customer_name: `${currentCustomer.first_name} ${currentCustomer.last_name}`,
+                            vehicle: `${currentVehicle.year} ${currentVehicle.make} ${currentVehicle.model}`,
+                            odometer_reading: currentOdometerReading
+                        }
+                    })
+                });
+                
+                const { clientSecret, error: intentError } = await response.json();
+                if (intentError) throw new Error(intentError);
+                
+                // Confirm payment with Stripe
+                const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: { card: cardElement }
+                });
+                
+                if (stripeError) throw new Error(stripeError.message);
+                
+                // Create odometer record
+                await createOdometerRecord(null); // Payment ID will be linked by webhook
+                
+                // Create payment record (will be confirmed by Stripe webhook)
+                const { data: payment, error: payError } = await db
+                    .from('payments')
+                    .insert({
+                        rental_id: currentRental.id,
+                        customer_id: currentCustomer.id,
+                        paid_amount: paymentAmount,
+                        paid_date: new Date().toISOString().split('T')[0],
+                        payment_method: 'card',
+                        transaction_id: paymentIntent.id,
+                        payment_status: 'confirmed',
+                        notes: `Odometer: ${currentOdometerReading} miles`
+                    })
+                    .select()
+                    .single();
+                
+                if (payError) console.error('Payment record error:', payError);
+                
+                // Update odometer with payment ID
+                if (payment) {
+                    await db
+                        .from('odometer_readings')
+                        .update({ payment_id: payment.id })
+                        .eq('rental_id', currentRental.id)
+                        .eq('reading_value', currentOdometerReading);
+                }
+                
+                showSuccess('card', true);
+                
+            } catch (error) {
+                console.error('Card payment error:', error);
+                showToast(error.message || 'Payment failed', 'error');
+                submitBtn.disabled = false;
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // ============================================================================
+        // SUBMIT PAYMENT (ZELLE/CASHAPP)
+        // ============================================================================
+        
+        async function submitPayment() {
+            if (!screenshotPhotoFile) {
+                showToast('Please upload payment screenshot', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitPaymentBtn');
+            submitBtn.disabled = true;
+            showLoading('Submitting payment...');
+            
+            try {
+                // Upload odometer photo
+                await uploadOdometerPhoto();
+                
+                // Upload screenshot
+                await uploadScreenshotPhoto();
+                
+                // Create payment record (pending)
+                const fee = paymentAmount * FEE_RATES[selectedPaymentMethod];
+                const total = paymentAmount + fee;
+                
+                const { data: payment, error: payError } = await db
+                    .from('payments')
+                    .insert({
+                        rental_id: currentRental.id,
+                        customer_id: currentCustomer.id,
+                        paid_amount: paymentAmount,
+                        paid_date: new Date().toISOString().split('T')[0],
+                        payment_method: selectedPaymentMethod,
+                        payment_screenshot_url: screenshotPhotoUrl,
+                        payment_status: 'pending',
+                        notes: `Odometer: ${currentOdometerReading} miles. Total sent: ${formatCurrency(total)}`
+                    })
+                    .select()
+                    .single();
+                
+                if (payError) throw payError;
+                
+                // Create odometer record with payment link
+                await createOdometerRecord(payment.id);
+                
+                showSuccess(selectedPaymentMethod, false);
+                
+            } catch (error) {
+                console.error('Submit error:', error);
+                showToast(error.message || 'Submission failed', 'error');
+                submitBtn.disabled = false;
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        async function uploadOdometerPhoto() {
+            if (!odometerPhotoFile) return;
+            
+            const timestamp = Date.now();
+            const fileName = `odometer_${currentCustomer.id}_${timestamp}.jpg`;
+            const filePath = `${currentRental.id}/${fileName}`;
+            
+            const { data, error } = await db.storage
+                .from('inspection_photos')
+                .upload(filePath, odometerPhotoFile, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+            
+            if (error) throw error;
+            
+            const { data: urlData } = db.storage
+                .from('inspection_photos')
+                .getPublicUrl(filePath);
+            
+            odometerPhotoUrl = urlData.publicUrl;
+        }
+        
+        async function uploadScreenshotPhoto() {
+            if (!screenshotPhotoFile) return;
+            
+            const timestamp = Date.now();
+            const fileName = `payment_${currentCustomer.id}_${timestamp}.jpg`;
+            const filePath = `${currentRental.id}/${fileName}`;
+            
+            const { data, error } = await db.storage
+                .from('payment-screenshots')
+                .upload(filePath, screenshotPhotoFile, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+            
+            if (error) throw error;
+            
+            const { data: urlData } = db.storage
+                .from('payment-screenshots')
+                .getPublicUrl(filePath);
+            
+            screenshotPhotoUrl = urlData.publicUrl;
+        }
+        
+        async function createOdometerRecord(paymentId) {
+            const { error } = await db
+                .from('odometer_readings')
+                .insert({
+                    rental_id: currentRental.id,
+                    vehicle_id: currentVehicle.id,
+                    customer_id: currentCustomer.id,
+                    payment_id: paymentId,
+                    reading_value: currentOdometerReading,
+                    photo_url: odometerPhotoUrl,
+                    reading_date: new Date().toISOString(),
+                    submitted_via: 'payment_portal'
+                });
+            
+            if (error) {
+                console.error('Odometer record error:', error);
+                // Don't throw - payment is more important
+            }
+        }
+        
+        // ============================================================================
+        // SUCCESS SCREEN
+        // ============================================================================
+        
+        function showSuccess(method, isAutoConfirmed) {
+            // Hide all payment sections
+            document.getElementById('paymentSection').classList.add('hidden');
+            
+            // Update success content
+            const methodNames = {
+                zelle: 'Zelle',
+                card: 'Credit/Debit Card',
+                cashapp: 'Cash App'
+            };
+            
+            if (isAutoConfirmed) {
+                document.getElementById('successTitle').textContent = 'Payment Confirmed!';
+                document.getElementById('successMessage').textContent = 
+                    'Your payment has been processed successfully.';
+                document.getElementById('successStatus').textContent = 'Confirmed';
+                document.getElementById('successStatus').style.color = 'var(--accent-green)';
+            } else {
+                document.getElementById('successTitle').textContent = 'Payment Submitted!';
+                document.getElementById('successMessage').textContent = 
+                    'Your payment has been submitted for review. You\'ll receive a confirmation text once approved.';
+                document.getElementById('successStatus').textContent = 'Pending Review';
+                document.getElementById('successStatus').style.color = 'var(--accent-amber)';
+            }
+            
+            const fee = paymentAmount * FEE_RATES[method];
+            const total = paymentAmount + fee;
+            
+            document.getElementById('successAmount').textContent = formatCurrency(total);
+            document.getElementById('successMethod').textContent = methodNames[method];
+            document.getElementById('successOdometer').textContent = 
+                `${currentOdometerReading.toLocaleString()} miles`;
+            
+            // Show success section
+            document.getElementById('successSection').classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function makeAnotherPayment() {
+            // Reset state
+            odometerPhotoFile = null;
+            odometerPhotoUrl = null;
+            screenshotPhotoFile = null;
+            screenshotPhotoUrl = null;
+            currentOdometerReading = 0;
+            selectedPaymentMethod = null;
+            selectedPaymentType = 'full';
+            paymentAmount = totalAmountDue;
+            
+            // Reset UI
+            document.getElementById('odometerPhoto').value = '';
+            document.getElementById('odometerPreview').classList.add('hidden');
+            document.getElementById('odometerPlaceholder').classList.remove('hidden');
+            document.getElementById('odometerUploadBox').classList.remove('has-photo');
+            document.getElementById('odometerReading').value = '';
+            document.getElementById('odometerValidation').innerHTML = '';
+            document.getElementById('odometerContinueBtn').disabled = true;
+            document.getElementById('milesDrivenBox').classList.add('hidden');
+            
+            document.getElementById('screenshotPhoto').value = '';
+            document.getElementById('screenshotPreview').classList.add('hidden');
+            document.getElementById('screenshotPlaceholder').classList.remove('hidden');
+            document.getElementById('screenshotUploadBox').classList.remove('has-photo');
+            document.getElementById('submitPaymentBtn').disabled = true;
+            
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('continueToProofBtn').disabled = true;
+            
+            // Reset steps
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('step1').classList.remove('completed');
+            document.getElementById('step2').classList.remove('active', 'completed');
+            document.getElementById('step3').classList.remove('active', 'completed');
+            
+            // Show odometer step
+            document.getElementById('odometerStep').classList.remove('hidden');
+            document.getElementById('amountStep').classList.add('hidden');
+            document.getElementById('methodStep').classList.add('hidden');
+            document.getElementById('proofStep').classList.add('hidden');
+            document.getElementById('cardStep').classList.add('hidden');
+            
+            // Hide success, show payment
+            document.getElementById('successSection').classList.add('hidden');
+            document.getElementById('paymentSection').classList.remove('hidden');
+            
+            // Reload last odometer reading
+            loadLastOdometerReading();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // ============================================================================
+        // UTILITIES
+        // ============================================================================
+        
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount || 0);
+        }
+        
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+        
+        function showToast(message, type = 'success') {
+            // Remove existing toasts
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
