@@ -2454,9 +2454,13 @@
                 const fee = paymentAmount * FEE_RATES[selectedPaymentMethod];
                 const total = paymentAmount + fee;
                 
+                // Generate payment_id
+                const paymentId = 'P-' + Date.now();
+                
                 const { data: payment, error: payError } = await db
                     .from('payments')
                     .insert({
+                        payment_id: paymentId,
                         rental_id: currentRental.id,
                         customer_id: currentCustomer.id,
                         paid_amount: paymentAmount,
