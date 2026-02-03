@@ -852,7 +852,7 @@ const ActivityLog = {
         }
         this.render();
         Utils.toastSuccess('Activity log refreshed');
-    }
+    },
 
     /**
      * Clear all filters and reload
