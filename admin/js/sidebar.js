@@ -44,6 +44,12 @@ const Sidebar = {
             icon: 'fa-receipt',
             loader: () => Expenses?.init?.()
         },
+        'activity-log': {
+            title: 'Activity Log',
+            subtitle: 'Track customer payments, late fees, and account activities.',
+            icon: 'fa-history',
+            loader: () => ActivityLog?.init?.()
+        },
         reports: {
             title: 'Reports & Analytics',
             subtitle: 'View financial reports, trends, and AI insights.',

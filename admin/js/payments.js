@@ -895,7 +895,34 @@ const Payments = {
     },
 
     /**
-     * Approve payment
+     * Calculate late fee based on days late
+     * Formula: $50 flat on day 1, then +$10 per additional day
+     * Day 1 = $50, Day 2 = $60, Day 3 = $70, etc.
+     */
+    calculateLateFee(daysLate) {
+        if (daysLate <= 0) return 0;
+        return 50 + (Math.max(0, daysLate - 1) * 10);
+    },
+
+    /**
+     * Calculate days late between due date and paid date
+     */
+    calculateDaysLate(dueDate, paidDate) {
+        if (!dueDate || !paidDate) return 0;
+        
+        // Parse dates carefully to avoid timezone issues
+        const due = new Date(dueDate + 'T00:00:00');
+        const paid = new Date(paidDate);
+        paid.setHours(0, 0, 0, 0);
+        
+        const diffTime = paid - due;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        return Math.max(0, diffDays);
+    },
+
+    /**
+     * Approve payment with late fee calculation and activity logging
      */
     async approve(paymentId) {
         const payment = this.data.find(p => p.id === paymentId);
@@ -908,26 +935,48 @@ const Payments = {
         const customerName = payment.customer?.full_name || 'Unknown';
         const amount = Utils.formatCurrency(payment.paid_amount || 0);
         
-        if (!confirm(`Approve payment of ${amount} from ${customerName}?`)) {
+        // Calculate if payment is late
+        const daysLate = this.calculateDaysLate(payment.due_date, payment.paid_date);
+        const isLate = daysLate > 0;
+        const lateFee = this.calculateLateFee(daysLate);
+        
+        // Build confirmation message
+        let confirmMsg = `Approve payment of ${amount} from ${customerName}?`;
+        if (isLate) {
+            confirmMsg += `\n\n⚠️ LATE PAYMENT: ${daysLate} day${daysLate > 1 ? 's' : ''} late`;
+            confirmMsg += `\n💰 Auto Late Fee: ${Utils.formatCurrency(lateFee)}`;
+            confirmMsg += `\n(Formula: $50 + $10/day after day 1)`;
+        }
+        
+        if (!confirm(confirmMsg)) {
             return;
         }
         
         try {
-            // Update payment status
+            // Update payment status with late info
+            const paymentUpdate = {
+                payment_status: 'confirmed',
+                approved_by: 'Admin',
+                approved_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                is_late: isLate,
+                days_late: daysLate,
+                late_fees: lateFee
+            };
+
             const { error: paymentError } = await db
                 .from('payments')
-                .update({
-                    payment_status: 'confirmed',
-                    approved_by: 'Admin',
-                    approved_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
+                .update(paymentUpdate)
                 .eq('id', paymentId);
             
             if (paymentError) throw paymentError;
             
+            // If late, create late fee charge in rental_charges
+            if (isLate && lateFee > 0 && payment.rental_id) {
+                await this.createLateFeeCharge(payment, daysLate, lateFee);
+            }
+            
             // Mark any pending charges for this rental as applied to this payment
-            // This covers tolls, late fees, etc. that were included in this payment
             if (payment.rental_id) {
                 const { error: chargesError } = await db
                     .from('rental_charges')
@@ -937,11 +986,11 @@ const Payments = {
                         applied_at: new Date().toISOString()
                     })
                     .eq('rental_id', payment.rental_id)
-                    .eq('status', 'pending');
+                    .eq('status', 'pending')
+                    .neq('charge_type', 'late_fee'); // Don't auto-apply the fee we just created
                 
                 if (chargesError) {
                     console.warn('Could not update charges:', chargesError);
-                    // Don't throw - charges table might not exist or have no pending items
                 }
             }
             
@@ -950,12 +999,144 @@ const Payments = {
                 await this.updateRentalAfterPayment(payment.rental_id, payment.paid_amount, payment.paid_date);
             }
             
-            Utils.toastSuccess('Payment approved successfully');
+            // Update customer stats and log activity
+            await this.updateCustomerAfterPayment(payment, isLate, daysLate, lateFee);
+            
+            // Show success message
+            if (isLate) {
+                Utils.toastSuccess(`Payment approved. Late fee of ${Utils.formatCurrency(lateFee)} added.`);
+            } else {
+                Utils.toastSuccess('Payment approved successfully');
+            }
+            
             await this.load(); // Refresh data
             
         } catch (error) {
             console.error('Error approving payment:', error);
             Utils.toastError('Failed to approve payment');
+        }
+    },
+
+    /**
+     * Create late fee charge in rental_charges table
+     */
+    async createLateFeeCharge(payment, daysLate, lateFee) {
+        try {
+            // Generate charge ID
+            const { data: existingCharges } = await db
+                .from('rental_charges')
+                .select('charge_id')
+                .order('created_at', { ascending: false })
+                .limit(1);
+            
+            let nextNum = 1;
+            if (existingCharges && existingCharges.length > 0 && existingCharges[0].charge_id) {
+                const match = existingCharges[0].charge_id.match(/CHG-(\d+)/);
+                if (match) nextNum = parseInt(match[1]) + 1;
+            }
+            const chargeId = `CHG-${String(nextNum).padStart(4, '0')}`;
+            
+            const chargeRecord = {
+                charge_id: chargeId,
+                rental_id: payment.rental_id,
+                customer_id: payment.customer_id,
+                charge_type: 'late_fee',
+                amount: lateFee,
+                description: `Late fee: ${daysLate} day${daysLate > 1 ? 's' : ''} late ($50 + $${Math.max(0, daysLate - 1) * 10})`,
+                charge_date: new Date().toISOString().split('T')[0],
+                status: 'pending', // Will need to be collected with next payment
+                notes: `Auto-generated for payment ${payment.payment_id || payment.id}`
+            };
+            
+            const { data: charge, error } = await db
+                .from('rental_charges')
+                .insert(chargeRecord)
+                .select()
+                .single();
+            
+            if (error) {
+                console.error('Error creating late fee charge:', error);
+                return null;
+            }
+            
+            console.log(`✅ Late fee charge created: ${chargeId} for $${lateFee}`);
+            
+            // Log to activity log
+            if (typeof ActivityLog !== 'undefined') {
+                await ActivityLog.logLateFee(
+                    payment.customer_id, 
+                    payment.rental_id, 
+                    lateFee, 
+                    daysLate,
+                    charge?.id
+                );
+            }
+            
+            return charge;
+            
+        } catch (error) {
+            console.error('Error in createLateFeeCharge:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Update customer stats after payment and log activity
+     */
+    async updateCustomerAfterPayment(payment, isLate, daysLate, lateFee) {
+        try {
+            // Get current customer data
+            const { data: customer, error: fetchError } = await db
+                .from('customers')
+                .select('late_payment_count, payment_reliability_score')
+                .eq('id', payment.customer_id)
+                .single();
+            
+            if (fetchError) {
+                console.warn('Could not fetch customer:', fetchError);
+                return;
+            }
+            
+            // Calculate new stats
+            const currentLateCount = customer.late_payment_count || 0;
+            const currentScore = parseFloat(customer.payment_reliability_score) || 5.0;
+            
+            let newLateCount = currentLateCount;
+            let newScore = currentScore;
+            
+            if (isLate) {
+                // Increment late count
+                newLateCount = currentLateCount + 1;
+                // Decrease reliability score (-0.5 for late, capped at 0)
+                newScore = Math.max(0, currentScore - 0.5);
+            } else {
+                // Increase reliability score (+0.5 for on-time, capped at 10)
+                newScore = Math.min(10, currentScore + 0.5);
+            }
+            
+            // Update customer
+            const { error: updateError } = await db
+                .from('customers')
+                .update({
+                    late_payment_count: newLateCount,
+                    payment_reliability_score: newScore,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', payment.customer_id);
+            
+            if (updateError) {
+                console.warn('Could not update customer stats:', updateError);
+            } else {
+                console.log(`✅ Customer stats updated: late_count=${newLateCount}, score=${newScore}`);
+            }
+            
+            // Log payment activity
+            if (typeof ActivityLog !== 'undefined') {
+                await ActivityLog.logPayment(payment, isLate, daysLate);
+            }
+            
+        } catch (error) {
+            console.error('Error updating customer after payment:', error);
         }
     },
     
