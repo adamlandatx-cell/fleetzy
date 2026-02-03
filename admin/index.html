@@ -74,6 +74,11 @@
                 <span>Expenses</span>
             </div>
             
+            <div class="nav-item" data-section="activity-log">
+                <i class="fas fa-history"></i>
+                <span>Activity Log</span>
+            </div>
+            
             <div class="nav-divider"></div>
             
             <div class="nav-item" data-section="reports">
@@ -2860,6 +2865,93 @@
             </div>
         </section>
 
+
+        <!-- ============================================
+             ACTIVITY LOG SECTION
+        ============================================ -->
+        <section id="section-activity-log" class="content-section" style="display: none;">
+            <!-- Activity Log Header -->
+            <div class="section-header">
+                <div class="section-header-left">
+                    <h1><i class="fas fa-history"></i> Activity Log</h1>
+                    <p class="section-subtitle">Track all customer payments, late fees, and account activities</p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-row" style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+                <div class="search-box" style="flex: 1; min-width: 200px;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="activity-search" placeholder="Search by customer name or description..." onkeyup="ActivityLog.filter()">
+                </div>
+                
+                <select id="activity-type-filter" class="filter-select" onchange="ActivityLog.filter()" style="min-width: 150px;">
+                    <option value="">All Activity Types</option>
+                    <option value="payment">Payments</option>
+                    <option value="late_payment">Late Payments</option>
+                    <option value="late_fee">Late Fees</option>
+                    <option value="deposit">Deposits</option>
+                    <option value="deposit_adjustment">Deposit Adjustments</option>
+                    <option value="note">Notes</option>
+                    <option value="rental_start">Rental Started</option>
+                    <option value="rental_end">Rental Ended</option>
+                    <option value="status_change">Status Changes</option>
+                </select>
+
+                <select id="activity-customer-filter" class="filter-select" onchange="ActivityLog.filter()" style="min-width: 200px;">
+                    <option value="">All Customers</option>
+                    <!-- Will be populated dynamically -->
+                </select>
+
+                <input type="date" id="activity-date-from" class="filter-input" placeholder="From Date" onchange="ActivityLog.filter()">
+                <input type="date" id="activity-date-to" class="filter-input" placeholder="To Date" onchange="ActivityLog.filter()">
+
+                <button class="btn-secondary" onclick="ActivityLog.clearFilters()" style="padding: 8px 16px;">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+
+            <!-- Activity Table -->
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="data-table" id="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Customer</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-table-body">
+                            <tr>
+                                <td colspan="6" class="loading-cell">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading activities...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                <div class="pagination-info" id="activity-pagination-info">
+                    Showing 0-0 of 0 activities
+                </div>
+                <div class="pagination-controls" style="display: flex; gap: 8px;">
+                    <button class="btn-secondary" id="activity-prev-btn" onclick="ActivityLog.prevPage()" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <button class="btn-secondary" id="activity-next-btn" onclick="ActivityLog.nextPage()" disabled>
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
         <!-- ============================================
              SETTINGS SECTION (Placeholder)
         ============================================ -->
@@ -3307,6 +3399,7 @@
     <script src="js/reports.js"></script>
     <script src="js/documents.js"></script>
     <script src="js/charges.js"></script>
+    <script src="js/activity-log.js"></script>
     <script src="js/upcoming-payments.js"></script>
     <script src="js/expenses.js"></script>
     <script src="js/vehicle-swap.js"></script>
