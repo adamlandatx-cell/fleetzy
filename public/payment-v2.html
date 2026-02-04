@@ -1178,7 +1178,7 @@
                     <span id="weeklyRate" class="summary-value">$0.00</span>
                 </div>
                 <div id="lateFeeRow" class="summary-row hidden">
-                    <span class="summary-label">Late Fees</span>
+                    <span id="lateFeeLabel" class="summary-label">Pending Charges</span>
                     <span id="lateFeeAmount" class="summary-value late-fee">$0.00</span>
                 </div>
                 <div id="balanceRow" class="summary-row hidden">
@@ -1871,11 +1871,42 @@
                 
                 // Calculate amounts
                 weeklyRate = parseFloat(rental.current_weekly_rate || rental.weekly_rate || 400);
-                previousBalance = parseFloat(rental.balance_remaining || 0) - weeklyRate;
-                if (previousBalance < 0) previousBalance = 0;
                 
-                // Check for late fees (simplified - would normally check rental_charges)
-                lateFees = 0; // TODO: Calculate from rental_charges
+                // Get pending charges from rental_charges table (late fees, tolls, etc.)
+                const { data: pendingCharges, error: chargesError } = await db
+                    .from('rental_charges')
+                    .select('amount, charge_type, description')
+                    .eq('rental_id', rental.id)
+                    .eq('status', 'pending');
+                
+                if (chargesError) {
+                    console.error('Error fetching pending charges:', chargesError);
+                }
+                
+                // Calculate total pending charges
+                let pendingChargesTotal = 0;
+                let pendingChargesList = [];
+                if (pendingCharges && pendingCharges.length > 0) {
+                    pendingCharges.forEach(charge => {
+                        pendingChargesTotal += parseFloat(charge.amount || 0);
+                        pendingChargesList.push({
+                            type: charge.charge_type,
+                            description: charge.description,
+                            amount: parseFloat(charge.amount || 0)
+                        });
+                    });
+                }
+                
+                // Late fees now comes from pending charges
+                lateFees = pendingChargesTotal;
+                
+                // Store pending charges for display
+                window.pendingChargesList = pendingChargesList;
+                
+                // Previous balance calculation (anything owed beyond this week's rent + pending charges)
+                // balance_remaining includes the current week's rent, so subtract it
+                const totalOwed = parseFloat(rental.balance_remaining || 0);
+                previousBalance = Math.max(0, totalOwed - weeklyRate);
                 
                 totalAmountDue = weeklyRate + lateFees + previousBalance;
                 paymentAmount = totalAmountDue;
@@ -1949,16 +1980,43 @@
             document.getElementById('weeklyRate').textContent = formatCurrency(weeklyRate);
             document.getElementById('amountDue').textContent = formatCurrency(totalAmountDue);
             
-            // Show late fees if any
+            // Show pending charges if any (late fees, tolls, etc.)
             if (lateFees > 0) {
                 document.getElementById('lateFeeRow').classList.remove('hidden');
                 document.getElementById('lateFeeAmount').textContent = formatCurrency(lateFees);
+                
+                // Set label based on charge types
+                const charges = window.pendingChargesList || [];
+                let label = 'Pending Charges';
+                if (charges.length === 1) {
+                    // Single charge - use specific name
+                    const chargeType = charges[0].type;
+                    if (chargeType === 'late_fee') label = 'Late Fee';
+                    else if (chargeType === 'toll') label = 'Toll Charges';
+                    else if (chargeType === 'damage') label = 'Damage Fee';
+                    else label = charges[0].description || 'Additional Charge';
+                } else if (charges.length > 1) {
+                    // Multiple charges - check if all same type
+                    const types = [...new Set(charges.map(c => c.type))];
+                    if (types.length === 1 && types[0] === 'late_fee') {
+                        label = 'Late Fees';
+                    } else if (types.length === 1 && types[0] === 'toll') {
+                        label = 'Toll Charges';
+                    } else {
+                        label = 'Pending Charges';
+                    }
+                }
+                document.getElementById('lateFeeLabel').textContent = label;
+            } else {
+                document.getElementById('lateFeeRow').classList.add('hidden');
             }
             
             // Show previous balance if any
             if (previousBalance > 0) {
                 document.getElementById('balanceRow').classList.remove('hidden');
                 document.getElementById('previousBalance').textContent = formatCurrency(previousBalance);
+            } else {
+                document.getElementById('balanceRow').classList.add('hidden');
             }
             
             // Update method totals
