@@ -2455,9 +2455,12 @@
                     .insert({
                         rental_id: currentRental.id,
                         customer_id: currentCustomer.id,
+                        due_date: currentRental.next_payment_due || new Date().toISOString().split('T')[0],
+                        amount_due: paymentAmount,
                         paid_amount: paymentAmount,
                         paid_date: new Date().toISOString().split('T')[0],
                         payment_method: 'card',
+                        payment_type: 'weekly',
                         transaction_id: paymentIntent.id,
                         payment_status: 'confirmed',
                         notes: `Odometer: ${currentOdometerReading} miles`
@@ -2521,9 +2524,12 @@
                         payment_id: paymentId,
                         rental_id: currentRental.id,
                         customer_id: currentCustomer.id,
+                        due_date: currentRental.next_payment_due || new Date().toISOString().split('T')[0],
+                        amount_due: paymentAmount,
                         paid_amount: paymentAmount,
                         paid_date: new Date().toISOString().split('T')[0],
                         payment_method: selectedPaymentMethod,
+                        payment_type: 'weekly',
                         payment_screenshot_url: screenshotPhotoUrl,
                         payment_status: 'pending',
                         notes: `Odometer: ${currentOdometerReading} miles. Total sent: ${formatCurrency(total)}`
