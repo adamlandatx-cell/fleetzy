@@ -1091,6 +1091,9 @@ img {
 .activity-icon.payment { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
 .activity-icon.rental { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
 .activity-icon.alert { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+.activity-icon.late { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+.activity-icon.fee { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); }
+.activity-icon.note { background: rgba(148, 163, 184, 0.15); color: var(--text-secondary); }
 .activity-icon.maintenance { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); }
 .activity-icon.customer { background: rgba(236, 72, 153, 0.15); color: var(--accent-pink); }
 
