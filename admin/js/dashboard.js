@@ -594,9 +594,11 @@ const Dashboard = {
      */
     async renderActivityFeed() {
         const container = document.getElementById('activity-feed');
+        console.log('🔍 renderActivityFeed: Container found?', !!container);
         if (!container) return;
         
         try {
+            console.log('📡 Fetching from customer_activity_log table...');
             // Try to load from customer_activity_log table (where ActivityLog writes)
             const { data: activityData, error } = await db
                 .from('customer_activity_log')
@@ -607,9 +609,16 @@ const Dashboard = {
                 .order('activity_date', { ascending: false })
                 .limit(10);
             
+            console.log('📊 Activity data received:', { 
+                count: activityData?.length || 0, 
+                hasError: !!error,
+                firstActivity: activityData?.[0]
+            });
+            
             if (error) throw error;
             
             if (activityData && activityData.length > 0) {
+                console.log('✅ Processing', activityData.length, 'activities');
                 // Use activity log data (preferred source)
                 const activities = activityData.map(a => {
                     const config = ActivityLog?.activityTypes?.[a.activity_type] || {
@@ -627,6 +636,9 @@ const Dashboard = {
                     };
                 });
                 
+                console.log('🎨 Rendering', activities.slice(0, 5).length, 'activities to DOM');
+                console.log('First activity:', activities[0]);
+                
                 container.innerHTML = activities.slice(0, 5).map(activity => `
                     <div class="activity-item">
                         <div class="activity-icon ${activity.iconClass}">
@@ -639,7 +651,10 @@ const Dashboard = {
                     </div>
                 `).join('');
                 
+                console.log('✅ Activity feed rendered successfully!');
                 return;
+            } else {
+                console.warn('⚠️ No activity data found, using fallback');
             }
         } catch (error) {
             console.warn('Activity log table not available, using fallback:', error);
