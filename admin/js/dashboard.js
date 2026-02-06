@@ -32,7 +32,7 @@ const Dashboard = {
             this.renderStats();
             this.renderRevenueChart();  // NEW: Render real revenue chart
             this.renderFleetOverview();
-            this.renderActivityFeed();
+            await this.renderActivityFeed();  // FIXED: Add await for async function
             this.renderAIInsights();
             this.updateNotificationBell();  // NEW: Update notification badge
             this.initAnimations();
@@ -592,13 +592,61 @@ const Dashboard = {
     /**
      * Render recent activity feed
      */
-    renderActivityFeed() {
+    async renderActivityFeed() {
         const container = document.getElementById('activity-feed');
         if (!container) return;
         
-        const { payments, rentals, customers } = this.data;
+        try {
+            // Try to load from customer_activity_log table (where ActivityLog writes)
+            const { data: activityData, error } = await db
+                .from('customer_activity_log')
+                .select(`
+                    *,
+                    customer:customer_id(full_name)
+                `)
+                .order('activity_date', { ascending: false })
+                .limit(10);
+            
+            if (error) throw error;
+            
+            if (activityData && activityData.length > 0) {
+                // Use activity log data (preferred source)
+                const activities = activityData.map(a => {
+                    const config = ActivityLog?.activityTypes?.[a.activity_type] || {
+                        icon: 'fa-circle',
+                        color: 'text-slate-400',
+                        iconClass: 'note'
+                    };
+                    
+                    return {
+                        type: a.activity_type,
+                        icon: config.icon,
+                        text: a.description,
+                        time: new Date(a.activity_date),
+                        iconClass: this.getActivityIconClass(a.activity_type)
+                    };
+                });
+                
+                container.innerHTML = activities.slice(0, 5).map(activity => `
+                    <div class="activity-item">
+                        <div class="activity-icon ${activity.iconClass}">
+                            <i class="fas ${activity.icon}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-text">${activity.text}</div>
+                            <div class="activity-time">${Utils.timeAgo(activity.time)}</div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                return;
+            }
+        } catch (error) {
+            console.warn('Activity log table not available, using fallback:', error);
+        }
         
-        // Combine and sort recent activities
+        // Fallback: Use old method (payments, rentals, customers tables)
+        const { payments, rentals, customers } = this.data;
         const activities = [];
         
         // Add recent payments
@@ -658,6 +706,24 @@ const Dashboard = {
                 </div>
             </div>
         `).join('');
+    },
+    
+    /**
+     * Get CSS class for activity icon based on type
+     */
+    getActivityIconClass(activityType) {
+        const classMap = {
+            'payment': 'payment',
+            'late_payment': 'late',
+            'late_fee': 'fee',
+            'deposit': 'payment',
+            'deposit_adjustment': 'note',
+            'note': 'note',
+            'status_change': 'note',
+            'rental_start': 'rental',
+            'rental_end': 'note'
+        };
+        return classMap[activityType] || 'note';
     },
     
     /**
