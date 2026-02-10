@@ -409,201 +409,544 @@ const Payments = {
     /**
      * View payment details
      */
-    view(paymentId) {
-        const payment = this.data.find(p => p.id === paymentId);
-        if (!payment) {
-            Utils.toastError('Payment not found');
-            return;
+async view(paymentId) {
+    const payment = this.data.find(p => p.id === paymentId);
+    if (!payment) {
+        Utils.toastError('Payment not found');
+        return;
+    }
+
+    const customer = payment.customer;
+    const rental = payment.rental;
+    const status = payment.payment_status || 'Pending';
+    const statusClass = this.getStatusClass(status);
+
+    const content = document.getElementById('view-payment-content');
+    if (!content) return;
+
+    // Load rental charges for this payment
+    let rentalCharges = [];
+    let appliedCharges = [];
+    let rentalData = null;
+    
+    if (payment.rental_id) {
+        try {
+            // Load rental data
+            const { data: rentals } = await db
+                .from('rentals')
+                .select('*')
+                .eq('id', payment.rental_id)
+                .single();
+            
+            rentalData = rentals;
+            
+            // Load all charges for this rental
+            const { data: charges } = await db
+                .from('rental_charges')
+                .select('*')
+                .eq('rental_id', payment.rental_id)
+                .order('charge_date', { ascending: true });
+            
+            rentalCharges = charges || [];
+            
+            // Filter charges applied to THIS payment
+            appliedCharges = rentalCharges.filter(c => c.applied_to_payment_id === payment.id);
+            
+        } catch (error) {
+            console.error('Error loading charges:', error);
         }
+    }
+
+    // Format dates
+    const paidDate = payment.paid_date 
+        ? new Date(payment.paid_date).toLocaleDateString('en-US', { 
+            weekday: 'short',
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+        })
+        : '—';
+    
+    const dueDate = payment.due_date 
+        ? new Date(payment.due_date).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+        })
+        : '—';
+    
+    const approvedAt = payment.approved_at
+        ? new Date(payment.approved_at).toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+        })
+        : '—';
+
+    // Calculate late fee if payment is late and fee not set
+    let calculatedLateFee = 0;
+    let daysLate = 0;
+    
+    if (payment.paid_date && payment.due_date) {
+        const paidDateObj = new Date(payment.paid_date);
+        const dueDateObj = new Date(payment.due_date);
         
-        const customer = payment.customer;
-        const rental = payment.rental;
-        const status = payment.payment_status || 'Pending';
-        const statusClass = this.getStatusClass(status);
-        
-        const content = document.getElementById('view-payment-content');
-        if (!content) return;
-        
-        // Format dates
-        const paidDate = payment.paid_date 
-            ? new Date(payment.paid_date).toLocaleDateString('en-US', { 
-                weekday: 'short',
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-            })
-            : '—';
-        
-        const dueDate = payment.due_date 
-            ? new Date(payment.due_date).toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-            })
-            : '—';
-        
-        const approvedAt = payment.approved_at
-            ? new Date(payment.approved_at).toLocaleString('en-US', {
+        if (paidDateObj > dueDateObj) {
+            const diffTime = Math.abs(paidDateObj - dueDateObj);
+            daysLate = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Check if there's already a late fee charge
+            const existingLateFee = rentalCharges.find(c => 
+                c.charge_type === 'late_fee' && 
+                c.applied_to_payment_id === payment.id
+            );
+            
+            if (!existingLateFee && daysLate > 0) {
+                // Calculate late fee: $50 first day + $10/day after
+                calculatedLateFee = this.calculateLateFee(daysLate);
+            } else if (existingLateFee) {
+                calculatedLateFee = parseFloat(existingLateFee.amount) || 0;
+            }
+        }
+    }
+
+    // Screenshot section
+    const screenshotSection = payment.payment_screenshot_url
+        ? `
+            <div class="detail-section full-width">
+                <h4><i class="fas fa-image"></i> Payment Screenshot</h4>
+                <div class="screenshot-preview">
+                    <img src="${payment.payment_screenshot_url}" alt="Payment Screenshot" 
+                         onclick="Payments.openScreenshotFullscreen('${payment.payment_screenshot_url}')"
+                         onerror="this.parentElement.innerHTML='<p class=\\'text-secondary\\'>Screenshot unavailable</p>'">
+                    <p class="screenshot-hint">Click to enlarge</p>
+                </div>
+            </div>
+        `
+        : '';
+
+    // Itemized Charges Section - THE KEY FIX
+    let chargesSection = '';
+    if (appliedCharges.length > 0 || status.toLowerCase() === 'pending') {
+        const chargesList = appliedCharges.map(charge => {
+            const chargeDate = new Date(charge.charge_date).toLocaleDateString('en-US', {
                 month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            })
-            : '—';
-        
-        // Screenshot section
-        const screenshotSection = payment.payment_screenshot_url
-            ? `
-                <div class="detail-section full-width">
-                    <h4><i class="fas fa-image"></i> Payment Screenshot</h4>
-                    <div class="screenshot-preview">
-                        <img src="${payment.payment_screenshot_url}" alt="Payment Screenshot" 
-                             onclick="Payments.openScreenshotFullscreen('${payment.payment_screenshot_url}')"
-                             onerror="this.parentElement.innerHTML='<p class=\\'text-secondary\\'>Screenshot unavailable</p>'">
-                        <p class="screenshot-hint">Click to enlarge</p>
+                day: 'numeric'
+            });
+            
+            return `
+                <div class="charge-item">
+                    <div class="charge-header">
+                        <span class="charge-type">${this.formatChargeType(charge.charge_type)}</span>
+                        <span class="charge-amount">${Utils.formatCurrency(charge.amount)}</span>
                     </div>
+                    <div class="charge-details">
+                        <span class="charge-date">${chargeDate}</span>
+                        ${charge.description ? `<span class="charge-desc">${charge.description}</span>` : ''}
+                        <span class="charge-status status-${charge.status}">${charge.status}</span>
+                    </div>
+                    ${status.toLowerCase() === 'pending' ? `
+                        <button class="btn-icon-sm text-danger" 
+                                onclick="Payments.removeCharge('${charge.id}')"
+                                title="Remove charge">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    ` : ''}
                 </div>
-            `
-            : '';
+            `;
+        }).join('');
+
+        const subtotal = appliedCharges.reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
         
-        // Late payment section
-        const lateSection = payment.is_late
-            ? `
-                <div class="detail-section full-width late-alert">
-                    <h4><i class="fas fa-exclamation-triangle"></i> Late Payment</h4>
-                    <div class="detail-row">
-                        <span class="detail-label">Days Late</span>
-                        <span class="detail-value text-warning">${payment.days_late || 0} days</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Late Fee Charged</span>
-                        <span class="detail-value text-warning">${Utils.formatCurrency(payment.late_fee_charged || 0)}</span>
-                    </div>
-                </div>
-            `
-            : '';
-        
-        // Approval section
-        const approvalSection = status.toLowerCase() === 'confirmed' || status.toLowerCase() === 'approved'
-            ? `
-                <div class="detail-section full-width">
-                    <h4><i class="fas fa-check-circle"></i> Approval Information</h4>
-                    <div class="detail-row">
-                        <span class="detail-label">Approved By</span>
-                        <span class="detail-value">${payment.approved_by || 'System'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Approved At</span>
-                        <span class="detail-value">${approvedAt}</span>
-                    </div>
-                </div>
-            `
-            : '';
-        
-        // Notes section
-        const notesSection = payment.notes
-            ? `
-                <div class="detail-section full-width">
-                    <h4><i class="fas fa-sticky-note"></i> Notes</h4>
-                    <p class="notes-text">${payment.notes}</p>
-                </div>
-            `
-            : '';
-        
-        content.innerHTML = `
-            <div class="detail-grid">
-                <div class="detail-section">
-                    <h4><i class="fas fa-receipt"></i> Payment Information</h4>
-                    <div class="detail-row">
-                        <span class="detail-label">Payment ID</span>
-                        <span class="detail-value">${payment.payment_id || '—'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Status</span>
-                        <span class="detail-value">
-                            <span class="status-badge ${statusClass}">${status}</span>
-                        </span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Amount</span>
-                        <span class="detail-value">${Utils.formatCurrency(payment.paid_amount || 0)}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Method</span>
-                        <span class="detail-value">${payment.payment_method || '—'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Paid Date</span>
-                        <span class="detail-value">${paidDate}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Due Date</span>
-                        <span class="detail-value">${dueDate}</span>
-                    </div>
-                    ${payment.transaction_id ? `
-                        <div class="detail-row">
-                            <span class="detail-label">Transaction ID</span>
-                            <span class="detail-value">${payment.transaction_id}</span>
-                        </div>
+        chargesSection = `
+            <div class="detail-section full-width charges-breakdown">
+                <div class="charges-header">
+                    <h4><i class="fas fa-list-ul"></i> Itemized Charges</h4>
+                    ${status.toLowerCase() === 'pending' ? `
+                        <button class="btn btn-sm btn-secondary" 
+                                onclick="Payments.addCharge('${payment.id}')">
+                            <i class="fas fa-plus"></i> Add Charge
+                        </button>
                     ` : ''}
                 </div>
                 
-                <div class="detail-section">
-                    <h4><i class="fas fa-user"></i> Customer</h4>
-                    <div class="detail-row">
-                        <span class="detail-label">Name</span>
-                        <span class="detail-value">${customer?.full_name || '—'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Customer ID</span>
-                        <span class="detail-value">${customer?.customer_id || '—'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Phone</span>
-                        <span class="detail-value">${customer?.phone || '—'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Email</span>
-                        <span class="detail-value">${customer?.email || '—'}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Rental ID</span>
-                        <span class="detail-value">${rental?.rental_id || '—'}</span>
-                    </div>
+                <div class="charges-list">
+                    ${chargesList || '<p class="text-secondary">No itemized charges yet</p>'}
                 </div>
                 
-                ${screenshotSection}
-                ${lateSection}
-                ${approvalSection}
-                ${notesSection}
+                ${appliedCharges.length > 0 ? `
+                    <div class="charges-summary">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span>${Utils.formatCurrency(subtotal)}</span>
+                        </div>
+                        ${calculatedLateFee > 0 ? `
+                            <div class="summary-row late-fee">
+                                <span>Late Fee (${daysLate} day${daysLate > 1 ? 's' : ''} late):</span>
+                                <span>${Utils.formatCurrency(calculatedLateFee)}</span>
+                            </div>
+                        ` : ''}
+                        <div class="summary-row total">
+                            <span>Total Due:</span>
+                            <span>${Utils.formatCurrency(subtotal + calculatedLateFee)}</span>
+                        </div>
+                        <div class="summary-row paid">
+                            <span>Amount Paid:</span>
+                            <span>${Utils.formatCurrency(payment.paid_amount || 0)}</span>
+                        </div>
+                        <div class="summary-row balance ${(subtotal + calculatedLateFee - (payment.paid_amount || 0)) > 0 ? 'text-danger' : 'text-success'}">
+                            <span>Balance:</span>
+                            <span>${Utils.formatCurrency(subtotal + calculatedLateFee - (payment.paid_amount || 0))}</span>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
-        
-        // Store current payment ID for modal actions
-        this.currentPaymentId = paymentId;
-        
-        // Update modal footer buttons based on status
-        const modalFooter = document.querySelector('#modal-view-payment .modal-footer');
-        if (modalFooter && status.toLowerCase() === 'pending') {
-            modalFooter.innerHTML = `
-                <button class="btn btn-secondary" onclick="Payments.closeViewModal()">Close</button>
-                <button class="btn btn-danger" onclick="Payments.closeViewModal(); Payments.openRejectModal('${paymentId}')">
-                    <i class="fas fa-times"></i> Reject
-                </button>
-                <button class="btn btn-success" onclick="Payments.approveFromModal()">
-                    <i class="fas fa-check"></i> Approve
-                </button>
-            `;
-        } else {
-            modalFooter.innerHTML = `
-                <button class="btn btn-secondary" onclick="Payments.closeViewModal()">Close</button>
-            `;
+    }
+
+    // Late payment warning
+    const lateSection = (daysLate > 0 || calculatedLateFee > 0)
+        ? `
+            <div class="detail-section full-width late-alert">
+                <h4><i class="fas fa-exclamation-triangle"></i> Late Payment</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Days Late</span>
+                    <span class="detail-value text-warning">${daysLate} days</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Late Fee</span>
+                    <span class="detail-value text-warning">${Utils.formatCurrency(calculatedLateFee)}</span>
+                </div>
+                ${status.toLowerCase() === 'pending' && calculatedLateFee > 0 && !rentalCharges.find(c => c.charge_type === 'late_fee') ? `
+                    <div class="late-fee-action">
+                        <button class="btn btn-sm btn-warning" 
+                                onclick="Payments.addLateFee('${payment.id}', ${calculatedLateFee}, ${daysLate})">
+                            <i class="fas fa-plus"></i> Add Late Fee to Charges
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `
+        : '';
+
+    // Approval section
+    const approvalSection = status.toLowerCase() === 'confirmed' || status.toLowerCase() === 'approved'
+        ? `
+            <div class="detail-section full-width">
+                <h4><i class="fas fa-check-circle"></i> Approval Information</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Approved By</span>
+                    <span class="detail-value">${payment.approved_by || 'System'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Approved At</span>
+                    <span class="detail-value">${approvedAt}</span>
+                </div>
+            </div>
+        `
+        : '';
+
+    // Notes section
+    const notesSection = payment.notes
+        ? `
+            <div class="detail-section full-width">
+                <h4><i class="fas fa-sticky-note"></i> Notes</h4>
+                <p class="notes-text">${payment.notes}</p>
+            </div>
+        `
+        : '';
+
+    content.innerHTML = `
+        <div class="detail-grid">
+            <div class="detail-section">
+                <h4><i class="fas fa-receipt"></i> Payment Information</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Payment ID</span>
+                    <span class="detail-value">${payment.payment_id || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value">
+                        <span class="status-badge ${statusClass}">${status}</span>
+                    </span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Method</span>
+                    <span class="detail-value">${payment.payment_method || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Paid Date</span>
+                    <span class="detail-value">${paidDate}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Due Date</span>
+                    <span class="detail-value">${dueDate}</span>
+                </div>
+                ${payment.transaction_id ? `
+                    <div class="detail-row">
+                        <span class="detail-label">Transaction ID</span>
+                        <span class="detail-value">${payment.transaction_id}</span>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="detail-section">
+                <h4><i class="fas fa-user"></i> Customer</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Name</span>
+                    <span class="detail-value">${customer?.full_name || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Customer ID</span>
+                    <span class="detail-value">${customer?.customer_id || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Phone</span>
+                    <span class="detail-value">${customer?.phone || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value">${customer?.email || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Rental ID</span>
+                    <span class="detail-value">${rental?.rental_id || '—'}</span>
+                </div>
+            </div>
+            
+            ${chargesSection}
+            ${screenshotSection}
+            ${lateSection}
+            ${approvalSection}
+            ${notesSection}
+        </div>
+    `;
+
+    // Store current payment ID for modal actions
+    this.currentPaymentId = paymentId;
+    this.currentPaymentData = {
+        payment,
+        rental: rentalData,
+        charges: rentalCharges,
+        appliedCharges,
+        calculatedLateFee,
+        daysLate
+    };
+
+    // Update modal footer buttons based on status
+    const modalFooter = document.querySelector('#modal-view-payment .modal-footer');
+    if (modalFooter && status.toLowerCase() === 'pending') {
+        modalFooter.innerHTML = `
+            <button class="btn btn-secondary" onclick="Payments.closeViewModal()">Close</button>
+            <button class="btn btn-danger" onclick="Payments.closeViewModal(); Payments.openRejectModal('${paymentId}')">
+                <i class="fas fa-times"></i> Reject
+            </button>
+            <button class="btn btn-success" onclick="Payments.approveFromModal()">
+                <i class="fas fa-check"></i> Approve
+            </button>
+        `;
+    } else {
+        modalFooter.innerHTML = `
+            <button class="btn btn-secondary" onclick="Payments.closeViewModal()">Close</button>
+        `;
+    }
+
+    // Show modal
+    document.getElementById('modal-view-payment').classList.add('active');
+},
+/**
+ * Format charge type for display
+ */
+formatChargeType(type) {
+    const types = {
+        'weekly_rent': 'Weekly Rent',
+        'toll': 'Toll',
+        'late_fee': 'Late Fee',
+        'damage': 'Damage Fee',
+        'cleaning': 'Cleaning Fee',
+        'fuel': 'Fuel Charge',
+        'other': 'Other'
+    };
+    return types[type] || type;
+},
+
+/**
+ * Add late fee charge to rental
+ */
+async addLateFee(paymentId, amount, daysLate) {
+    try {
+        const payment = this.data.find(p => p.id === paymentId);
+        if (!payment || !payment.rental_id) {
+            Utils.toastError('Cannot add late fee - rental not found');
+            return;
         }
+
+        // Create late fee charge
+        const { data, error } = await db
+            .from('rental_charges')
+            .insert({
+                rental_id: payment.rental_id,
+                charge_type: 'late_fee',
+                description: `Late fee - ${daysLate} days overdue`,
+                amount: amount,
+                charge_date: payment.paid_date || new Date().toISOString().split('T')[0],
+                status: 'pending',
+                notes: `Auto-generated late fee for payment ${payment.payment_id}`
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        Utils.toastSuccess('Late fee added to charges');
         
-        // Show modal
-        document.getElementById('modal-view-payment').classList.add('active');
-    },
+        // Reload the modal to show updated charges
+        await this.view(paymentId);
+
+    } catch (error) {
+        console.error('Error adding late fee:', error);
+        Utils.toastError('Failed to add late fee');
+    }
+},
+
+/**
+ * Add custom charge to payment
+ */
+async addCharge(paymentId) {
+    // Show a quick modal for adding charges
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.id = 'modal-quick-charge';
+    modal.innerHTML = `
+        <div class="modal-overlay" onclick="document.getElementById('modal-quick-charge').remove()"></div>
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus"></i> Add Charge</h3>
+                <button class="modal-close" onclick="document.getElementById('modal-quick-charge').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Charge Type</label>
+                    <select id="quick-charge-type" class="form-control">
+                        <option value="toll">Toll</option>
+                        <option value="damage">Damage Fee</option>
+                        <option value="cleaning">Cleaning Fee</option>
+                        <option value="fuel">Fuel Charge</option>
+                        <option value="late_fee">Late Fee</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="quick-charge-amount" class="form-control" 
+                           placeholder="0.00" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="quick-charge-desc" class="form-control" 
+                           placeholder="Brief description">
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="quick-charge-date" class="form-control" 
+                           value="${new Date().toISOString().split('T')[0]}">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" 
+                        onclick="document.getElementById('modal-quick-charge').remove()">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" onclick="Payments.submitQuickCharge('${paymentId}')">
+                    <i class="fas fa-plus"></i> Add Charge
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+},
+
+/**
+ * Submit quick charge
+ */
+async submitQuickCharge(paymentId) {
+    try {
+        const type = document.getElementById('quick-charge-type').value;
+        const amount = parseFloat(document.getElementById('quick-charge-amount').value);
+        const description = document.getElementById('quick-charge-desc').value;
+        const date = document.getElementById('quick-charge-date').value;
+
+        if (!amount || amount <= 0) {
+            Utils.toastError('Please enter a valid amount');
+            return;
+        }
+
+        const payment = this.data.find(p => p.id === paymentId);
+        if (!payment || !payment.rental_id) {
+            Utils.toastError('Rental not found');
+            return;
+        }
+
+        // Create charge
+        const { error } = await db
+            .from('rental_charges')
+            .insert({
+                rental_id: payment.rental_id,
+                charge_type: type,
+                description: description || this.formatChargeType(type),
+                amount: amount,
+                charge_date: date,
+                status: 'pending'
+            });
+
+        if (error) throw error;
+
+        // Close quick charge modal
+        document.getElementById('modal-quick-charge').remove();
+
+        Utils.toastSuccess('Charge added');
+        
+        // Reload payment modal
+        await this.view(paymentId);
+
+    } catch (error) {
+        console.error('Error adding charge:', error);
+        Utils.toastError('Failed to add charge');
+    }
+},
+
+/**
+ * Remove charge from payment
+ */
+async removeCharge(chargeId) {
+    if (!confirm('Remove this charge? This cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const { error } = await db
+            .from('rental_charges')
+            .delete()
+            .eq('id', chargeId);
+
+        if (error) throw error;
+
+        Utils.toastSuccess('Charge removed');
+        
+        // Reload modal
+        if (this.currentPaymentId) {
+            await this.view(this.currentPaymentId);
+        }
+
+    } catch (error) {
+        console.error('Error removing charge:', error);
+        Utils.toastError('Failed to remove charge');
+    }
+}
     
     /**
      * Close view modal
