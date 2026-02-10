@@ -946,7 +946,7 @@ async removeCharge(chargeId) {
         console.error('Error removing charge:', error);
         Utils.toastError('Failed to remove charge');
     }
-}
+},
     
     /**
      * Close view modal
