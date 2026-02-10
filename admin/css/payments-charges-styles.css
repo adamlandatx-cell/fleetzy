@@ -1,0 +1,272 @@
+/* ============================================
+   FLEETZY ADMIN - PAYMENT CHARGES STYLES
+   Add these styles to your admin dashboard CSS
+   ============================================ */
+
+/* Charges Breakdown Section */
+.charges-breakdown {
+    background: var(--surface-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.charges-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.charges-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.charges-header h4 i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+/* Charge Items List */
+.charges-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.charge-item {
+    position: relative;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.charge-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.charge-item:last-child {
+    margin-bottom: 0;
+}
+
+.charge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.charge-type {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.charge-amount {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.charge-details {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+
+.charge-date {
+    color: var(--text-secondary);
+}
+
+.charge-desc {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.charge-status {
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.charge-status.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.charge-status.status-paid {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.charge-status.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Remove button for charges */
+.charge-item .btn-icon-sm {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.charge-item:hover .btn-icon-sm {
+    opacity: 1;
+}
+
+.charge-item .btn-icon-sm:hover {
+    color: var(--danger-color);
+}
+
+/* Charges Summary */
+.charges-summary {
+    border-top: 2px solid var(--border-color);
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.summary-row span:first-child {
+    color: var(--text-secondary);
+}
+
+.summary-row span:last-child {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.summary-row.late-fee {
+    color: var(--warning-color);
+}
+
+.summary-row.late-fee span {
+    color: var(--warning-color);
+}
+
+.summary-row.total {
+    font-size: 1.1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 0.5rem;
+}
+
+.summary-row.total span {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.summary-row.paid {
+    color: var(--success-color);
+}
+
+.summary-row.paid span {
+    color: var(--success-color);
+}
+
+.summary-row.balance {
+    font-size: 1.05rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.summary-row.balance span {
+    font-weight: 700;
+}
+
+/* Late Alert Section */
+.late-alert {
+    background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.late-alert h4 {
+    color: #92400e;
+    margin-bottom: 1rem;
+}
+
+.late-alert h4 i {
+    color: #f59e0b;
+}
+
+.late-alert .detail-row .detail-value {
+    font-weight: 700;
+}
+
+.late-fee-action {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f59e0b;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .charge-item {
+        background: rgba(30, 41, 59, 0.5);
+    }
+    
+    .charge-status.status-pending {
+        background: rgba(254, 243, 199, 0.2);
+        color: #fbbf24;
+    }
+    
+    .charge-status.status-paid {
+        background: rgba(209, 250, 229, 0.2);
+        color: #34d399;
+    }
+    
+    .charge-status.status-cancelled {
+        background: rgba(254, 226, 226, 0.2);
+        color: #f87171;
+    }
+    
+    .late-alert {
+        background: linear-gradient(135deg, rgba(254, 243, 199, 0.15) 0%, rgba(254, 215, 170, 0.15) 100%);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .charge-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .charge-details {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .charges-summary {
+        font-size: 0.9rem;
+    }
+}
