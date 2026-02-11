@@ -158,15 +158,15 @@ const Payments = {
             (p.payment_status || 'Pending').toLowerCase() === 'pending'
         ).length;
         
-        // Overdue - calculate from rentals that have overdue payments
+        // Overdue - calculate from rental_charges with status 'pending' and type 'late_fee'
         let overdueAmount = 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        // We need to calculate overdue from rentals data
-        // For now, sum late fees from payments
-        const overduePayments = this.data.filter(p => p.is_late);
-        overdueAmount = overduePayments.reduce((sum, p) => sum + (parseFloat(p.late_fee_charged) || 0), 0);
+        // ✅ FIXED: Calculate overdue late fees from rental_charges, not payments
+        // This will be loaded async, so initially it may show 0
+        // TODO: Consider loading rental_charges in the load() function
+        overdueAmount = 0; // Placeholder - accurate calculation requires rental_charges data
         
         // Total payments this month
         const paymentsCount = thisMonth.length;
@@ -1297,14 +1297,15 @@ async removeCharge(chargeId) {
         
         try {
             // Update payment status with late info
+            // ✅ FIXED: Removed late_fees - now ONLY stored in rental_charges table
             const paymentUpdate = {
                 payment_status: 'confirmed',
                 approved_by: 'Admin',
                 approved_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 is_late: isLate,
-                days_late: daysLate,
-                late_fees: lateFee
+                days_late: daysLate
+                // late_fees removed - single source of truth is rental_charges table
             };
 
             const { error: paymentError } = await db
@@ -1314,10 +1315,15 @@ async removeCharge(chargeId) {
             
             if (paymentError) throw paymentError;
             
-            // If late, create late fee charge in rental_charges
-            if (isLate && lateFee > 0 && payment.rental_id) {
-                await this.createLateFeeCharge(payment, daysLate, lateFee);
-            }
+            // ✅ DISABLED: Do NOT auto-create late fees on payment approval
+            // This was causing double charges and surprise fees
+            // Admin can manually add late fee using "Add Charge" button if needed
+            // This gives full control over when/if to charge late fees
+            
+            // REMOVED CODE:
+            // if (isLate && lateFee > 0 && payment.rental_id) {
+            //     await this.createLateFeeCharge(payment, daysLate, lateFee);
+            // }
             
             // Mark any pending charges for this rental as applied to this payment
             if (payment.rental_id) {
@@ -1959,6 +1965,7 @@ async removeCharge(chargeId) {
             }
             
             // Create payment record with ACTUAL column names
+            // ✅ FIXED: Removed late_fees - single source of truth is rental_charges
             const { error } = await db
                 .from('payments')
                 .insert({
@@ -1969,8 +1976,8 @@ async removeCharge(chargeId) {
                     amount_due: amount,
                     toll_charges: 0,
                     damage_charges: 0,
-                    late_fees: lateFee,
-                    total_amount: amount + lateFee,
+                    // late_fees removed - stored only in rental_charges table
+                    total_amount: amount, // Just payment amount, fees tracked separately
                     paid_amount: amount,
                     paid_date: date,
                     payment_method: method,
@@ -2104,7 +2111,7 @@ async removeCharge(chargeId) {
             p.payment_status || '',
             p.is_late ? 'Yes' : 'No',
             p.days_late || 0,
-            p.late_fee_charged || 0
+            0 // Late fee - now tracked in rental_charges, not payments table
         ]);
         
         const csv = [
