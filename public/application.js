@@ -89,8 +89,7 @@ function renderVehicles() {
         const statusBadge = getStatusBadge(vehicle.status);
         const imageUrl = vehicle.image_url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80';
         const displayName = vehicle.friendly_name || `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
-        const monthlyRate = vehicle.monthly_payment || 400;
-        const weeklyRate = Math.round(monthlyRate * 12 / 52); // Convert monthly to weekly
+        const weeklyRate = vehicle.weekly_rate || 400; // Use actual rental rate
         
         return `
             <div class="vehicle-card bg-white rounded-xl overflow-hidden shadow-md ${!isAvailable ? 'unavailable' : ''}"
@@ -759,8 +758,7 @@ async function createCustomer(formData, uploads) {
 }
 
 async function createRentalApplication(customerId, formData) {
-    const weeklyRate = selectedVehicle?.monthly_payment ? 
-        Math.round(selectedVehicle.monthly_payment * 12 / 52) : 400;
+    const weeklyRate = selectedVehicle?.weekly_rate || 400; // Use actual rental rate
     
     // Generate rental ID (e.g., R-20251115-001)
     const today = new Date();
